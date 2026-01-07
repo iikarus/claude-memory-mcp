@@ -18,6 +18,12 @@ def memory_service():
         service = MemoryService()
         service.client = MagicMock()
         service.client.select_graph.return_value = MagicMock()
+
+        # Mock the encoder helper directly!
+        service._get_encoder = MagicMock()
+        encoder = service._get_encoder.return_value
+        encoder.encode.return_value.tolist.return_value = [0.1] * 384
+
         yield service
 
 
@@ -26,13 +32,10 @@ async def test_day_in_the_life(memory_service):
     """Simulates a full user workflow."""
     graph = memory_service.client.select_graph.return_value
 
-    # Mock SentenceTransformer to prevent real model loading/path issues
-    with patch("claude_memory.tools.SentenceTransformer") as MockST:
-        encoder = MockST.return_value
-        encoder.encode.return_value.tolist.return_value = [0.1] * 384
+    # Patch UUID generation to return deterministic IDs
 
-        # Patch UUID generation to return deterministic IDs
-        # Sequence:
+    # Patch UUID generation to return deterministic IDs
+    # Sequence:
     # 1. create_entity -> calls uuid (if implemented) OR we mock DB return.
     #    create_entity returns DB props. If mock DB returns "cnt-1", it matches.
     #    BUT internal logic might use UUID. Let's patch globally in this test.

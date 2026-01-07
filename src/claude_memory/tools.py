@@ -40,12 +40,21 @@ class MemoryService:
         # We might need to initialize indices here if Graphiti doesn't do it automatically for custom properties
         # But for now we rely on Graphiti's hybrid search capabilities
 
+    def _get_encoder(self) -> Any:
+        """Helper to get the sentence transformer model.
+        Extracted for easier mocking in tests.
+        """
+        # Ideally this should be a singleton or injected
+        return SentenceTransformer("all-MiniLM-L6-v2")
+
     async def create_entity(self, params: EntityCreateParams) -> Dict[str, Any]:
         """Creates an entity node in the graph."""
         logger.info(f"Creating entity: {params.name} ({params.node_type})")
 
-        # Prepare properties
         props = params.properties.copy()
+        import uuid
+
+        props["id"] = params.properties.get("id") or str(uuid.uuid4())
         props.update(
             {
                 "name": params.name,
@@ -58,49 +67,16 @@ class MemoryService:
             }
         )
 
-        # Graphiti's add_node or similar - adapting to generic "add_node" concept
-        # Since Graphiti is high level, we might use falkordb driver directly for raw node creation
-        # OR assume Graphiti has a way to add generic nodes.
-        # Looking at Graphiti docs (assumed): it has add_episode usually.
-        # But here we want explicit entity management.
-        # We will use the underlying FalkorDB client exposed by Graphiti if available, or just use Graphiti's methods.
-        # Assuming Graphiti exposes a `.driver` or `.db` for direct Cypher execution is safest for "Custom" schemas.
-
-        # Let's try to use Cypher directly for maximum control as requested in "Option C"
-        # "We write the custom extensions... Graphiti handles the heavy lifting (search)"
-
-        # NOTE: Using direct cypher for creation ensures we adhere exactly to our schema
+        # For MVP: We will insert node without embedding, or compute it if we have 'sentence_transformers'
+        encoder = self._get_encoder()
+        embedding = encoder.encode(params.name + " " + str(props.get("description", ""))).tolist()
+        props["embedding"] = embedding
 
         query = f"""
         CREATE (n:{params.node_type}:Entity)
         SET n = $props
         RETURN n
         """
-
-        # We need to ensure we are connecting to the graph 'claude_memory'
-        # Graphiti normally manages its own graph name. Let's assume 'claude_memory' based on specs.
-
-        # Accessing underlying driver (speculative API, adapting to standard patterns)
-        # If Graphiti wraps the driver, we use it.
-        # For this implementation, I will treat self.client as the interface.
-        # If Graphiti doesn't support raw queries easily, I'll fallback to falkordb-python driver pattern
-        # But lets assume `self.client.driver.query` or similar exists.
-
-        # Actually, let's stick to the high level if possible, but the spec detailed detailed Cypher.
-        # "Option C: Graphiti handles heavy lifting (Entity Extraction, Hybrid Search)".
-        # Use simple creation for now.
-
-        # REVISION: To support vector indexing correctly, we might want to use Graphiti's ingestion
-        # BUT Graphiti's ingestion is text-to-graph.
-        # The user wants "create_entity" tool.
-        # So we MUST use Cypher to insert the node.
-        # AND we must calculate embedding if we want semantic search on it.
-
-        # For MVP: We will insert node without embedding, or compute it if we have 'sentence_transformers'
-
-        encoder = SentenceTransformer("all-MiniLM-L6-v2")
-        embedding = encoder.encode(params.name + " " + str(props.get("description", ""))).tolist()
-        props["embedding"] = embedding
 
         # Execute Cypher
         # We need to know the graph name.
@@ -173,7 +149,7 @@ class MemoryService:
                 new_name = props.get("name", curr_name)
                 new_desc = props.get("description", curr_desc)
 
-                encoder = SentenceTransformer("all-MiniLM-L6-v2")
+                encoder = self._get_encoder()
                 embedding = encoder.encode(new_name + " " + str(new_desc)).tolist()
                 props["embedding"] = embedding
 
@@ -504,7 +480,7 @@ class MemoryService:
         # Note: This is a filter on created_at. True temporal versioning is out of scope.
         # We perform a vector search but filter results.
 
-        encoder = SentenceTransformer("all-MiniLM-L6-v2")
+        encoder = self._get_encoder()
         vec = encoder.encode(query_text).tolist()
 
         graph = self.client.select_graph("claude_memory")
@@ -596,7 +572,7 @@ class MemoryService:
         # Any vector search on nodes:
         # CALL db.idx.vector.queryNodes('Entity', 'embedding', $vec, $k)
 
-        encoder = SentenceTransformer("all-MiniLM-L6-v2")
+        encoder = self._get_encoder()
         vec = encoder.encode(query).tolist()
 
         # FalkorDB Vector Search Syntax (Attempt)
