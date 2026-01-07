@@ -23,9 +23,6 @@ async def test_get_neighbors(memory_service: MemoryService) -> None:
     mock_node = MagicMock()
     mock_node.properties = {"id": "n2", "name": "Neighbor"}
 
-    # result_set = [[node1], [node2]] ? No, query returns distinct m.
-    # Usually list of rows. Row is list of columns.
-    # [[node]]
     graph.query.return_value.result_set = [[mock_node]]
 
     result = await memory_service.get_neighbors("n1", depth=1)
@@ -40,7 +37,6 @@ async def test_traverse_path(memory_service: MemoryService) -> None:
     graph = memory_service.client.select_graph.return_value
 
     # Mock result for traverse_path
-    # Returns 'p'. If p is Path object.
     mock_path = MagicMock()
 
     # Create fake nodes
@@ -61,3 +57,20 @@ async def test_traverse_path(memory_service: MemoryService) -> None:
     assert result[1]["id"] == "end"
 
     assert "shortestPath" in graph.query.call_args[0][0]
+
+
+@pytest.mark.asyncio  # type: ignore
+async def test_find_cross_domain_patterns(memory_service: MemoryService) -> None:
+    graph = memory_service.client.select_graph.return_value
+
+    # Mock result (list of nodes)
+    mock_node = MagicMock()
+    mock_node.properties = {"id": "n3", "project_id": "other_proj"}
+    graph.query.return_value.result_set = [[mock_node]]
+
+    result = await memory_service.find_cross_domain_patterns("n1")
+
+    assert len(result) == 1
+    assert result[0]["project_id"] == "other_proj"
+    # Check Cypher for cross domain logic
+    assert "WHERE m.project_id <> n.project_id" in graph.query.call_args[0][0]

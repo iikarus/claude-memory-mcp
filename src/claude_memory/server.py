@@ -170,6 +170,12 @@ async def traverse_path(from_id: str, to_id: str) -> List[Dict[str, Any]]:
 
 
 @mcp.tool()  # type: ignore
+async def find_cross_domain_patterns(entity_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+    """Analyzes the graph for non-obvious connections between disparate domains."""
+    return await service.find_cross_domain_patterns(entity_id, limit)  # type: ignore
+
+
+@mcp.tool()  # type: ignore
 async def search_memory(
     query: str, project_id: Optional[str] = None, limit: int = 10
 ) -> List[Dict[str, Any]]:

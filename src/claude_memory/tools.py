@@ -459,6 +459,30 @@ class MemoryService:
 
         return path_data
 
+    async def find_cross_domain_patterns(
+        self, entity_id: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """Find nodes in different projects connected to this entity."""
+        graph = self.client.select_graph("claude_memory")
+
+        # Find reachable nodes (up to depth 3) that are in a different project
+        query = """
+        MATCH (n:Entity {id: $entity_id})
+        MATCH (n)-[*1..3]-(m:Entity)
+        WHERE m.project_id <> n.project_id
+        RETURN distinct m
+        LIMIT $limit
+        """
+
+        result = graph.query(query, {"entity_id": entity_id, "limit": limit})
+
+        nodes = []
+        for row in result.result_set:
+            if row and row[0]:
+                nodes.append(row[0].properties)
+
+        return nodes
+
     async def search(
         self, query: str, project_id: Optional[str] = None, limit: int = 10
     ) -> List[SearchResult]:
