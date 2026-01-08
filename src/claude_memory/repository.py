@@ -18,7 +18,7 @@ class MemoryRepository:
     ) -> None:
         self.host = host or os.getenv("FALKORDB_HOST", "localhost")
         self.port = port or int(os.getenv("FALKORDB_PORT", 6379))
-        self.password = password or os.getenv("FALKORDB_PASSWORD", "***REMOVED***")
+        self.password = password or os.getenv("FALKORDB_PASSWORD")
 
         self.client = FalkorDB(
             host=self.host,
