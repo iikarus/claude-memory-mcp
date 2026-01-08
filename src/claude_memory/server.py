@@ -1,8 +1,10 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from mcp.server.fastmcp import FastMCP
 
+from claude_memory.clustering import ClusteringService
 from claude_memory.embedding import EmbeddingService
+from claude_memory.librarian import LibrarianAgent
 from claude_memory.schema import (
     BreakthroughParams,
     EntityCreateParams,
@@ -23,9 +25,11 @@ mcp = FastMCP("claude-memory")
 # Wire up dependencies explicitly
 embedder = EmbeddingService()
 service = MemoryService(embedding_service=embedder)
+clustering = ClusteringService()
+librarian = LibrarianAgent(service, clustering)
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def create_entity(
     name: str,
     node_type: str,
@@ -46,7 +50,7 @@ async def create_entity(
     return await service.create_entity(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def update_entity(
     entity_id: str,
     properties: Dict[str, Any],
@@ -61,7 +65,7 @@ async def update_entity(
     return await service.update_entity(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def delete_entity(
     entity_id: str,
     reason: str,
@@ -76,7 +80,7 @@ async def delete_entity(
     return await service.delete_entity(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def create_relationship(
     from_entity: str,
     to_entity: str,
@@ -95,7 +99,7 @@ async def create_relationship(
     return await service.create_relationship(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def delete_relationship(
     relationship_id: str,
     reason: str,
@@ -108,7 +112,7 @@ async def delete_relationship(
     return await service.delete_relationship(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def add_observation(
     entity_id: str,
     content: str,
@@ -125,21 +129,21 @@ async def add_observation(
     return await service.add_observation(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def start_session(project_id: str, focus: str) -> Dict[str, Any]:
     """Starts a new session context."""
     params = SessionStartParams(project_id=project_id, focus=focus)
     return await service.start_session(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def end_session(session_id: str, summary: str, outcomes: List[str] = []) -> Dict[str, Any]:
     """Ends a session and records summary."""
     params = SessionEndParams(session_id=session_id, summary=summary, outcomes=outcomes)
     return await service.end_session(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def record_breakthrough(
     name: str,
     moment: str,
@@ -158,55 +162,61 @@ async def record_breakthrough(
     return await service.record_breakthrough(params)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def get_neighbors(entity_id: str, depth: int = 1, limit: int = 20) -> List[Dict[str, Any]]:
     """Retrieve neighboring entities up to a certain depth."""
     return await service.get_neighbors(entity_id, depth, limit)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def traverse_path(from_id: str, to_id: str) -> List[Dict[str, Any]]:
     """Find the shortest path between two entities."""
     return await service.traverse_path(from_id, to_id)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def find_cross_domain_patterns(entity_id: str, limit: int = 10) -> List[Dict[str, Any]]:
     """Analyzes the graph for non-obvious connections between disparate domains."""
     return await service.find_cross_domain_patterns(entity_id, limit)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def get_evolution(entity_id: str) -> List[Dict[str, Any]]:
     """Retrieve the evolution (history/observations) of an entity."""
     return await service.get_evolution(entity_id)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def point_in_time_query(query_text: str, as_of: str) -> List[Dict[str, Any]]:
     """Execute a search considering only knowledge known before `as_of`."""
     return await service.point_in_time_query(query_text, as_of)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def archive_entity(entity_id: str) -> Dict[str, Any]:
     """Archive an entity (logical hide."""
     return await service.archive_entity(entity_id)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def prune_stale(days: int = 30) -> Dict[str, Any]:
     """Hard delete archived entities older than N days."""
     return await service.prune_stale(days)  # type: ignore
 
 
-@mcp.tool()  # type: ignore
+@mcp.tool()  # type: ignore[misc]
 async def search_memory(
     query: str, project_id: Optional[str] = None, limit: int = 10
 ) -> List[Dict[str, Any]]:
     """Search for entities using hybrid search."""
     results = await service.search(query, project_id, limit)
     return [res.model_dump() for res in results]
+
+
+@mcp.tool()  # type: ignore[misc]
+async def run_librarian_cycle() -> Dict[str, Any]:
+    """Triggers the Librarian Agent to cluster and consolidate memories."""
+    return cast(Dict[str, Any], await librarian.run_cycle())
 
 
 def main() -> None:

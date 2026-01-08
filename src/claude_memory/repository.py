@@ -235,3 +235,15 @@ class MemoryRepository:
         unique_edges = {e["id"]: e for e in edges_data}  # e has source/target/type merged in
 
         return {"nodes": list(unique_nodes.values()), "edges": list(unique_edges.values())}
+
+    def get_all_nodes(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """Retrieves all entity nodes with their embeddings for clustering."""
+        graph = self.select_graph()
+        query = """
+        MATCH (n:Entity)
+        WHERE n.embedding IS NOT NULL
+        RETURN n
+        LIMIT $limit
+        """
+        result = graph.query(query, {"limit": limit})
+        return [row[0].properties for row in result.result_set]
