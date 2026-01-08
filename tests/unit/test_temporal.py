@@ -10,7 +10,7 @@ from claude_memory.tools import MemoryService
 def memory_service() -> Generator[MemoryService, None, None]:
     with (
         patch("claude_memory.repository.FalkorDB"),
-        patch("claude_memory.tools.EmbeddingService") as MockEmbedder,
+        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
     ):
 
         # Setup Embedder Mock

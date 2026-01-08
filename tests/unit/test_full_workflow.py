@@ -17,7 +17,7 @@ def memory_service():
     # Patch FalkorDB in the REPOSITORY module and EmbeddingService in TOOLS
     with (
         patch("claude_memory.repository.FalkorDB") as mock_db,
-        patch("claude_memory.tools.EmbeddingService") as mock_embedder_cls,
+        patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
 
         # Mock DB

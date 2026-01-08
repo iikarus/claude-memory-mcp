@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
-from .embedding import EmbeddingService
+from .interfaces import Embedder
 from .repository import MemoryRepository
 from .schema import (
     BreakthroughParams,
@@ -28,11 +28,17 @@ class MemoryService:
         host: Optional[str] = None,
         port: Optional[int] = None,
         password: Optional[str] = None,
-        embedding_service: Optional[EmbeddingService] = None,
+        embedding_service: Optional[Embedder] = None,
     ) -> None:
         self.repo = MemoryRepository(host, port, password)
         self.repo.ensure_indices()
-        self.embedder = embedding_service or EmbeddingService()
+
+        if embedding_service:
+            self.embedder = embedding_service
+        else:
+            from .embedding import EmbeddingService
+
+            self.embedder = EmbeddingService()
 
     async def create_entity(self, params: EntityCreateParams) -> Dict[str, Any]:
         """Creates an entity node in the graph."""
