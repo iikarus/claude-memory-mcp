@@ -75,7 +75,7 @@ def main() -> None:
                     label=m.properties.get("name", "Unknown"),
                     title=str(m.properties),
                 )
-                net.add_edge(n.properties["id"], m.properties["id"], title=r.type)
+                net.add_edge(n.properties["id"], m.properties["id"], title=r.relation)
 
             net.repulsion()
             net.save_graph("graph.html")
