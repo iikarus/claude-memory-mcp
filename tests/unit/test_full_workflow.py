@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,7 +14,7 @@ from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
-def memory_service():
+def memory_service() -> Any:
     # Patch FalkorDB in the REPOSITORY module and EmbeddingService in TOOLS
     with (
         patch("claude_memory.repository.FalkorDB") as mock_db,
@@ -30,15 +31,13 @@ def memory_service():
         mock_embedder_cls.return_value = mock_embedder
         mock_embedder.encode.return_value = [0.1] * 1024
 
-        service = MemoryService()
-        # Ensure our mock is the one used (via constructor default)
-        service.embedder = mock_embedder
+        service = MemoryService(embedding_service=mock_embedder)
 
         yield service
 
 
-@pytest.mark.asyncio  # type: ignore
-async def test_day_in_the_life(memory_service):
+@pytest.mark.asyncio
+async def test_day_in_the_life(memory_service: Any) -> None:
     """Simulates a full user workflow."""
     # Access graph via repo
     graph = memory_service.repo.client.select_graph.return_value

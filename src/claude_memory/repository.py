@@ -54,7 +54,7 @@ class MemoryRepository:
         # We manually construct the label part, but bind properties
 
         embedding_clause = ""
-        params = {"props": props}
+        params: Dict[str, Any] = {"props": props}
 
         if embedding:
             embedding_clause = "SET n.embedding = vecf32($embedding)"
@@ -68,7 +68,7 @@ class MemoryRepository:
         """
 
         result = graph.query(query, params)
-        return result.result_set[0][0].properties
+        return result.result_set[0][0].properties  # type: ignore
 
     def update_node(
         self, node_id: str, properties: Dict[str, Any], embedding: Optional[List[float]] = None
@@ -81,7 +81,7 @@ class MemoryRepository:
         query_parts.append("MATCH (n:Entity {id: $id})")
         query_parts.append("SET n += $props")
 
-        params = {"id": node_id, "props": props}
+        params: Dict[str, Any] = {"id": node_id, "props": props}
 
         if embedding:
             query_parts.append("SET n.embedding = vecf32($embedding)")
@@ -93,7 +93,7 @@ class MemoryRepository:
         result = graph.query(query, params)
         if not result.result_set:
             return {}
-        return result.result_set[0][0].properties
+        return result.result_set[0][0].properties  # type: ignore
 
     def delete_node(
         self, node_id: str, soft_delete: bool = False, reason: Optional[str] = None
@@ -126,7 +126,7 @@ class MemoryRepository:
         result = graph.query(query, {"from": from_id, "to": to_id, "props": properties})
         if not result.result_set:
             return {}
-        return result.result_set[0][0].properties
+        return result.result_set[0][0].properties  # type: ignore
 
     def delete_edge(self, edge_id: str) -> bool:
         """Deletes a relationship by ID."""
@@ -157,12 +157,81 @@ class MemoryRepository:
         """
 
         try:
-            return graph.query(query, params).result_set
+            return graph.query(query, params).result_set  # type: ignore
         except Exception as e:
             # Re-raise to let service handle fallback or logging
             raise e
 
-    def execute_cypher(self, query: str, params: Dict[str, Any] = None) -> Any:
+    def execute_cypher(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
         """Executes a raw Cypher query."""
         graph = self.select_graph()
         return graph.query(query, params or {})
+
+    def get_subgraph(self, start_node_ids: List[str], depth: int = 1) -> Dict[str, Any]:
+        """Retrieves a subgraph of connected nodes up to 'depth' hops from start nodes."""
+        if not start_node_ids:
+            return {"nodes": [], "edges": []}
+
+        graph = self.select_graph()
+
+        # Variable length path query
+        # We find paths from root set to neighbors
+        # We manually unroll the depth in Cypher or use variable length path
+        # Note: [*1..2] syntax.
+
+        query = f"""
+        MATCH (root:Entity)
+        WHERE root.id IN $ids
+        CALL {{
+            WITH root
+            MATCH path = (root)-[*0..{depth}]-(neighbor)
+            RETURN path
+        }}
+        RETURN path
+        """
+
+        # Note: FalkorDB might behave differently with CALL {}; simpler version:
+        # MATCH path = (root:Entity)-[*0..depth]-(neighbor) WHERE root.id IN $ids RETURN path
+        # But larger depth might explode. 'limit' helps? user implementation plan didn't specify limit but implicit safety needed.
+        # Let's use simple match for V1.
+
+        query = f"""
+        MATCH path = (root:Entity)-[*0..{depth}]-(neighbor)
+        WHERE root.id IN $ids
+        RETURN path
+        """
+
+        # Safer Query returning distinct nodes and edges as Maps for consistent parsing
+        query = f"""
+        MATCH path = (root:Entity)-[*0..{depth}]-(neighbor)
+        WHERE root.id IN $ids
+        UNWIND relationships(path) as r
+        WITH distinct r, startNode(r) as s, endNode(r) as e
+        RETURN collect(distinct {{id: r.id, source: s.id, target: e.id, type: type(r), properties: properties(r)}}) as edges,
+               collect(distinct {{id: s.id, labels: labels(s), properties: properties(s)}}) + collect(distinct {{id: e.id, labels: labels(e), properties: properties(e)}}) as nodes
+        """
+
+        result = graph.query(query, {"ids": start_node_ids})
+
+        # Now we parse the JSON-like maps returned
+        if not result.result_set:
+            # It might be empty if 0 hops and no edges?
+            # Fallback for isolated nodes (depth 0)
+            query_nodes = """
+             MATCH (n:Entity) WHERE n.id IN $ids
+             RETURN collect(distinct {id: n.id, labels: labels(n), properties: properties(n)}) as nodes
+             """
+            res_nodes = graph.query(query_nodes, {"ids": start_node_ids})
+            if res_nodes.result_set:
+                return {"nodes": [n["properties"] for n in res_nodes.result_set[0][0]], "edges": []}
+            return {"nodes": [], "edges": []}
+
+        row = result.result_set[0]
+        edges_data = row[0]
+        nodes_data = row[1]
+
+        # Deduplicate nodes by ID (Cypher set might not be perfect with maps)
+        unique_nodes = {n["id"]: n["properties"] for n in nodes_data}
+        unique_edges = {e["id"]: e for e in edges_data}  # e has source/target/type merged in
+
+        return {"nodes": list(unique_nodes.values()), "edges": list(unique_edges.values())}

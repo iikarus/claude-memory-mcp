@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, cast
 
 from .interfaces import Embedder
 from .repository import MemoryRepository
@@ -25,20 +25,14 @@ logger = logging.getLogger(__name__)
 class MemoryService:
     def __init__(
         self,
+        embedding_service: Embedder,
         host: Optional[str] = None,
         port: Optional[int] = None,
         password: Optional[str] = None,
-        embedding_service: Optional[Embedder] = None,
     ) -> None:
         self.repo = MemoryRepository(host, port, password)
         self.repo.ensure_indices()
-
-        if embedding_service:
-            self.embedder = embedding_service
-        else:
-            from .embedding import EmbeddingService
-
-            self.embedder = EmbeddingService()
+        self.embedder = embedding_service
 
     async def create_entity(self, params: EntityCreateParams) -> Dict[str, Any]:
         """Creates an entity node in the graph."""
@@ -68,7 +62,10 @@ class MemoryService:
         if "embedding" in props:
             props.pop("embedding")
 
-        return self.repo.create_node(params.node_type, props, embedding)
+        return cast(
+            Dict[str, Any],
+            self.repo.create_node(params.node_type, props, embedding),
+        )
 
     async def create_relationship(self, params: RelationshipCreateParams) -> Dict[str, Any]:
         """Creates a typed relationship between two entities."""
@@ -89,7 +86,7 @@ class MemoryService:
         )
         if not res:
             return {"error": "Could not create relationship. Check entity IDs."}
-        return res
+        return cast(Dict[str, Any], res)
 
     async def update_entity(self, params: EntityUpdateParams) -> Dict[str, Any]:
         """Updates properties of an existing entity."""
@@ -123,7 +120,7 @@ class MemoryService:
         result = self.repo.update_node(params.entity_id, props, embedding)
         if not result:
             return {"error": "Entity not found"}
-        return result
+        return cast(Dict[str, Any], result)
 
     async def delete_entity(self, params: EntityDeleteParams) -> Dict[str, Any]:
         """Deletes (or soft deletes) an entity."""
@@ -176,7 +173,7 @@ class MemoryService:
         res = self.repo.execute_cypher(query, params_dict)
         if not res.result_set:
             return {"error": "Entity not found"}
-        return res.result_set[0][0].properties
+        return cast(Dict[str, Any], res.result_set[0][0].properties)
 
     async def start_session(self, params: SessionStartParams) -> Dict[str, Any]:
         import uuid
@@ -203,7 +200,7 @@ class MemoryService:
         RETURN s
         """
         res = self.repo.execute_cypher(query, {"props": props})
-        return res.result_set[0][0].properties
+        return cast(Dict[str, Any], res.result_set[0][0].properties)
 
     async def end_session(self, params: SessionEndParams) -> Dict[str, Any]:
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -227,7 +224,7 @@ class MemoryService:
         )
         if not res.result_set:
             return {"error": "Session not found"}
-        return res.result_set[0][0].properties
+        return cast(Dict[str, Any], res.result_set[0][0].properties)
 
     async def record_breakthrough(self, params: BreakthroughParams) -> Dict[str, Any]:
         # Logic: create breakthrough node.
@@ -249,7 +246,7 @@ class MemoryService:
         # Let's use generic create_node, it adds :Entity.
         # Wait, if we use repo.create_node("Breakthrough", props), it becomes :Breakthrough:Entity
         # That fits the pattern.
-        return self.repo.create_node("Breakthrough", props)
+        return cast(Dict[str, Any], self.repo.create_node("Breakthrough", props))
 
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20
@@ -348,8 +345,9 @@ class MemoryService:
 
     async def archive_entity(self, entity_id: str) -> Dict[str, Any]:
         """Archive an entity (logical hide)."""
-        return self.repo.update_node(
-            entity_id, {"status": "archived", "archived_at": datetime.now(timezone.utc).isoformat()}
+        return cast(
+            Dict[str, Any],
+            self.repo.update_node(entity_id, {"status": "archived"}),
         )
 
     async def prune_stale(self, days: int = 30) -> Dict[str, Any]:
@@ -487,7 +485,7 @@ class MemoryService:
             except Exception:
                 continue
 
-        return new_node_props
+        return new_node_props  # type: ignore
 
     async def search(
         self, query: str, project_id: Optional[str] = None, limit: int = 10
@@ -524,3 +522,30 @@ class MemoryService:
             return []
 
         return results
+
+    async def get_hologram(self, query: str, depth: int = 1) -> Dict[str, Any]:
+        """
+        Retrieves a 'Hologram' (connected subgraph) relevant to the query.
+
+        Algorithm:
+        1. Search for top entities (Anchors).
+        2. Expand outward from Anchors by 'depth'.
+        3. Return the consolidated subgraph.
+        """
+        logger.info(f"Generating Hologram for: {query}")
+
+        # 1. Get Anchors
+        # We assume search returns SearchResult objects or dicts.
+        # Codebase uses SearchResult pydantic model in 'search' return type annotation
+        # but implementation returns List[SearchResult].
+        anchors = await self.search(query, limit=5)
+
+        if not anchors:
+            return {"nodes": [], "edges": []}
+
+        anchor_ids = [a.id for a in anchors]
+
+        # 2. Expand Subgraph
+        hologram = self.repo.get_subgraph(anchor_ids, depth)
+
+        return hologram  # type: ignore

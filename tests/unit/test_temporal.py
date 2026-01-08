@@ -6,7 +6,7 @@ import pytest
 from claude_memory.tools import MemoryService
 
 
-@pytest.fixture  # type: ignore
+@pytest.fixture
 def memory_service() -> Generator[MemoryService, None, None]:
     with (
         patch("claude_memory.repository.FalkorDB"),
@@ -19,7 +19,7 @@ def memory_service() -> Generator[MemoryService, None, None]:
         # Default behavior
         mock_instance.encode.return_value = [0.1] * 1024
 
-        service = MemoryService()
+        service = MemoryService(embedding_service=mock_instance)
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
 
@@ -29,7 +29,7 @@ def memory_service() -> Generator[MemoryService, None, None]:
         yield service
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_get_evolution(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -48,7 +48,7 @@ async def test_get_evolution(memory_service: MemoryService) -> None:
     assert "ORDER BY o.created_at DESC" in graph.query.call_args[0][0]
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_point_in_time_query(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -74,7 +74,7 @@ async def test_point_in_time_query(memory_service: MemoryService) -> None:
     assert "n.created_at <= $as_of" in graph.query.call_args[0][0]
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_archive_entity(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -95,7 +95,7 @@ async def test_archive_entity(memory_service: MemoryService) -> None:
     assert call_params["props"]["status"] == "archived"
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_prune_stale(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 

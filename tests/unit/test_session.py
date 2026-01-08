@@ -7,16 +7,19 @@ from claude_memory.schema import SessionEndParams, SessionStartParams
 from claude_memory.tools import MemoryService
 
 
-@pytest.fixture  # type: ignore
+@pytest.fixture
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.repository.FalkorDB"):
-        service = MemoryService()
+    with (
+        patch("claude_memory.repository.FalkorDB"),
+        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
+    ):
+        service = MemoryService(embedding_service=MockEmbedder.return_value)
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_start_session(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -46,7 +49,7 @@ async def test_start_session(memory_service: MemoryService) -> None:
     assert call_params["props"]["project_id"] == "meta"
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_end_session(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 

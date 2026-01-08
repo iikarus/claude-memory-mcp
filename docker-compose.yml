@@ -1,0 +1,40 @@
+services:
+  graphdb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    volumes:
+      - falkordb_data:/data
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - FALKORDB_HOST=graphdb
+      - FALKORDB_PORT=6379
+    depends_on:
+      - graphdb
+    restart: unless-stopped
+    command: streamlit run src/dashboard/app.py
+
+  server:
+    build: .
+    environment:
+      - FALKORDB_HOST=graphdb
+      - FALKORDB_PORT=6379
+    depends_on:
+      - graphdb
+    restart: unless-stopped
+    # Assuming 'mcp' CLI is installed or we run python server.py directly?
+    # server.py uses FastMCP. .run() uses stdio by default?
+    # If stdio, docker logs will be messy. We likely want SSE for docker?
+    # FastMCP supports different transports.
+    # For now, let's just run it to prove it builds, but maybe not expose it.
+    # Or use python -m src.claude_memory.server
+    command: python src/claude_memory/server.py
+
+volumes:
+  falkordb_data:

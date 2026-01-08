@@ -1,3 +1,4 @@
+from typing import Any, Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -6,7 +7,7 @@ from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
-def mock_repo():
+def mock_repo() -> Generator[Any, None, None]:
     with patch("claude_memory.tools.MemoryRepository") as MockRepo:
         repo_instance = MockRepo.return_value
         # Default returns
@@ -18,20 +19,22 @@ def mock_repo():
 
 
 @pytest.fixture
-def memory_service(mock_repo):
-    # Initialize service; it typically instantiates Repo, but we patched the class
-    service = MemoryService()
-    # Mock encoder to avoid downloading hefty models
-    service._get_encoder = MagicMock()
-    service._get_encoder.return_value.encode.return_value.tolist.return_value = [0.1] * 1024
+def memory_service(mock_repo: Any) -> Any:
+    # Initialize service with mocks
+    with patch("claude_memory.embedding.EmbeddingService") as MockEmbedder:
+        mock_embedding_service = MockEmbedder.return_value
+        # Mock encoding logic
+        mock_embedding_service.encode.return_value = [0.1] * 1024
 
-    # Ensure our mock instance is what the service holds
-    service.repo = mock_repo  # Explicit injection for safety in test
-    return service
+        service = MemoryService(embedding_service=mock_embedding_service)
+
+        # Ensure our mock repo is what the service uses
+        service.repo = mock_repo
+        return service
 
 
 @pytest.mark.asyncio
-async def test_analyze_graph_pagerank(memory_service, mock_repo):
+async def test_analyze_graph_pagerank(memory_service: Any, mock_repo: Any) -> None:
     """Test PageRank execution and result parsing."""
 
     # Mock Cypher output for rank query
@@ -62,7 +65,7 @@ async def test_analyze_graph_pagerank(memory_service, mock_repo):
 
 
 @pytest.mark.asyncio
-async def test_consolidate_memories(memory_service, mock_repo):
+async def test_consolidate_memories(memory_service: Any, mock_repo: Any) -> None:
     """Test consolidation workflow using Repository mocks."""
 
     # Setup mocks

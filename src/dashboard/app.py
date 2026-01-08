@@ -10,6 +10,7 @@ from pyvis.network import Network
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
+from claude_memory.embedding import EmbeddingService  # noqa: E402
 from claude_memory.tools import MemoryService  # noqa: E402
 
 st.set_page_config(layout="wide", page_title="Memory Explorer")
@@ -17,7 +18,8 @@ st.set_page_config(layout="wide", page_title="Memory Explorer")
 
 @st.cache_resource  # type: ignore
 def get_service() -> MemoryService:
-    return MemoryService()
+    embedder = EmbeddingService()
+    return MemoryService(embedding_service=embedder)
 
 
 async def get_graph_data(limit: int = 100) -> Any:

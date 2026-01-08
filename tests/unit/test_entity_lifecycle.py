@@ -7,17 +7,20 @@ from claude_memory.schema import EntityDeleteParams, EntityUpdateParams, Observa
 from claude_memory.tools import MemoryService
 
 
-@pytest.fixture  # type: ignore
+@pytest.fixture
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.repository.FalkorDB"):
-        service = MemoryService()
+    with (
+        patch("claude_memory.repository.FalkorDB"),
+        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
+    ):
+        service = MemoryService(embedding_service=MockEmbedder.return_value)
         # Mock the client and graph
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_update_entity_success(memory_service: MemoryService) -> None:
     # Setup mocks
     graph = memory_service.repo.client.select_graph.return_value
@@ -44,7 +47,7 @@ async def test_update_entity_success(memory_service: MemoryService) -> None:
     assert params_dict["props"]["status"] == "inactive"
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_soft_delete_entity(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
     mock_node = MagicMock()
@@ -59,7 +62,7 @@ async def test_soft_delete_entity(memory_service: MemoryService) -> None:
     assert "SET n.deleted = true" in graph.query.call_args[0][0]
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_hard_delete_entity(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -71,7 +74,7 @@ async def test_hard_delete_entity(memory_service: MemoryService) -> None:
     assert "DETACH DELETE n" in graph.query.call_args[0][0]
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_add_observation(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 

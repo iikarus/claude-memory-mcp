@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import torch
 from sentence_transformers import SentenceTransformer
@@ -38,9 +38,9 @@ class EmbeddingService:
     def encode(self, text: str) -> List[float]:
         """Encodes a single string into a vector."""
         vec = self.encoder.encode(text)
-        return vec.tolist()  # type: ignore
+        return cast(List[float], vec.tolist())
 
     def encode_batch(self, texts: List[str]) -> List[List[float]]:
         """Encodes a list of strings."""
         vecs = self.encoder.encode(texts)
-        return vecs.tolist()  # type: ignore
+        return cast(List[List[float]], vecs.tolist())

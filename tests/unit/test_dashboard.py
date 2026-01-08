@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,13 +16,14 @@ with patch.dict(
         "pyvis.network": MagicMock(),
         "claude_memory": MagicMock(),
         "claude_memory.tools": MagicMock(),
+        "claude_memory.embedding": MagicMock(),
     },
 ):
     from dashboard import app
 
 
 @pytest.fixture
-def mock_service():
+def mock_service() -> Any:
     """Mock the MemoryService instance."""
     # Since we mocked claude_memory.tools in sys.modules, app.MemoryService is a MagicMock
     service_class_mock = app.MemoryService
@@ -31,7 +33,7 @@ def mock_service():
 
 
 @pytest.mark.asyncio
-async def test_get_stats(mock_service):
+async def test_get_stats(mock_service: Any) -> None:
     """Test retrieval of node and edge counts."""
     # Setup mock returns structure: result_set[0][0]
 
@@ -50,7 +52,7 @@ async def test_get_stats(mock_service):
 
 
 @pytest.mark.asyncio
-async def test_get_graph_data(mock_service):
+async def test_get_graph_data(mock_service: Any) -> None:
     """Test graph data retrieval."""
     mock_result = MagicMock()
     mock_result.result_set = []

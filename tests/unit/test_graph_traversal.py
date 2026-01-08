@@ -6,16 +6,19 @@ import pytest
 from claude_memory.tools import MemoryService
 
 
-@pytest.fixture  # type: ignore
+@pytest.fixture
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.repository.FalkorDB"):
-        service = MemoryService()
+    with (
+        patch("claude_memory.repository.FalkorDB"),
+        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
+    ):
+        service = MemoryService(embedding_service=MockEmbedder.return_value)
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_get_neighbors(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -32,7 +35,7 @@ async def test_get_neighbors(memory_service: MemoryService) -> None:
     assert "MATCH (n)-[*1..1]-(m)" in graph.query.call_args[0][0]
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_traverse_path(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
@@ -59,7 +62,7 @@ async def test_traverse_path(memory_service: MemoryService) -> None:
     assert "shortestPath" in graph.query.call_args[0][0]
 
 
-@pytest.mark.asyncio  # type: ignore
+@pytest.mark.asyncio
 async def test_find_cross_domain_patterns(memory_service: MemoryService) -> None:
     graph = memory_service.repo.client.select_graph.return_value
 
