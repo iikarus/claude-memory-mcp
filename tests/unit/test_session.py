@@ -9,16 +9,16 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture  # type: ignore
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.tools.FalkorDB"):
+    with patch("claude_memory.repository.FalkorDB"):
         service = MemoryService()
-        service.client = MagicMock()
-        service.client.select_graph.return_value = MagicMock()
+        service.repo.client = MagicMock()
+        service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
 @pytest.mark.asyncio  # type: ignore
 async def test_start_session(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     mock_node = MagicMock()
     mock_node.properties = {
@@ -38,13 +38,17 @@ async def test_start_session(memory_service: MemoryService) -> None:
     assert result["status"] == "active"
 
     cypher = graph.query.call_args[0][0]
-    assert "CREATE (s:Session" in cypher
-    assert "project_id: $project_id" in cypher
+    assert "CREATE (s:Session)" in cypher
+    assert "SET s = $props" in cypher
+
+    # Check params
+    call_params = graph.query.call_args[0][1]
+    assert call_params["props"]["project_id"] == "meta"
 
 
 @pytest.mark.asyncio  # type: ignore
 async def test_end_session(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     mock_node = MagicMock()
     mock_node.properties = {"id": "sess-001", "status": "closed", "summary": "Done"}

@@ -8,16 +8,16 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture  # type: ignore
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.tools.FalkorDB"):
+    with patch("claude_memory.repository.FalkorDB"):
         service = MemoryService()
-        service.client = MagicMock()
-        service.client.select_graph.return_value = MagicMock()
+        service.repo.client = MagicMock()
+        service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
 @pytest.mark.asyncio  # type: ignore
 async def test_get_neighbors(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Mock result for get_neighbors
     mock_node = MagicMock()
@@ -34,7 +34,7 @@ async def test_get_neighbors(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_traverse_path(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Mock result for traverse_path
     mock_path = MagicMock()
@@ -61,7 +61,7 @@ async def test_traverse_path(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_find_cross_domain_patterns(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Mock result (list of nodes)
     mock_node = MagicMock()

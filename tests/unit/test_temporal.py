@@ -8,16 +8,16 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture  # type: ignore
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.tools.FalkorDB"):
+    with patch("claude_memory.repository.FalkorDB"):
         service = MemoryService()
-        service.client = MagicMock()
-        service.client.select_graph.return_value = MagicMock()
+        service.repo.client = MagicMock()
+        service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
 @pytest.mark.asyncio  # type: ignore
 async def test_get_evolution(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Mock observations
     obs1 = MagicMock()
@@ -36,7 +36,7 @@ async def test_get_evolution(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_point_in_time_query(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Mock result from the "Brute Force" query
     node1 = MagicMock()
@@ -44,7 +44,7 @@ async def test_point_in_time_query(memory_service: MemoryService) -> None:
     node1.properties = {
         "id": "e1",
         "name": "Match",
-        "embedding": [1.0] * 384,
+        "embedding": [1.0] * 1024,
         "created_at": "2023-01-01",
     }
 
@@ -53,7 +53,7 @@ async def test_point_in_time_query(memory_service: MemoryService) -> None:
     # Mock SentenceTransformer to return consistent vector
     with patch("claude_memory.tools.SentenceTransformer") as MockST:
         encoder = MockST.return_value
-        encoder.encode.return_value.tolist.return_value = [1.0] * 384
+        encoder.encode.return_value.tolist.return_value = [1.0] * 1024
 
         result = await memory_service.point_in_time_query("test", "2023-12-31")
 
@@ -64,7 +64,7 @@ async def test_point_in_time_query(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_archive_entity(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     mock_node = MagicMock()
     mock_node.properties = {"id": "e1", "status": "archived"}
@@ -73,12 +73,19 @@ async def test_archive_entity(memory_service: MemoryService) -> None:
     result = await memory_service.archive_entity("e1")
 
     assert result["status"] == "archived"
-    assert "SET n.status = 'archived'" in graph.query.call_args[0][0]
+
+    # Check Cypher structure
+    cypher = graph.query.call_args[0][0]
+    assert "SET n += $props" in cypher
+
+    # Check params
+    call_params = graph.query.call_args[0][1]
+    assert call_params["props"]["status"] == "archived"
 
 
 @pytest.mark.asyncio  # type: ignore
 async def test_prune_stale(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     graph.query.return_value.result_set = [[5]]  # 5 deleted nodes
 

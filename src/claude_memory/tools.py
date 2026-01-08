@@ -1,11 +1,10 @@
 import logging
-import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from falkordb import FalkorDB
 from sentence_transformers import SentenceTransformer
 
+from .repository import MemoryRepository
 from .schema import (
     BreakthroughParams,
     EntityCreateParams,
@@ -28,24 +27,20 @@ class MemoryService:
     def __init__(
         self, host: Optional[str] = None, port: Optional[int] = None, password: Optional[str] = None
     ) -> None:
-        host = host or os.getenv("FALKORDB_HOST", "localhost")
-        port = port or int(os.getenv("FALKORDB_PORT", 6379))
-        password = password or os.getenv("FALKORDB_PASSWORD", "claudememory2026")
-
-        self.client = FalkorDB(
-            host=host,
-            port=port,
-            password=password,
-        )
-        # We might need to initialize indices here if Graphiti doesn't do it automatically for custom properties
-        # But for now we rely on Graphiti's hybrid search capabilities
+        self.repo = MemoryRepository(host, port, password)
+        self.repo.ensure_indices()
 
     def _get_encoder(self) -> Any:
         """Helper to get the sentence transformer model.
         Extracted for easier mocking in tests.
         """
-        # Ideally this should be a singleton or injected
-        return SentenceTransformer("all-MiniLM-L6-v2")
+        if not hasattr(self, "_encoder"):
+            import torch
+
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            logger.info(f"Loading SentenceTransformer model (BGE-M3) on {device}...")
+            self._encoder = SentenceTransformer("BAAI/bge-m3", device=device)
+        return self._encoder
 
     async def create_entity(self, params: EntityCreateParams) -> Dict[str, Any]:
         """Creates an entity node in the graph."""
@@ -67,28 +62,23 @@ class MemoryService:
             }
         )
 
-        # For MVP: We will insert node without embedding, or compute it if we have 'sentence_transformers'
         encoder = self._get_encoder()
-        embedding = encoder.encode(params.name + " " + str(props.get("description", ""))).tolist()
-        props["embedding"] = embedding
+        # Compute embedding (AI Layer)
+        desc = props.get("description", "")
+        # Remove description from props if it is huge? No, keep it.
+        # But 'embedding' key in props? No, we pass explicitly.
 
-        query = f"""
-        CREATE (n:{params.node_type}:Entity)
-        SET n = $props
-        RETURN n
-        """
+        embedding = encoder.encode(params.name + " " + str(desc)).tolist()
 
-        # Execute Cypher
-        # We need to know the graph name.
-        graph_name = "claude_memory"
+        # We don't store embedding in props dictionary passed to repo, repo handles it.
+        # But wait, original code put it in props.
+        # Repo 'create_node' separates it.
 
-        # Using self.client.db which should be the FalkorDB instance
-        # We need to select the graph
-        graph = self.client.select_graph(graph_name)
-        result = graph.query(query, {"props": props})
+        # Remove embedding from props if accidentally added (it shouldn't be yet)
+        if "embedding" in props:
+            props.pop("embedding")
 
-        # Return the created node (properties)
-        return result.result_set[0][0].properties  # type: ignore
+        return self.repo.create_node(params.node_type, props, embedding)
 
     async def create_relationship(self, params: RelationshipCreateParams) -> Dict[str, Any]:
         """Creates a typed relationship between two entities."""
@@ -96,133 +86,82 @@ class MemoryService:
             f"Creating relationship: {params.from_entity} -[{params.relationship_type}]-> {params.to_entity}"
         )
 
-        graph = self.client.select_graph("claude_memory")
-
-        query = f"""
-        MATCH (a), (b)
-        WHERE a.id = $from_id AND b.id = $to_id
-        CREATE (a)-[r:{params.relationship_type}]->(b)
-        SET r = $props
-        RETURN r
-        """
-
         props = params.properties.copy()
         props["confidence"] = params.confidence
         props["created_at"] = datetime.now(timezone.utc).isoformat()
+        import uuid
 
-        # Note: We are assuming inputs are IDs. If names, we need to match by name.
-        # Spec says "create_relationship(from_entity_id: string...)"
+        if "id" not in props:
+            props["id"] = str(uuid.uuid4())
 
-        result = graph.query(
-            query, {"from_id": params.from_entity, "to_id": params.to_entity, "props": props}
+        res = self.repo.create_edge(
+            params.from_entity, params.to_entity, params.relationship_type, props
         )
-
-        if not result.result_set:
+        if not res:
             return {"error": "Could not create relationship. Check entity IDs."}
-
-        return result.result_set[0][0].properties  # type: ignore
+        return res
 
     async def update_entity(self, params: EntityUpdateParams) -> Dict[str, Any]:
         """Updates properties of an existing entity."""
         logger.info(f"Updating entity: {params.entity_id}")
 
-        graph = self.client.select_graph("claude_memory")
-
-        query = """
-        MATCH (n)
-        WHERE n.id = $entity_id
-        SET n += $props
-        SET n.updated_at = $timestamp
-        RETURN n
-        """
-
         props = params.properties.copy()
         timestamp = datetime.now(timezone.utc).isoformat()
+        props["updated_at"] = timestamp
 
+        # Embed re-calculation logic (Business Logic)
+        embedding = None
         if "name" in props or "description" in props:
-            fetch_q = "MATCH (n) WHERE n.id = $id RETURN n.name, n.description"
-            fetch_res = graph.query(fetch_q, {"id": params.entity_id})
-            if fetch_res.result_set:
-                curr_name = fetch_res.result_set[0][0]
-                curr_desc = fetch_res.result_set[0][1] or ""
+            # Need to fetch old if partial update?
+            # Repo doesn't support 'fetch before update' easily.
+            # We can use execute_cypher or add 'get_node'.
+            # For strict decoupling, we should ask repo for the node.
+
+            # Helper to get node props
+            q = "MATCH (n:Entity {id: $id}) RETURN n"
+            res = self.repo.execute_cypher(q, {"id": params.entity_id})
+            if res.result_set:
+                curr = res.result_set[0][0].properties
+                curr_name = curr.get("name", "")
+                curr_desc = curr.get("description", "")
 
                 new_name = props.get("name", curr_name)
                 new_desc = props.get("description", curr_desc)
 
                 encoder = self._get_encoder()
                 embedding = encoder.encode(new_name + " " + str(new_desc)).tolist()
-                props["embedding"] = embedding
 
-        result = graph.query(
-            query, {"entity_id": params.entity_id, "props": props, "timestamp": timestamp}
-        )
-
-        if not result.result_set:
+        result = self.repo.update_node(params.entity_id, props, embedding)
+        if not result:
             return {"error": "Entity not found"}
-
-        return result.result_set[0][0].properties  # type: ignore
+        return result
 
     async def delete_entity(self, params: EntityDeleteParams) -> Dict[str, Any]:
         """Deletes (or soft deletes) an entity."""
         logger.info(f"Deleting entity: {params.entity_id} (Soft: {params.soft_delete})")
 
-        graph = self.client.select_graph("claude_memory")
-
-        if params.soft_delete:
-            query = """
-            MATCH (n)
-            WHERE n.id = $entity_id
-            SET n.deleted = true
-            SET n.deleted_at = $timestamp
-            SET n.deletion_reason = $reason
-            RETURN n
-            """
-            timestamp = datetime.now(timezone.utc).isoformat()
-            result = graph.query(
-                query,
-                {"entity_id": params.entity_id, "timestamp": timestamp, "reason": params.reason},
-            )
-            if not result.result_set:
-                return {"error": "Entity not found"}
-            return {"status": "soft_deleted", "id": params.entity_id}
-
+        if self.repo.delete_node(params.entity_id, params.soft_delete, params.reason):
+            status = "soft_deleted" if params.soft_delete else "hard_deleted"
+            return {"status": status, "id": params.entity_id}
         else:
-            query = """
-            MATCH (n)
-            WHERE n.id = $entity_id
-            DETACH DELETE n
-            """
-            graph.query(query, {"entity_id": params.entity_id})
-            return {"status": "hard_deleted", "id": params.entity_id}
+            return {"error": "Entity not found"}
 
     async def delete_relationship(self, params: RelationshipDeleteParams) -> Dict[str, Any]:
         """Deletes a relationship."""
-        logger.info(f"Deleting relationship: {params.relationship_id}")
-
-        graph = self.client.select_graph("claude_memory")
-
-        query = """
-        MATCH ()-[r]->()
-        WHERE r.id = $rel_id
-        DELETE r
-        """
-
-        graph.query(query, {"rel_id": params.relationship_id})
+        self.repo.delete_edge(params.relationship_id)
         return {"status": "deleted", "id": params.relationship_id}
 
     async def add_observation(self, params: ObservationParams) -> Dict[str, Any]:
         """Adds an observation node linked to an entity."""
-        logger.info(f"Adding observation for: {params.entity_id}")
-
-        graph = self.client.select_graph("claude_memory")
+        # This is strictly custom cypher logic not easily genericized in Repo yet.
+        # But we can assume Repo has 'execute_cypher'.
+        # Or better: construct a custom Repo method.
+        # For now, let's use execute_cypher to migrate quickly.
 
         import uuid
 
         obs_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc).isoformat()
-
-        # We need to find the node first to verify it exists and get project_id
-        # Then create observation
 
         query = """
         MATCH (e) WHERE e.id = $entity_id
@@ -237,68 +176,48 @@ class MemoryService:
         CREATE (e)-[:HAS_OBSERVATION]->(o)
         RETURN o
         """
-
-        result = graph.query(
-            query,
-            {
-                "entity_id": params.entity_id,
-                "obs_id": obs_id,
-                "content": params.content,
-                "certainty": params.certainty,
-                "evidence": params.evidence,
-                "timestamp": timestamp,
-            },
-        )
-
-        if not result.result_set:
+        params_dict = {
+            "entity_id": params.entity_id,
+            "obs_id": obs_id,
+            "content": params.content,
+            "certainty": params.certainty,
+            "evidence": params.evidence,
+            "timestamp": timestamp,
+        }
+        res = self.repo.execute_cypher(query, params_dict)
+        if not res.result_set:
             return {"error": "Entity not found"}
-
-        return result.result_set[0][0].properties  # type: ignore
+        return res.result_set[0][0].properties
 
     async def start_session(self, params: SessionStartParams) -> Dict[str, Any]:
-        """Starts a new session."""
-        logger.info(f"Starting session for project: {params.project_id}")
-
-        graph = self.client.select_graph("claude_memory")
         import uuid
 
         session_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc).isoformat()
 
-        # Deactivate any previous active session for this project (optional, but good practice)
-        # MATCH (s:Session {project_id: $pid, status: 'active'}) SET s.status = 'closed', s.ended_at = $ts
+        props = {
+            "id": session_id,
+            "project_id": params.project_id,
+            "focus": params.focus,
+            "status": "active",
+            "created_at": timestamp,
+            "node_type": "Session",
+        }
+        # Use generic create_node? Label 'Session'
+        # Session isn't :Entity in implicit schema?
+        # create_node adds :Entity label.
+        # Custom cypher is safer for specific labels.
 
         query = """
-        CREATE (s:Session {
-            id: $session_id,
-            project_id: $project_id,
-            focus: $focus,
-            status: 'active',
-            created_at: $timestamp,
-            node_type: 'Session'
-        })
+        CREATE (s:Session)
+        SET s = $props
         RETURN s
         """
-
-        result = graph.query(
-            query,
-            {
-                "session_id": session_id,
-                "project_id": params.project_id,
-                "focus": params.focus,
-                "timestamp": timestamp,
-            },
-        )
-
-        return result.result_set[0][0].properties  # type: ignore
+        res = self.repo.execute_cypher(query, {"props": props})
+        return res.result_set[0][0].properties
 
     async def end_session(self, params: SessionEndParams) -> Dict[str, Any]:
-        """Ends a session and adds summary."""
-        logger.info(f"Ending session: {params.session_id}")
-
-        graph = self.client.select_graph("claude_memory")
         timestamp = datetime.now(timezone.utc).isoformat()
-
         query = """
         MATCH (s:Session)
         WHERE s.id = $session_id
@@ -308,8 +227,7 @@ class MemoryService:
         SET s.outcomes = $outcomes
         RETURN s
         """
-
-        result = graph.query(
+        res = self.repo.execute_cypher(
             query,
             {
                 "session_id": params.session_id,
@@ -318,126 +236,71 @@ class MemoryService:
                 "outcomes": params.outcomes,
             },
         )
-
-        if not result.result_set:
+        if not res.result_set:
             return {"error": "Session not found"}
-
-        return result.result_set[0][0].properties  # type: ignore
+        return res.result_set[0][0].properties
 
     async def record_breakthrough(self, params: BreakthroughParams) -> Dict[str, Any]:
-        """Special logic for recording a breakthrough."""
-        # 1. Create Breakthrough Node
-        # 2. Link to Session
-        # 3. Link to Concepts (Unlocked)
-
-        graph = self.client.select_graph("claude_memory")
-
-        # Cypher transaction ideally
-        query_breakthrough = """
-        CREATE (b:Breakthrough {
-            name: $name,
-            moment: $moment,
-            analogy: $analogy,
-            project_id: 'meta',
-            certainty: 'confirmed',
-            created_at: $timestamp
-        })
-        RETURN b
-        """
-
-        # We execute simply for now
-        res = graph.query(
-            query_breakthrough,
-            {
-                "name": params.name,
-                "moment": params.moment,
-                "analogy": params.analogy_used or "",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            },
-        )
-        breakthrough_node = res.result_set[0][0]
-        b_id = breakthrough_node.properties[
-            "id"
-        ]  # Assuming ID generated or we rely on internal ID.
-        # Wait, we define ID in schema but didn't gen it. FalkorDB has internal ID.
-        # Spec says "id: String // UUID v4". We should generate it in Python.
-
-        # FIX: Generate UUIDs in create_entity and here.
+        # Logic: create breakthrough node.
         import uuid
 
         b_id = str(uuid.uuid4())
-        # Re-run create with ID... (simplification: handled in helper)
-
-        # Let's abstract the UUID gen into the properties prepared before query
-        # ...
-
-        # Link to session
-        # MATCH (s:Session {name: $session_id}) ...
-        # CREATE (b)-[:OCCURRED_IN]->(s)
-
-        return {"status": "Breakthrough recorded", "id": b_id}
+        props = {
+            "id": b_id,
+            "name": params.name,
+            "moment": params.moment,
+            "analogy": params.analogy_used or "",
+            "project_id": "meta",
+            "certainty": "confirmed",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "node_type": "Breakthrough",  # Keep schema consistency
+        }
+        # Creating as Entity?
+        # Schema implies Breakthrough is a node type.
+        # Let's use generic create_node, it adds :Entity.
+        # Wait, if we use repo.create_node("Breakthrough", props), it becomes :Breakthrough:Entity
+        # That fits the pattern.
+        return self.repo.create_node("Breakthrough", props)
 
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """Retrieve neighboring entities up to a certain depth."""
-        graph = self.client.select_graph("claude_memory")
-
-        # Variable length path match
-        # Warning: large depth can be expensive.
+        # Repo doesn't have get_neighbors yet (I missed adding it in last step? No, I listed it).
+        # Actually I didn't verify if I added it to Repo class file content.
+        # Let's check Repo content.
+        # I suspect I might have missed it or need to implement execute_cypher for it.
+        # Use execute_cypher for now.
         if depth < 1:
             depth = 1
-
         query = f"""
         MATCH (n)-[*1..{depth}]-(m)
         WHERE n.id = $entity_id
         RETURN distinct m
         LIMIT $limit
         """
-
-        result = graph.query(query, {"entity_id": entity_id, "limit": limit})
-
-        nodes = []
-        for row in result.result_set:
-            if row and row[0]:
-                nodes.append(row[0].properties)
-
-        return nodes
+        res = self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
+        return [row[0].properties for row in res.result_set if row]
 
     async def traverse_path(self, from_id: str, to_id: str) -> List[Dict[str, Any]]:
         """Find the shortest path between two entities."""
-        graph = self.client.select_graph("claude_memory")
-
         query = """
         MATCH p = shortestPath((a)-[*]-(b))
         WHERE a.id = $start AND b.id = $end
         RETURN p
         """
-
-        result = graph.query(query, {"start": from_id, "end": to_id})
-
+        res = self.repo.execute_cypher(query, {"start": from_id, "end": to_id})
         path_data = []
-        if result.result_set and result.result_set[0]:
-            # result_set[0][0] should be a Path object
-            path_obj = result.result_set[0][0]
-            # Attempt to extract properties safely
-            # If path_obj is just a structure, we might need inspection.
-            # For now, assume it has nodes/rels or is traversable.
-            # If fallback is needed:
-            # We return empty for now if structure unknown, but in tests we mock it.
+        if res.result_set and res.result_set[0]:
+            path_obj = res.result_set[0][0]
             if hasattr(path_obj, "nodes"):
                 for node in path_obj.nodes:
                     path_data.append(node.properties)
-
         return path_data
 
     async def find_cross_domain_patterns(
         self, entity_id: str, limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Find nodes in different projects connected to this entity."""
-        graph = self.client.select_graph("claude_memory")
-
-        # Find reachable nodes (up to depth 3) that are in a different project
         query = """
         MATCH (n:Entity {id: $entity_id})
         MATCH (n)-[*1..3]-(m:Entity)
@@ -445,55 +308,33 @@ class MemoryService:
         RETURN distinct m
         LIMIT $limit
         """
-
-        result = graph.query(query, {"entity_id": entity_id, "limit": limit})
-
-        nodes = []
-        for row in result.result_set:
-            if row and row[0]:
-                nodes.append(row[0].properties)
-
-        return nodes
+        res = self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
+        return [row[0].properties for row in res.result_set if row]
 
     async def get_evolution(self, entity_id: str) -> List[Dict[str, Any]]:
         """Retrieve the evolution (history/observations) of an entity."""
-        graph = self.client.select_graph("claude_memory")
-
-        # Fetch observations ordered by time
         query = """
         MATCH (e:Entity {id: $entity_id})-[:HAS_OBSERVATION]->(o)
         RETURN o
         ORDER BY o.created_at DESC
         """
-
-        result = graph.query(query, {"entity_id": entity_id})
-
-        history = []
-        for row in result.result_set:
-            if row and row[0]:
-                history.append(row[0].properties)
-
-        return history
+        res = self.repo.execute_cypher(query, {"entity_id": entity_id})
+        return [row[0].properties for row in res.result_set if row]
 
     async def point_in_time_query(self, query_text: str, as_of: str) -> List[Dict[str, Any]]:
         """Execute a search considering only knowledge known before `as_of`."""
-        # Note: This is a filter on created_at. True temporal versioning is out of scope.
-        # We perform a vector search but filter results.
-
         encoder = self._get_encoder()
         vec = encoder.encode(query_text).tolist()
 
-        graph = self.client.select_graph("claude_memory")
-
-        # Brute force with temporal filter
+        # Brute force (logic kept for now as temporal filter is complex with vector index)
+        # Or we can scan all and filter.
         bf_query = """
         MATCH (n:Entity)
         WHERE n.embedding IS NOT NULL
         AND n.created_at <= $as_of
         RETURN n
         """
-
-        res = graph.query(bf_query, {"as_of": as_of})
+        res = self.repo.execute_cypher(bf_query, {"as_of": as_of})
 
         import numpy as np
         from scipy.spatial.distance import cosine
@@ -512,37 +353,19 @@ class MemoryService:
                 continue
 
             dist = cosine(target_vec, node_vec)
-            score = 1.0 - dist
-            candidates.append((node.properties, score))
+            candidates.append((node.properties, 1.0 - dist))
 
         candidates.sort(key=lambda x: x[1], reverse=True)
         return [c[0] for c in candidates[:10]]
 
     async def archive_entity(self, entity_id: str) -> Dict[str, Any]:
         """Archive an entity (logical hide)."""
-        graph = self.client.select_graph("claude_memory")
-        timestamp = datetime.now(timezone.utc).isoformat()
-
-        query = """
-        MATCH (n:Entity {id: $entity_id})
-        SET n.status = 'archived'
-        SET n.archived_at = $timestamp
-        RETURN n
-        """
-
-        result = graph.query(query, {"entity_id": entity_id, "timestamp": timestamp})
-
-        if not result.result_set:
-            return {"error": "Entity not found"}
-
-        return result.result_set[0][0].properties  # type: ignore
+        return self.repo.update_node(
+            entity_id, {"status": "archived", "archived_at": datetime.now(timezone.utc).isoformat()}
+        )
 
     async def prune_stale(self, days: int = 30) -> Dict[str, Any]:
         """Hard delete archived entities older than N days."""
-        graph = self.client.select_graph("claude_memory")
-        # Cypher doesn't have easy date math in all versions, but we store iso strings.
-        # We can calculate the cutoff in Python.
-
         from datetime import timedelta
 
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
@@ -553,117 +376,148 @@ class MemoryService:
         DETACH DELETE n
         RETURN count(n) as deleted_count
         """
-
-        result = graph.query(query, {"cutoff": cutoff})
-        count = 0
-        if result.result_set:
-            count = result.result_set[0][0]
-
+        res = self.repo.execute_cypher(query, {"cutoff": cutoff})
+        count = res.result_set[0][0] if res.result_set else 0
         return {"status": "success", "deleted_count": count}
+
+    async def analyze_graph(
+        self, algorithm: Literal["pagerank", "louvain"] = "pagerank"
+    ) -> List[Dict[str, Any]]:
+        """
+        Runs graph algorithms to find key entities or communities.
+
+        Args:
+            algorithm: 'pagerank' for influence, 'louvain' for communities.
+        """
+        # Delegate logic to repo? Repo should have execute_algo?
+        # I didn't add nice wrappers in Repo yet, but I added execute_cypher.
+        # Let's use execute_cypher for now to keep movement fast.
+
+        results = []
+        if algorithm == "pagerank":
+            try:
+                self.repo.execute_cypher("CALL algo.pageRank('Entity', 'rank')")
+                res = self.repo.execute_cypher(
+                    "MATCH (n:Entity) RETURN n ORDER BY n.rank DESC LIMIT 10"
+                )
+                for row in res.result_set:
+                    node = row[0]
+                    results.append(
+                        {
+                            "name": node.properties.get("name"),
+                            "rank": node.properties.get("rank"),
+                            "type": (
+                                list(set(node.labels) - {"Entity"})[0]
+                                if (set(node.labels) - {"Entity"})
+                                else "Entity"
+                            ),
+                        }
+                    )
+            except Exception as e:
+                logger.error(f"PageRank failed: {e}")
+                return [{"error": str(e)}]
+
+        elif algorithm == "louvain":
+            try:
+                self.repo.execute_cypher("CALL algo.louvain('Entity', 'community')")
+                q = """
+                MATCH (n:Entity)
+                RETURN n.community, count(n) as size, collect(n.name)[..5] as members
+                ORDER BY size DESC LIMIT 5
+                """
+                res = self.repo.execute_cypher(q)
+                for row in res.result_set:
+                    results.append({"community_id": row[0], "size": row[1], "members": row[2]})
+            except Exception as e:
+                logger.error(f"Louvain failed: {e}")
+                return [{"error": str(e)}]
+        return results
+
+    async def get_stale_entities(self, days: int = 30) -> List[Dict[str, Any]]:
+        """Identify entities not modified/accessed in N days."""
+        from datetime import timedelta
+
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        query = """
+        MATCH (n:Entity)
+        WHERE n.updated_at < $cutoff AND (n.status IS NULL OR n.status <> 'archived')
+        RETURN n
+        ORDER BY n.updated_at ASC
+        LIMIT 20
+        """
+        res = self.repo.execute_cypher(query, {"cutoff": cutoff})
+        return [row[0].properties for row in res.result_set]
+
+    async def consolidate_memories(self, entity_ids: List[str], summary: str) -> Dict[str, Any]:
+        """Merge multiple entities into a new Consolidated concept."""
+        # 1. Create new Idea via calling create_entity (which uses repo)
+        # WAIT: The whole point was to avoid self-calls.
+        # Correct pattern: Call repo directly.
+
+        import uuid
+
+        new_id = str(uuid.uuid4())
+
+        params = EntityCreateParams(
+            name=f"Consolidated Memory: {summary[:20]}...",
+            node_type="Concept",
+            project_id="memory_maintenance",
+            properties={"description": summary, "id": new_id, "is_consolidated": True},
+        )
+        # Use repo directly
+        # But we need embedding.
+        encoder = self._get_encoder()
+        embedding = encoder.encode(params.name + " " + summary).tolist()
+
+        props = params.properties.copy()
+        props.update(
+            {
+                "name": params.name,
+                "node_type": params.node_type,
+                "project_id": params.project_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
+        new_node_props = self.repo.create_node("Concept", props, embedding)
+
+        # 2. Link old to new
+        for old_id in entity_ids:
+            try:
+                # Direct Repo Call
+                link_props = {
+                    "confidence": 1.0,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }
+                self.repo.create_edge(old_id, new_id, "PART_OF", link_props)
+
+                # Archive old (Direct Repo Call)
+                self.repo.update_node(
+                    old_id,
+                    {"status": "archived", "archived_at": datetime.now(timezone.utc).isoformat()},
+                )
+            except Exception:
+                continue
+
+        return new_node_props
 
     async def search(
         self, query: str, project_id: Optional[str] = None, limit: int = 10
     ) -> List[SearchResult]:
         """Performs hybrid search."""
-        # This is where we lean on Graphiti
-        # But Graphiti search API might be high level "search episodes".
-        # We want "Search Entities".
-
-        # Any vector search on nodes:
-        # CALL db.idx.vector.queryNodes('Entity', 'embedding', $vec, $k)
-
         encoder = self._get_encoder()
         vec = encoder.encode(query).tolist()
 
-        # FalkorDB Vector Search Syntax (Attempt)
-        # We will try to use the index, but if it fails, fallback to brute force.
-
-        graph = self.client.select_graph("claude_memory")
-
+        # Delegate to repository vector search
         try:
-            # Try to create index if not exists (Best Effort)
-            # self.client.select_graph("claude_memory").query("CREATE VECTOR INDEX FOR (e:Entity) ON (e.embedding) OPTIONS {dimension:384, metric:'cosine'}")
-            pass
-        except Exception:
-            pass
+            filters = {"project_id": project_id} if project_id else None
+            rows = self.repo.query_vector(vec, limit, filters)
 
-        cypher_vector_search = """
-        CALL db.idx.vector.queryNodes('Entity', 'embedding', $number_of_results, $vec)
-        YIELD node, score
-        WHERE ($project_id IS NULL OR node.project_id = $project_id)
-        RETURN node, score
-        """
-
-        params = {"number_of_results": limit, "vec": vec, "project_id": project_id}
-
-        results = []
-        try:
-            res = graph.query(cypher_vector_search, params)
-            for row in res.result_set:
+            results = []
+            for row in rows:
                 node = row[0]
                 score = row[1]
-                results.append(
-                    SearchResult(
-                        id=node.properties.get("id", "unknown"),
-                        name=node.properties.get("name", "Unnamed"),
-                        node_type=(
-                            list(node.labels - {"Entity"})[0]
-                            if (node.labels - {"Entity"})
-                            else "Entity"
-                        ),
-                        project_id=node.properties.get("project_id", "unknown"),
-                        score=score,
-                        distance=score,
-                    )
-                )
-        except Exception as e:
-            logger.warning(f"Vector Index Search failed: {e}. Falling back to Brute Force.")
-            # BRUTE FORCE FALLBACK
-            # 1. Fetch all candidate nodes (filter by project_id if present)
-            bf_query = """
-            MATCH (n:Entity)
-            WHERE n.embedding IS NOT NULL
-            AND ($project_id IS NULL OR n.project_id = $project_id)
-            RETURN n
-            """
-            bf_params = {"project_id": project_id}
-            bf_res = graph.query(bf_query, bf_params)
-
-            import numpy as np
-            from scipy.spatial.distance import cosine
-
-            candidates = []
-            target_vec = np.array(vec)
-
-            for row in bf_res.result_set:
-                node = row[0]
-                embedding_list = node.properties.get("embedding")
-                if not embedding_list:
-                    continue
-
-                # Compute Cosine Similarity
-                # Cosine Distance = 1 - Cosine Similarity
-                # We want score (similarity).
-                # scipy cosine is distance.
-                node_vec = np.array(embedding_list)
-
-                # Check dimensions
-                if len(node_vec) != len(target_vec):
-                    continue
-
-                # Cosine distance
-                dist = cosine(target_vec, node_vec)
-                score = 1.0 - dist
-
-                candidates.append((node, score))
-
-            # Sort by score descending
-            candidates.sort(key=lambda x: x[1], reverse=True)
-
-            # Take top K
-            top_k = candidates[:limit]
-
-            for node, score in top_k:
                 results.append(
                     SearchResult(
                         id=node.properties.get("id", "unknown"),
@@ -678,5 +532,9 @@ class MemoryService:
                         distance=float(score),
                     )
                 )
+
+        except Exception as e:
+            logger.error(f"Search failed: {e}")
+            return []
 
         return results

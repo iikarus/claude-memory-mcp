@@ -14,15 +14,17 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture  # type: ignore
 def memory_service():
-    with patch("claude_memory.tools.FalkorDB"):
+    # Patch FalkorDB in the REPOSITORY module
+    with patch("claude_memory.repository.FalkorDB"):
         service = MemoryService()
-        service.client = MagicMock()
-        service.client.select_graph.return_value = MagicMock()
+        # Navigate to the client inside the repo
+        service.repo.client = MagicMock()
+        service.repo.client.select_graph.return_value = MagicMock()
 
         # Mock the encoder helper directly!
         service._get_encoder = MagicMock()
         encoder = service._get_encoder.return_value
-        encoder.encode.return_value.tolist.return_value = [0.1] * 384
+        encoder.encode.return_value.tolist.return_value = [0.1] * 1024
 
         yield service
 
@@ -30,7 +32,8 @@ def memory_service():
 @pytest.mark.asyncio  # type: ignore
 async def test_day_in_the_life(memory_service):
     """Simulates a full user workflow."""
-    graph = memory_service.client.select_graph.return_value
+    # Access graph via repo
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Patch UUID generation to return deterministic IDs
 

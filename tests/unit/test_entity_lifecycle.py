@@ -9,18 +9,18 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture  # type: ignore
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.tools.FalkorDB"):
+    with patch("claude_memory.repository.FalkorDB"):
         service = MemoryService()
         # Mock the client and graph
-        service.client = MagicMock()
-        service.client.select_graph.return_value = MagicMock()
+        service.repo.client = MagicMock()
+        service.repo.client.select_graph.return_value = MagicMock()
         yield service
 
 
 @pytest.mark.asyncio  # type: ignore
 async def test_update_entity_success(memory_service: MemoryService) -> None:
     # Setup mocks
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
     # Mock return for the final update query
     mock_result_set = MagicMock()
     # Return a dummy node structure: [[Node(properties={...})]]
@@ -46,7 +46,7 @@ async def test_update_entity_success(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_soft_delete_entity(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
     mock_node = MagicMock()
     mock_node.properties = {"id": "123", "deleted": True}
     graph.query.return_value.result_set = [[mock_node]]
@@ -61,7 +61,7 @@ async def test_soft_delete_entity(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_hard_delete_entity(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     params = EntityDeleteParams(entity_id="123", reason="Spam", soft_delete=False)
 
@@ -73,7 +73,7 @@ async def test_hard_delete_entity(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio  # type: ignore
 async def test_add_observation(memory_service: MemoryService) -> None:
-    graph = memory_service.client.select_graph.return_value
+    graph = memory_service.repo.client.select_graph.return_value
 
     # Return the created observation node
     mock_node = MagicMock()
