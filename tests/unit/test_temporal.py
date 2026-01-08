@@ -8,10 +8,24 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture  # type: ignore
 def memory_service() -> Generator[MemoryService, None, None]:
-    with patch("claude_memory.repository.FalkorDB"):
+    with (
+        patch("claude_memory.repository.FalkorDB"),
+        patch("claude_memory.tools.EmbeddingService") as MockEmbedder,
+    ):
+
+        # Setup Embedder Mock
+        mock_instance = MagicMock()
+        MockEmbedder.return_value = mock_instance
+        # Default behavior
+        mock_instance.encode.return_value = [0.1] * 1024
+
         service = MemoryService()
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
+
+        # Ensure service uses our mock
+        service.embedder = mock_instance
+
         yield service
 
 
@@ -50,12 +64,10 @@ async def test_point_in_time_query(memory_service: MemoryService) -> None:
 
     graph.query.return_value.result_set = [[node1]]
 
-    # Mock SentenceTransformer to return consistent vector
-    with patch("claude_memory.tools.SentenceTransformer") as MockST:
-        encoder = MockST.return_value
-        encoder.encode.return_value.tolist.return_value = [1.0] * 1024
+    # Mock EmbeddingService (via fixture)
+    memory_service.embedder.encode.return_value = [1.0] * 1024
 
-        result = await memory_service.point_in_time_query("test", "2023-12-31")
+    result = await memory_service.point_in_time_query("test", "2023-12-31")
 
     assert len(result) == 1
     assert result[0]["id"] == "e1"

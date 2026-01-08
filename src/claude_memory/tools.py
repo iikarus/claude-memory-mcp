@@ -2,8 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
-from sentence_transformers import SentenceTransformer
-
+from .embedding import EmbeddingService
 from .repository import MemoryRepository
 from .schema import (
     BreakthroughParams,
@@ -25,22 +24,15 @@ logger = logging.getLogger(__name__)
 
 class MemoryService:
     def __init__(
-        self, host: Optional[str] = None, port: Optional[int] = None, password: Optional[str] = None
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        password: Optional[str] = None,
+        embedding_service: Optional[EmbeddingService] = None,
     ) -> None:
         self.repo = MemoryRepository(host, port, password)
         self.repo.ensure_indices()
-
-    def _get_encoder(self) -> Any:
-        """Helper to get the sentence transformer model.
-        Extracted for easier mocking in tests.
-        """
-        if not hasattr(self, "_encoder"):
-            import torch
-
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            logger.info(f"Loading SentenceTransformer model (BGE-M3) on {device}...")
-            self._encoder = SentenceTransformer("BAAI/bge-m3", device=device)
-        return self._encoder
+        self.embedder = embedding_service or EmbeddingService()
 
     async def create_entity(self, params: EntityCreateParams) -> Dict[str, Any]:
         """Creates an entity node in the graph."""
@@ -62,19 +54,11 @@ class MemoryService:
             }
         )
 
-        encoder = self._get_encoder()
         # Compute embedding (AI Layer)
         desc = props.get("description", "")
-        # Remove description from props if it is huge? No, keep it.
-        # But 'embedding' key in props? No, we pass explicitly.
-
-        embedding = encoder.encode(params.name + " " + str(desc)).tolist()
+        embedding = self.embedder.encode(params.name + " " + str(desc))
 
         # We don't store embedding in props dictionary passed to repo, repo handles it.
-        # But wait, original code put it in props.
-        # Repo 'create_node' separates it.
-
-        # Remove embedding from props if accidentally added (it shouldn't be yet)
         if "embedding" in props:
             props.pop("embedding")
 
@@ -128,8 +112,7 @@ class MemoryService:
                 new_name = props.get("name", curr_name)
                 new_desc = props.get("description", curr_desc)
 
-                encoder = self._get_encoder()
-                embedding = encoder.encode(new_name + " " + str(new_desc)).tolist()
+                embedding = self.embedder.encode(new_name + " " + str(new_desc))
 
         result = self.repo.update_node(params.entity_id, props, embedding)
         if not result:
@@ -323,8 +306,7 @@ class MemoryService:
 
     async def point_in_time_query(self, query_text: str, as_of: str) -> List[Dict[str, Any]]:
         """Execute a search considering only knowledge known before `as_of`."""
-        encoder = self._get_encoder()
-        vec = encoder.encode(query_text).tolist()
+        vec = self.embedder.encode(query_text)
 
         # Brute force (logic kept for now as temporal filter is complex with vector index)
         # Or we can scan all and filter.
@@ -466,8 +448,7 @@ class MemoryService:
         )
         # Use repo directly
         # But we need embedding.
-        encoder = self._get_encoder()
-        embedding = encoder.encode(params.name + " " + summary).tolist()
+        embedding = self.embedder.encode(params.name + " " + summary)
 
         props = params.properties.copy()
         props.update(
@@ -506,8 +487,7 @@ class MemoryService:
         self, query: str, project_id: Optional[str] = None, limit: int = 10
     ) -> List[SearchResult]:
         """Performs hybrid search."""
-        encoder = self._get_encoder()
-        vec = encoder.encode(query).tolist()
+        vec = self.embedder.encode(query)
 
         # Delegate to repository vector search
         try:

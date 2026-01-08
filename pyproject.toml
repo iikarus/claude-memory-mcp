@@ -39,6 +39,19 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = [
+    "falkordb.*",
+    "pyvis.*",
+    "streamlit.*",
+    "sentence_transformers.*",
+    "graphiti_core.*"
+]
+ignore_missing_imports = true
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_untyped_decorators = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

@@ -12,19 +12,27 @@ from claude_memory.schema import (
 from claude_memory.tools import MemoryService
 
 
-@pytest.fixture  # type: ignore
+@pytest.fixture
 def memory_service():
-    # Patch FalkorDB in the REPOSITORY module
-    with patch("claude_memory.repository.FalkorDB"):
-        service = MemoryService()
-        # Navigate to the client inside the repo
-        service.repo.client = MagicMock()
-        service.repo.client.select_graph.return_value = MagicMock()
+    # Patch FalkorDB in the REPOSITORY module and EmbeddingService in TOOLS
+    with (
+        patch("claude_memory.repository.FalkorDB") as mock_db,
+        patch("claude_memory.tools.EmbeddingService") as mock_embedder_cls,
+    ):
 
-        # Mock the encoder helper directly!
-        service._get_encoder = MagicMock()
-        encoder = service._get_encoder.return_value
-        encoder.encode.return_value.tolist.return_value = [0.1] * 1024
+        # Mock DB
+        mock_client = MagicMock()
+        mock_db.return_value = mock_client
+        mock_client.select_graph.return_value = MagicMock()
+
+        # Mock Embedder
+        mock_embedder = MagicMock()
+        mock_embedder_cls.return_value = mock_embedder
+        mock_embedder.encode.return_value = [0.1] * 1024
+
+        service = MemoryService()
+        # Ensure our mock is the one used (via constructor default)
+        service.embedder = mock_embedder
 
         yield service
 
