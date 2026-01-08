@@ -27,7 +27,7 @@ class MemoryRepository:
         )
         self.graph_name = "claude_memory"
 
-    def select_graph(self):
+    def select_graph(self) -> Any:
         return self.client.select_graph(self.graph_name)
 
     def ensure_indices(self) -> None:

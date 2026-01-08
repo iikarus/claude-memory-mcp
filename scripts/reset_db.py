@@ -5,18 +5,14 @@ import sys
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from claude_memory.repository import MemoryRepository
+from claude_memory.repository import MemoryRepository  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-import inspect
 
-print(f"DEBUG source: {inspect.getsource(MemoryRepository.ensure_indices)}")
-
-
-def reset_database():
+def reset_database() -> None:
     """
     Drops the existing graph and re-initializes indices.
     WARNING: This deletes all data!
@@ -37,7 +33,7 @@ def reset_database():
     logger.info("Re-creating indices with new settings...")
     try:
         repo.ensure_indices()
-        logger.info("Indices created successfully (Dimension: 768).")
+        logger.info("Indices created successfully (Dimension: 1024).")
     except Exception as e:
         logger.error(f"Failed to create indices: {e}")
 
