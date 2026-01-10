@@ -247,3 +247,12 @@ class MemoryRepository:
         """
         result = graph.query(query, {"limit": limit})
         return [row[0].properties for row in result.result_set]
+
+    def get_total_node_count(self) -> int:
+        """Returns the total number of nodes in the graph (for receipts)."""
+        graph = self.select_graph()
+        query = "MATCH (n) RETURN count(n)"
+        result = graph.query(query)
+        if not result.result_set:
+            return 0
+        return int(result.result_set[0][0])

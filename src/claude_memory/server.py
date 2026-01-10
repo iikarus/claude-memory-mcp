@@ -7,6 +7,7 @@ from claude_memory.embedding import EmbeddingService
 from claude_memory.librarian import LibrarianAgent
 from claude_memory.schema import (
     BreakthroughParams,
+    EntityCommitReceipt,
     EntityCreateParams,
     EntityDeleteParams,
     EntityUpdateParams,
@@ -37,7 +38,7 @@ async def create_entity(
     properties: Dict[str, Any] = {},
     certainty: str = "confirmed",
     evidence: List[str] = [],
-) -> Dict[str, Any]:
+) -> EntityCommitReceipt:
     """Create a new entity in the memory graph."""
     params = EntityCreateParams(
         name=name,
@@ -47,7 +48,7 @@ async def create_entity(
         certainty=certainty,
         evidence=evidence,
     )
-    return await service.create_entity(params)  # type: ignore
+    return await service.create_entity(params)
 
 
 @mcp.tool()  # type: ignore[misc]

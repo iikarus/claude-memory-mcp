@@ -6,6 +6,7 @@ from .interfaces import Embedder
 from .repository import MemoryRepository
 from .schema import (
     BreakthroughParams,
+    EntityCommitReceipt,
     EntityCreateParams,
     EntityDeleteParams,
     EntityUpdateParams,
@@ -34,8 +35,9 @@ class MemoryService:
         self.repo.ensure_indices()
         self.embedder = embedding_service
 
-    async def create_entity(self, params: EntityCreateParams) -> Dict[str, Any]:
+    async def create_entity(self, params: EntityCreateParams) -> EntityCommitReceipt:
         """Creates an entity node in the graph."""
+        start_time = datetime.now()
         logger.info(f"Creating entity: {params.name} ({params.node_type})")
 
         props = params.properties.copy()
@@ -62,9 +64,20 @@ class MemoryService:
         if "embedding" in props:
             props.pop("embedding")
 
-        return cast(
-            Dict[str, Any],
-            self.repo.create_node(params.node_type, props, embedding),
+        # Execute creation
+        self.repo.create_node(params.node_type, props, embedding)
+
+        # Calculate Receipt Data
+        duration = (datetime.now() - start_time).total_seconds() * 1000
+        total_count = self.repo.get_total_node_count()
+
+        return EntityCommitReceipt(
+            id=props["id"],
+            name=params.name,
+            status="committed",
+            operation_time_ms=duration,
+            total_memory_count=total_count,
+            message=f"Successfully committed '{params.name}' to the Infinite Graph.",
         )
 
     async def create_relationship(self, params: RelationshipCreateParams) -> Dict[str, Any]:

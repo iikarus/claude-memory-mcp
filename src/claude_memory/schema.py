@@ -77,6 +77,15 @@ class BaseNode(BaseModel):
     embedding: Optional[List[float]] = None
 
 
+class EntityCommitReceipt(BaseModel):
+    id: str
+    name: str
+    status: Literal["committed"] = "committed"
+    operation_time_ms: float
+    total_memory_count: int
+    message: str = "Memory committed to graph."
+
+
 class BreakthroughParams(BaseModel):
     name: str
     moment: str
