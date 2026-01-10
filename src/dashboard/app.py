@@ -26,7 +26,8 @@ async def get_graph_data(limit: int = 100) -> Any:
     service = get_service()
     # Direct cypher for graph viz
     q = f"""
-    MATCH (n:Entity)-[r]->(m:Entity)
+    MATCH (n:Entity)
+    OPTIONAL MATCH (n)-[r]->(m:Entity)
     RETURN n, r, m LIMIT {limit}
     """
     return service.repo.execute_cypher(q)
@@ -70,12 +71,14 @@ def main() -> None:
                     label=n.properties.get("name", "Unknown"),
                     title=str(n.properties),
                 )
-                net.add_node(
-                    m.properties["id"],
-                    label=m.properties.get("name", "Unknown"),
-                    title=str(m.properties),
-                )
-                net.add_edge(n.properties["id"], m.properties["id"], title=r.relation)
+
+                if r is not None and m is not None:
+                    net.add_node(
+                        m.properties["id"],
+                        label=m.properties.get("name", "Unknown"),
+                        title=str(m.properties),
+                    )
+                    net.add_edge(n.properties["id"], m.properties["id"], title=r.relation)
 
             net.repulsion()
             net.save_graph("graph.html")
