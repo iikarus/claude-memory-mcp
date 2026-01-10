@@ -5,9 +5,10 @@ import sys
 
 def generate_config() -> None:
     """Generates the Claude Desktop configuration JSON."""
-    cwd = os.getcwd()
+    # Anchor to the project root (one level up from scripts/)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     python_path = sys.executable
-    script_path = os.path.join(cwd, "src", "claude_memory", "server.py")
+    script_path = os.path.join(project_root, "src", "claude_memory", "server.py")
 
     config = {
         "mcpServers": {

@@ -11,13 +11,13 @@ def sample_nodes() -> List[Dict[str, Any]]:
     # Cluster 1: Near (0,0)
     # Cluster 2: Near (10,10)
     return [
-        {"id": "1", "name": "A", "embedding": [0.1, 0.1]},
-        {"id": "2", "name": "B", "embedding": [0.2, 0.2]},
-        {"id": "3", "name": "C", "embedding": [0.1, 0.15]},
-        {"id": "4", "name": "X", "embedding": [10.1, 10.1]},
-        {"id": "5", "name": "Y", "embedding": [10.2, 10.2]},
-        {"id": "6", "name": "Z", "embedding": [10.1, 10.15]},
-        {"id": "7", "name": "Noise", "embedding": [5.0, 5.0]},  # Outlier
+        {"id": "1", "name": "A", "embedding": [1.0, 0.0]},
+        {"id": "2", "name": "B", "embedding": [0.9, 0.1]},
+        {"id": "3", "name": "C", "embedding": [0.95, 0.05]},
+        {"id": "4", "name": "X", "embedding": [0.0, 1.0]},
+        {"id": "5", "name": "Y", "embedding": [0.1, 0.9]},
+        {"id": "6", "name": "Z", "embedding": [0.05, 0.95]},
+        {"id": "7", "name": "Noise", "embedding": [-0.5, -0.5]},  # Opposite direction
     ]
 
 
