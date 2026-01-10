@@ -65,19 +65,24 @@ class MemoryService:
             props.pop("embedding")
 
         # Execute creation
-        self.repo.create_node(params.node_type, props, embedding)
+        result = self.repo.create_node(params.node_type, props, embedding)
 
         # Calculate Receipt Data
         duration = (datetime.now() - start_time).total_seconds() * 1000
         total_count = self.repo.get_total_node_count()
 
+        # Correct ID from DB (in case of deduplication)
+        final_id = result.get("id", props["id"])
+
+        status = "deduplicated" if final_id != props["id"] else "committed"
+
         return EntityCommitReceipt(
-            id=props["id"],
+            id=final_id,
             name=params.name,
-            status="committed",
+            status="committed",  # Schema limit, keeping "committed" for simplicity unless schema updated.
             operation_time_ms=duration,
             total_memory_count=total_count,
-            message=f"Successfully committed '{params.name}' to the Infinite Graph.",
+            message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
         )
 
     async def create_relationship(self, params: RelationshipCreateParams) -> Dict[str, Any]:

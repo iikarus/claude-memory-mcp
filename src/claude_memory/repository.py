@@ -60,9 +60,17 @@ class MemoryRepository:
             embedding_clause = "SET n.embedding = vecf32($embedding)"
             params["embedding"] = embedding
 
+        # MERGE to prevent duplicates
+        # Matches on Label + Name + Project ID
+        # Note: We implicitly rely on the labels being part of the uniqueness constraint scope logic here.
+        params["name"] = props.get("name")
+        params["project_id"] = props.get("project_id")
+        params["updated_at"] = props.get("updated_at")
+
         query = f"""
-        CREATE (n:{label}:Entity)
-        SET n = $props
+        MERGE (n:{label}:Entity {{name: $name, project_id: $project_id}})
+        ON CREATE SET n = $props
+        ON MATCH SET n.updated_at = $updated_at
         {embedding_clause}
         RETURN n
         """
