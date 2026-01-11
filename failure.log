@@ -1,0 +1,28 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Asus\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Asus\.gemini\antigravity\scratch\new_project\claude-memory-mcp
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.12.0, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+run-last-failure: rerun previous 1 failure (skipped 14 files)
+
+tests/test_schema.py::test_entity_creation_invalid_type FAILED           [100%]
+
+================================== FAILURES ===================================
+______________________ test_entity_creation_invalid_type ______________________
+
+    def test_entity_creation_invalid_type() -> None:
+        """Test that invalid node types are rejected (if we enforced it, currently Literal allows specific ones)."""
+        # Pydantic should raise validation error if we strictly typed it,
+        # but our schema uses Literal["Person", "Project", ...] so it should fail.
+>       with pytest.raises(Exception):  # Pydantic ValidationError
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'Exception'>
+
+tests\test_schema.py:23: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_schema.py::test_entity_creation_invalid_type - Failed: DID ...
+============================== 1 failed in 0.12s ==============================

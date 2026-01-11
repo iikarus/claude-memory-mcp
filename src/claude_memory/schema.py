@@ -5,19 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # === ENUMS ===
 
-NodeLabel = Literal[
-    "Person",
-    "Project",
-    "Concept",
-    "Decision",
-    "Session",
-    "Breakthrough",
-    "Analogy",
-    "Observation",
-    "Tool",
-    "Issue",
-    "Entity",  # Fallback
-]
+NodeLabel = str  # Dynamic: Validated by OntologyManager
 
 EdgeType = Literal[
     # Structural

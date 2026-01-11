@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Any, Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,7 +7,7 @@ from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
-def memory_service() -> Generator[MemoryService, None, None]:
+def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, None]:
     with (
         patch("claude_memory.repository.FalkorDB"),
         patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
@@ -19,7 +19,7 @@ def memory_service() -> Generator[MemoryService, None, None]:
         # Default behavior
         mock_instance.encode.return_value = [0.1] * 1024
 
-        service = MemoryService(embedding_service=mock_instance)
+        service = MemoryService(embedding_service=mock_instance, vector_store=mock_vector_store)
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
 
@@ -49,29 +49,34 @@ async def test_get_evolution(memory_service: MemoryService) -> None:
 
 
 @pytest.mark.asyncio
-async def test_point_in_time_query(memory_service: MemoryService) -> None:
-    graph = memory_service.repo.client.select_graph.return_value
+async def test_point_in_time_query(memory_service: Any, mock_vector_store: Any) -> None:
+    # Setup mocks
+    # Search should return vector hits
+    mock_vector_store.search.return_value = [
+        {"_id": "e1", "_score": 0.9, "name": "Match"},
+    ]
 
-    # Mock result from the "Brute Force" query
-    node1 = MagicMock()
-    # Mock embedding [1.0, 0.0, ...]
-    node1.properties = {
-        "id": "e1",
-        "name": "Match",
-        "embedding": [1.0] * 1024,
-        "created_at": "2023-01-01",
-    }
+    # Repo get_subgraph should hydrate nodes
+    # We access repo via memory_service.repo
+    memory_service.repo.get_subgraph = MagicMock(
+        return_value={
+            "nodes": [
+                {"id": "e1", "name": "Match", "created_at": "2023-01-01"},
+            ]
+        }
+    )
 
-    graph.query.return_value.result_set = [[node1]]
-
-    # Mock EmbeddingService (via fixture)
-    memory_service.embedder.encode.return_value = [1.0] * 1024
-
+    # Execute
     result = await memory_service.point_in_time_query("test", "2023-12-31")
 
+    # Verify
     assert len(result) == 1
     assert result[0]["id"] == "e1"
-    assert "n.created_at <= $as_of" in graph.query.call_args[0][0]
+
+    # Check filter passed to vector store
+    mock_vector_store.search.assert_called_once()
+    call_kwargs = mock_vector_store.search.call_args.kwargs
+    assert call_kwargs["filter"] == {"created_at_lt": "2023-12-31"}
 
 
 @pytest.mark.asyncio

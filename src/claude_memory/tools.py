@@ -17,6 +17,7 @@ from .schema import (
     SessionEndParams,
     SessionStartParams,
 )
+from .vector_store import QdrantVectorStore, VectorStore
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,16 +28,30 @@ class MemoryService:
     def __init__(
         self,
         embedding_service: Embedder,
+        vector_store: Optional[VectorStore] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
         password: Optional[str] = None,
     ) -> None:
         self.repo = MemoryRepository(host, port, password)
-        self.repo.ensure_indices()
+        # self.repo.ensure_indices() # Deprecated: Repository no longer manages vectors
         self.embedder = embedding_service
+        self.vector_store = vector_store or QdrantVectorStore()
+
+        from .ontology import OntologyManager
+
+        self.ontology = OntologyManager()
 
     async def create_entity(self, params: EntityCreateParams) -> EntityCommitReceipt:
         """Creates an entity node in the graph."""
+
+        # Validate Dynamic Type
+        if not self.ontology.is_valid_type(params.node_type):
+            raise ValueError(
+                f"Invalid memory type: '{params.node_type}'. "
+                f"Allowed types: {self.ontology.list_types()}"
+            )
+
         start_time = datetime.now()
         logger.info(f"Creating entity: {params.name} ({params.node_type})")
 
@@ -58,14 +73,27 @@ class MemoryService:
 
         # Compute embedding (AI Layer)
         desc = props.get("description", "")
-        embedding = self.embedder.encode(params.name + " " + str(desc))
+        text_to_embed = f"{params.name} {params.node_type} {desc}"
+        embedding = self.embedder.encode(text_to_embed)
 
-        # We don't store embedding in props dictionary passed to repo, repo handles it.
-        if "embedding" in props:
-            props.pop("embedding")
+        # 1. Write to Graph (FalkorDB) - Source of Truth for Structure
+        # Note: We do NOT pass embedding to repo anymore.
+        node_props = self.repo.create_node(params.node_type, props)
 
-        # Execute creation
-        result = self.repo.create_node(params.node_type, props, embedding)
+        # 2. Write to Vector Engine (Qdrant) - Source of Truth for Search
+        # We use the ID returned/confirmed by the Repo (in case of deduplication, we might update vector)
+        node_id = str(node_props["id"])
+
+        # Determine valid payload (flat dict preferred for vector DBs)
+        payload = {
+            "name": params.name,
+            "node_type": params.node_type,
+            "project_id": params.project_id,
+        }
+        await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
+
+        # Execute creation (Redundant variable assignment removed from logic flow above)
+        result = node_props
 
         # Calculate Receipt Data
         duration = (datetime.now() - start_time).total_seconds() * 1000
@@ -133,9 +161,23 @@ class MemoryService:
                 new_name = props.get("name", curr_name)
                 new_desc = props.get("description", curr_desc)
 
-                embedding = self.embedder.encode(new_name + " " + str(new_desc))
+                text_to_embed = f"{new_name} {params.entity_id} {new_desc}"
+                embedding = self.embedder.encode(text_to_embed)
 
-        result = self.repo.update_node(params.entity_id, props, embedding)
+                # Update Vector Store
+                # We need project_id for filtering, fetch it if not in props
+                project_id = props.get("project_id", curr.get("project_id"))
+                payload = {
+                    "name": new_name,
+                    "node_type": curr.get("node_type", "Entity"),
+                    "project_id": project_id,
+                }
+                await self.vector_store.upsert(
+                    id=params.entity_id, vector=embedding, payload=payload
+                )
+
+        # Update Graph (FalkorDB)
+        result = self.repo.update_node(params.entity_id, props)
         if not result:
             return {"error": "Entity not found"}
         return cast(Dict[str, Any], result)
@@ -145,6 +187,10 @@ class MemoryService:
         logger.info(f"Deleting entity: {params.entity_id} (Soft: {params.soft_delete})")
 
         if self.repo.delete_node(params.entity_id, params.soft_delete, params.reason):
+            # If hard delete, remove from vector store
+            if not params.soft_delete:
+                await self.vector_store.delete(params.entity_id)
+
             status = "soft_deleted" if params.soft_delete else "hard_deleted"
             return {"status": status, "id": params.entity_id}
         else:
@@ -329,37 +375,66 @@ class MemoryService:
         """Execute a search considering only knowledge known before `as_of`."""
         vec = self.embedder.encode(query_text)
 
-        # Brute force (logic kept for now as temporal filter is complex with vector index)
-        # Or we can scan all and filter.
-        bf_query = """
-        MATCH (n:Entity)
-        WHERE n.embedding IS NOT NULL
-        AND n.created_at <= $as_of
-        RETURN n
-        """
-        res = self.repo.execute_cypher(bf_query, {"as_of": as_of})
+        # Use VectorStore with time filter
+        # vector_store needs to support filtering
+        vector_results = await self.vector_store.search(
+            vector=vec, limit=10, filter={"created_at_lt": as_of}
+        )
 
-        import numpy as np
-        from scipy.spatial.distance import cosine
+        if not vector_results:
+            return []
 
-        candidates = []
-        target_vec = np.array(vec)
+        # Hydrate from Graph
+        ids = [item["_id"] for item in vector_results]
+        graph_data = self.repo.get_subgraph(ids, depth=0)
 
-        for row in res.result_set:
-            node = row[0]
-            embedding_list = node.properties.get("embedding")
-            if not embedding_list:
-                continue
+        # Flatten
+        return [node for node in graph_data["nodes"]]
 
-            node_vec = np.array(embedding_list)
-            if len(node_vec) != len(target_vec):
-                continue
+    async def search(
+        self, query: str, limit: int = 5, project_id: Optional[str] = None
+    ) -> List[SearchResult]:
+        """Semantic search using Qdrant."""
+        if not query:
+            return []
 
-            dist = cosine(target_vec, node_vec)
-            candidates.append((node.properties, 1.0 - dist))
+        # 1. Embed Query
+        vec = self.embedder.encode(query)
 
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        return [c[0] for c in candidates[:10]]
+        # 2. Search Vector Store
+        # TODO: Add filter support to VectorStore protocol if project_id is needed
+        # For now, we search global or assume VectorStore handles filtering via payload
+        # Our QdrantStore implementation doesn't support complex filters via upsert/search args yet,
+        # but we can add filter logic later. Strict Interface for now.
+
+        vector_results = await self.vector_store.search(vector=vec, limit=limit)
+
+        if not vector_results:
+            return []
+
+        # 3. Hydrate from Graph
+        # We have IDs, fetch full nodes.
+        ids = [item["_id"] for item in vector_results]
+
+        # We can use get_subgraph with depth 0 to get nodes
+        graph_data = self.repo.get_subgraph(ids, depth=0)
+        nodes_map = {n["id"]: n for n in graph_data["nodes"]}
+
+        results = []
+        for v_res in vector_results:
+            node_id = v_res["_id"]
+            if node_id in nodes_map:
+                node_props = nodes_map[node_id]
+                results.append(
+                    SearchResult(
+                        id=node_id,
+                        name=node_props.get("name", "Unknown"),
+                        type=node_props.get("node_type", "Entity"),
+                        excerpt=node_props.get("description", ""),
+                        confidence=v_res["_score"],  # 0..1 score from Qdrant
+                    )
+                )
+        return results
 
     async def archive_entity(self, entity_id: str) -> Dict[str, Any]:
         """Archive an entity (logical hide)."""
@@ -468,9 +543,10 @@ class MemoryService:
             project_id="memory_maintenance",
             properties={"description": summary, "id": new_id, "is_consolidated": True},
         )
-        # Use repo directly
-        # But we need embedding.
-        embedding = self.embedder.encode(params.name + " " + summary)
+
+        # Compute embedding
+        text_to_embed = f"{params.name} {params.node_type} {summary}"
+        embedding = self.embedder.encode(text_to_embed)
 
         props = params.properties.copy()
         props.update(
@@ -483,7 +559,16 @@ class MemoryService:
             }
         )
 
-        new_node_props = self.repo.create_node("Concept", props, embedding)
+        # 1. Write Graph
+        new_node_props = self.repo.create_node("Concept", props)
+
+        # 2. Write Vector
+        payload = {
+            "name": params.name,
+            "node_type": params.node_type,
+            "project_id": params.project_id,
+        }
+        await self.vector_store.upsert(id=new_id, vector=embedding, payload=payload)
 
         # 2. Link old to new
         for old_id in entity_ids:
@@ -505,41 +590,17 @@ class MemoryService:
 
         return new_node_props  # type: ignore
 
-    async def search(
-        self, query: str, project_id: Optional[str] = None, limit: int = 10
-    ) -> List[SearchResult]:
-        """Performs hybrid search."""
-        vec = self.embedder.encode(query)
-
-        # Delegate to repository vector search
-        try:
-            filters = {"project_id": project_id} if project_id else None
-            rows = self.repo.query_vector(vec, limit, filters)
-
-            results = []
-            for row in rows:
-                node = row[0]
-                score = row[1]
-                results.append(
-                    SearchResult(
-                        id=node.properties.get("id", "unknown"),
-                        name=node.properties.get("name", "Unnamed"),
-                        node_type=(
-                            list(set(node.labels) - {"Entity"})[0]
-                            if (set(node.labels) - {"Entity"})
-                            else "Entity"
-                        ),
-                        project_id=node.properties.get("project_id", "unknown"),
-                        score=float(score),
-                        distance=float(score),
-                    )
-                )
-
-        except Exception as e:
-            logger.error(f"Search failed: {e}")
-            return []
-
-        return results
+    def create_memory_type(
+        self, name: str, description: str, required_properties: List[str] = []
+    ) -> Dict[str, Any]:
+        """Registers a new memory type in the ontology."""
+        self.ontology.add_type(name, description, required_properties)
+        return {
+            "name": name,
+            "description": description,
+            "required_properties": required_properties,
+            "status": "active",
+        }
 
     async def get_hologram(self, query: str, depth: int = 1) -> Dict[str, Any]:
         """

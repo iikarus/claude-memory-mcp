@@ -1,0 +1,46 @@
+{
+  "Entity": {
+    "description": "A generic entity in the graph (default).",
+    "required_properties": []
+  },
+  "Concept": {
+    "description": "A high-level idea or abstraction.",
+    "required_properties": []
+  },
+  "Project": {
+    "description": "A specific project or initiative.",
+    "required_properties": []
+  },
+  "Person": {
+    "description": "A human individual.",
+    "required_properties": []
+  },
+  "Decision": {
+    "description": "A specialized node recording a choice made.",
+    "required_properties": []
+  },
+  "Session": {
+    "description": "A working session event.",
+    "required_properties": []
+  },
+  "Breakthrough": {
+    "description": "A key realization or moment of insight.",
+    "required_properties": []
+  },
+  "Analogy": {
+    "description": "A comparison used to explain a concept.",
+    "required_properties": []
+  },
+  "Observation": {
+    "description": "A piece of empirical evidence or note.",
+    "required_properties": []
+  },
+  "Tool": {
+    "description": "A software tool or utility.",
+    "required_properties": []
+  },
+  "Issue": {
+    "description": "A problem or bug report.",
+    "required_properties": []
+  }
+}

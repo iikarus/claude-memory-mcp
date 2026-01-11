@@ -1,5 +1,5 @@
 from typing import Any, Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -26,7 +26,13 @@ def memory_service(mock_repo: Any) -> Any:
         # Mock encoding logic
         mock_embedding_service.encode.return_value = [0.1] * 1024
 
-        service = MemoryService(embedding_service=mock_embedding_service)
+        # Mock Vector Store
+        mock_vector_store = MagicMock()
+        mock_vector_store.upsert = AsyncMock()
+
+        service = MemoryService(
+            embedding_service=mock_embedding_service, vector_store=mock_vector_store
+        )
 
         # Ensure our mock repo is what the service uses
         service.repo = mock_repo
@@ -69,20 +75,26 @@ async def test_consolidate_memories(memory_service: Any, mock_repo: Any) -> None
     """Test consolidation workflow using Repository mocks."""
 
     # Setup mocks
-    mock_repo.create_node.return_value = {"id": "new-id", "name": "Consolidated Memory"}
+    mock_repo.create_node.return_value = {"id": "generated-uuid", "name": "Consolidated Memory"}
 
     # Patch UUID to return a fixed ID for the logic inside the method
     with patch("uuid.uuid4", return_value="generated-uuid"):
         result = await memory_service.consolidate_memories(["id-1", "id-2"], "Summary text")
 
     # Result comes from create_node return value (the mock)
-    assert result["id"] == "new-id"
+    assert result["id"] == "generated-uuid"
 
     # Verify create_node called (Logic)
     mock_repo.create_node.assert_called_once()
     args = mock_repo.create_node.call_args
     assert args[0][0] == "Concept"  # Label
-    assert args[0][2] is not None  # Embedding provided
+    # assert args[0][2] is not None  # Embedding provided - NO LONGER TRUE
+
+    # Verify Vector Upsert
+    memory_service.vector_store.upsert.assert_called_once()
+    upsert_args = memory_service.vector_store.upsert.call_args
+    assert upsert_args.kwargs["id"] == "generated-uuid"
+    assert len(upsert_args.kwargs["vector"]) == 1024
 
     # Verify create_edge called for links (Data Access)
     assert mock_repo.create_edge.call_count == 2

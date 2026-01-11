@@ -11,9 +11,9 @@ def test_entity_creation_validation() -> None:
     )
     assert params.node_type == "Entity"
 
-    # Invalid Node Type
-    with pytest.raises(ValidationError):
-        EntityCreateParams(name="Test", node_type="InvalidType", project_id="p1")
+    # Invalid Node Type -> NOW VALID in Model (Runtime check only in Service)
+    p2 = EntityCreateParams(name="Test", node_type="InvalidType", project_id="p1")
+    assert p2.node_type == "InvalidType"
 
 
 def test_relationship_validation() -> None:

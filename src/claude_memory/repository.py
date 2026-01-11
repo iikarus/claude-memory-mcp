@@ -32,37 +32,19 @@ class MemoryRepository:
 
     def ensure_indices(self) -> None:
         """Create necessary indices if they don't exist."""
-        graph = self.select_graph()
-        query = """
-        CREATE VECTOR INDEX FOR (e:Entity) ON (e.embedding)
-        OPTIONS {dimension: 1024, similarityFunction: 'cosine'}
-        """
-        try:
-            graph.query(query)
-        except Exception:
-            pass
+        # No longer manages vector indices.
+        # Could add index on 'id' or 'name' for speed if not implicit in Node Key.
+        pass
 
-    def create_node(
-        self, label: str, properties: Dict[str, Any], embedding: Optional[List[float]] = None
-    ) -> Dict[str, Any]:
-        """Creates a node with optional vector embedding."""
+    def create_node(self, label: str, properties: Dict[str, Any]) -> Dict[str, Any]:
+        """Creates a node (embedding logic moved to VectorStore)."""
         graph = self.select_graph()
         props = properties.copy()
 
         # Build query
-        # We assume label is safe (validated by caller/schema)
-        # We manually construct the label part, but bind properties
-
-        embedding_clause = ""
         params: Dict[str, Any] = {"props": props}
 
-        if embedding:
-            embedding_clause = "SET n.embedding = vecf32($embedding)"
-            params["embedding"] = embedding
-
         # MERGE to prevent duplicates
-        # Matches on Label + Name + Project ID
-        # Note: We implicitly rely on the labels being part of the uniqueness constraint scope logic here.
         params["name"] = props.get("name")
         params["project_id"] = props.get("project_id")
         params["updated_at"] = props.get("updated_at")
@@ -71,32 +53,24 @@ class MemoryRepository:
         MERGE (n:{label}:Entity {{name: $name, project_id: $project_id}})
         ON CREATE SET n = $props
         ON MATCH SET n.updated_at = $updated_at
-        {embedding_clause}
         RETURN n
         """
 
         result = graph.query(query, params)
         return result.result_set[0][0].properties  # type: ignore
 
-    def update_node(
-        self, node_id: str, properties: Dict[str, Any], embedding: Optional[List[float]] = None
-    ) -> Dict[str, Any]:
-        """Updates a node's properties and/or embedding."""
+    def update_node(self, node_id: str, properties: Dict[str, Any]) -> Dict[str, Any]:
+        """Updates a node's properties."""
         graph = self.select_graph()
         props = properties.copy()
 
         query_parts = []
         query_parts.append("MATCH (n:Entity {id: $id})")
         query_parts.append("SET n += $props")
-
-        params: Dict[str, Any] = {"id": node_id, "props": props}
-
-        if embedding:
-            query_parts.append("SET n.embedding = vecf32($embedding)")
-            params["embedding"] = embedding
-
         query_parts.append("RETURN n")
+
         query = "\n".join(query_parts)
+        params = {"id": node_id, "props": props}
 
         result = graph.query(query, params)
         if not result.result_set:
@@ -142,33 +116,6 @@ class MemoryRepository:
         query = "MATCH ()-[r]->() WHERE r.id = $id DELETE r"
         graph.query(query, {"id": edge_id})
         return True
-
-    def query_vector(
-        self, embedding: List[float], k: int = 10, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Any]:
-        """Executes a native vector search."""
-        graph = self.select_graph()
-
-        # Construct filter clause
-        where_clause = ""
-        params = {"vec": embedding, "k": k}
-
-        if filters and "project_id" in filters:
-            where_clause = "WHERE ($project_id IS NULL OR node.project_id = $project_id)"
-            params["project_id"] = filters["project_id"]
-
-        query = f"""
-        CALL db.idx.vector.queryNodes('Entity', 'embedding', $k, vecf32($vec))
-        YIELD node, score
-        {where_clause}
-        RETURN node, score
-        """
-
-        try:
-            return graph.query(query, params).result_set  # type: ignore
-        except Exception as e:
-            # Re-raise to let service handle fallback or logging
-            raise e
 
     def execute_cypher(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
         """Executes a raw Cypher query."""

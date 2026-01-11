@@ -14,7 +14,7 @@ from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
-def memory_service() -> Any:
+def memory_service(mock_vector_store: Any) -> Any:
     # Patch FalkorDB in the REPOSITORY module and EmbeddingService in TOOLS
     with (
         patch("claude_memory.repository.FalkorDB") as mock_db,
@@ -31,7 +31,7 @@ def memory_service() -> Any:
         mock_embedder_cls.return_value = mock_embedder
         mock_embedder.encode.return_value = [0.1] * 1024
 
-        service = MemoryService(embedding_service=mock_embedder)
+        service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector_store)
 
         yield service
 

@@ -35,7 +35,7 @@ async def get_graph_data(limit: int = 100) -> Any:
 
 async def get_stats() -> Tuple[int, int]:
     service = get_service()
-    nodes = service.repo.execute_cypher("MATCH (n:Entity) RETURN count(n)").result_set[0][0]
+    nodes = service.repo.execute_cypher("MATCH (n) RETURN count(n)").result_set[0][0]
     edges = service.repo.execute_cypher("MATCH ()-[r]->() RETURN count(r)").result_set[0][0]
     return nodes, edges
 
@@ -47,7 +47,7 @@ def main() -> None:
 
     # Sidebar Stats
     nodes, edges = asyncio.run(get_stats())
-    st.sidebar.metric("Entities", nodes)
+    st.sidebar.metric("Total Nodes", nodes)
     st.sidebar.metric("Relationships", edges)
 
     menu = st.sidebar.radio("Mode", ["Explorer", "Search", "Maintenance"])

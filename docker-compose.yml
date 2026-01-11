@@ -8,6 +8,14 @@ services:
       - falkordb_data:/data
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
   dashboard:
     build: .
     ports:
@@ -48,3 +56,4 @@ services:
 
 volumes:
   falkordb_data:
+  qdrant_data:

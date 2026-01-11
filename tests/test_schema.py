@@ -1,5 +1,3 @@
-import pytest
-
 from claude_memory.schema import BreakthroughParams, EntityCreateParams, RelationshipCreateParams
 
 
@@ -17,13 +15,12 @@ def test_entity_creation_valid() -> None:
 
 
 def test_entity_creation_invalid_type() -> None:
-    """Test that invalid node types are rejected (if we enforced it, currently Literal allows specific ones)."""
-    # Pydantic should raise validation error if we strictly typed it,
-    # but our schema uses Literal["Person", "Project", ...] so it should fail.
-    with pytest.raises(Exception):  # Pydantic ValidationError
-        EntityCreateParams(
-            name="Bad Entity", node_type="InvalidType", project_id="test_project", properties={}
-        )
+    """Test that invalid node types are accepted by the model (runtime validation handles it)."""
+    # Pydantic allows any string now.
+    params = EntityCreateParams(
+        name="Bad Entity", node_type="InvalidType", project_id="test_project", properties={}
+    )
+    assert params.node_type == "InvalidType"
 
 
 def test_relationship_creation() -> None:

@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Any, Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,12 +7,14 @@ from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
-def memory_service() -> Generator[MemoryService, None, None]:
+def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, None]:
     with (
         patch("claude_memory.repository.FalkorDB"),
         patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
     ):
-        service = MemoryService(embedding_service=MockEmbedder.return_value)
+        service = MemoryService(
+            embedding_service=MockEmbedder.return_value, vector_store=mock_vector_store
+        )
         service.repo.client = MagicMock()
         service.repo.client.select_graph.return_value = MagicMock()
         yield service

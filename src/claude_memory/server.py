@@ -220,6 +220,20 @@ async def run_librarian_cycle() -> Dict[str, Any]:
     return cast(Dict[str, Any], await librarian.run_cycle())
 
 
+@mcp.tool()  # type: ignore[misc]
+async def create_memory_type(
+    name: str, description: str, required_properties: List[str] = []
+) -> Dict[str, Any]:
+    """Registers a new memory type in the ontology.
+
+    Args:
+        name: Name of the new type (e.g. "Recipe")
+        description: Description of what this type represents
+        required_properties: List of property names that should always be present
+    """
+    return cast(Dict[str, Any], service.create_memory_type(name, description, required_properties))
+
+
 def main() -> None:
     mcp.run()
 
