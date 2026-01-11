@@ -34,6 +34,11 @@ COPY scripts/ scripts/
 COPY . .
 RUN pip install --no-cache-dir .
 
+# Bake embedding model into the image
+# This ensures no network calls are needed at runtime for model loading
+ENV EMBEDDING_MODEL=BAAI/bge-m3
+RUN python scripts/download_model.py
+
 # Set Env Defaults
 ENV FALKORDB_HOST=graphdb
 ENV FALKORDB_PORT=6379

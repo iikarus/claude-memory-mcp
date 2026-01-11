@@ -27,6 +27,16 @@ services:
       - FALKORDB_PORT=6379
     depends_on:
       - graphdb
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     restart: unless-stopped
     # Assuming 'mcp' CLI is installed or we run python server.py directly?
     # server.py uses FastMCP. .run() uses stdio by default?

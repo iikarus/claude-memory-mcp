@@ -65,7 +65,9 @@ async def test_day_in_the_life(memory_service: Any) -> None:
         res_entity = await memory_service.create_entity(e_params)
         # If create_entity uses uuid inside, it got 'cnt-1'.
         # If it returns DB result, it gets 'cnt-1' from our mock.
-        assert res_entity["id"] == "cnt-1"
+        # If create_entity uses uuid inside, it got 'cnt-1'.
+        # If it returns DB result, it gets 'cnt-1' from our mock.
+        assert res_entity.id == "cnt-1"
 
         # 2. Start Session (uses uuid) -> Get 'sess-1'
         # Mock DB return
