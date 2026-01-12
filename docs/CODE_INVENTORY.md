@@ -35,8 +35,28 @@ A manifest of the project structure.
 
 ## Configuration
 
-| File                 | Purpose                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `pyproject.toml`     | Dependencies, Build System, Tool Config (Black, Isort, Mypy). |
-| `Dockerfile`         | Multi-stage build definition.                                 |
-| `docker-compose.yml` | Orchestration for DB + Server + Dashboard.                    |
+| File                 | Purpose                                                        |
+| -------------------- | -------------------------------------------------------------- |
+| `pyproject.toml`     | Dependencies, Build System, Tool Config (Black, Isort, Mypy).  |
+| `Dockerfile`         | Multi-stage build definition.                                  |
+| `docker-compose.yml` | Orchestration for DB + Server + Dashboard.                     |
+| `mcp_config.json`    | **Local Config**. Arguments for running with `claude mcp run`. |
+
+## Operations & Scripts (`scripts/`)
+
+| File                    | Purpose                                                                 |
+| ----------------------- | ----------------------------------------------------------------------- |
+| **Safety & Ops**        |                                                                         |
+| `backup_restore.py`     | **Snapshot Tool**. "Git-style" Save/Load for full database state.       |
+| `nuke_data.py`          | **Reset Tool**. Wipes FalkorDB and Qdrant completely.                   |
+| `start.ps1`             | **Startup**. Helper to resume Docker containers without rebuilding.     |
+| **Verification**        |                                                                         |
+| `red_team.py`           | **Chaos Testing**. Fuzzing, Concurrency, and Cycle detection.           |
+| `e2e_test.py`           | **Full Stack Test**. Verifies Graph+Vector connectivity on live Docker. |
+| `verify_mcp_server.py`  | **Protocol Test**. Simulates an MCP Client (JSON-RPC) to verify tools.  |
+| `debug_data_status.py`  | **Diagnostic**. Counts nodes in FalkorDB directly.                      |
+| `debug_qdrant_count.py` | **Diagnostic**. Counts vectors in Qdrant directly.                      |
+| **Legacy/Utils**        |                                                                         |
+| `simulate_day.py`       | Simulation of user interaction (Mocked).                                |
+| `download_model.py`     | Pre-downloads ML models during Docker build.                            |
+| `generate_config.py`    | Utils for config generation.                                            |
