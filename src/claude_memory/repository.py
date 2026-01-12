@@ -140,6 +140,18 @@ class MemoryRepository:
 
         graph = self.select_graph()
 
+        # Optimization: If depth is 0, just fetch nodes directly (Fixes UNWIND bug on empty paths)
+        if depth == 0:
+            query_nodes = """
+            MATCH (n:Entity) WHERE n.id IN $ids
+            RETURN collect(distinct {id: n.id, labels: labels(n), properties: properties(n)}) as nodes
+            """
+            res_nodes = graph.query(query_nodes, {"ids": start_node_ids})
+            if res_nodes.result_set:
+                # Extract inner dict properties
+                return {"nodes": [n["properties"] for n in res_nodes.result_set[0][0]], "edges": []}
+            return {"nodes": [], "edges": []}
+
         # Variable length path query
         # We find paths from root set to neighbors
         # We manually unroll the depth in Cypher or use variable length path
