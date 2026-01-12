@@ -2,7 +2,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional, cast
 
-from .interfaces import Embedder
+from claude_memory.context_manager import ContextManager
+from claude_memory.interfaces import Embedder
+
 from .repository import MemoryRepository
 from .schema import (
     BreakthroughParams,
@@ -40,7 +42,9 @@ class MemoryService:
 
         from .ontology import OntologyManager
 
+        # Core Components
         self.ontology = OntologyManager()
+        self.context_manager = ContextManager()
 
     async def create_entity(self, params: EntityCreateParams) -> EntityCommitReceipt:
         """Creates an entity node in the graph."""
@@ -305,12 +309,11 @@ class MemoryService:
             "created_at": datetime.now(timezone.utc).isoformat(),
             "node_type": "Breakthrough",  # Keep schema consistency
         }
-        # Creating as Entity?
-        # Schema implies Breakthrough is a node type.
-        # Let's use generic create_node, it adds :Entity.
-        # Wait, if we use repo.create_node("Breakthrough", props), it becomes :Breakthrough:Entity
-        # That fits the pattern.
-        return cast(Dict[str, Any], self.repo.create_node("Breakthrough", props))
+        res = self.repo.create_node("Breakthrough", props)
+        if params.session_id:
+            self.repo.create_edge(params.session_id, b_id, "BREAKTHROUGH_IN", {"confidence": 1.0})
+
+        return cast(Dict[str, Any], res)
 
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20
@@ -602,7 +605,9 @@ class MemoryService:
             "status": "active",
         }
 
-    async def get_hologram(self, query: str, depth: int = 1) -> Dict[str, Any]:
+    async def get_hologram(
+        self, query: str, depth: int = 1, max_tokens: int = 8000
+    ) -> Dict[str, Any]:
         """
         Retrieves a 'Hologram' (connected subgraph) relevant to the query.
 
@@ -627,4 +632,32 @@ class MemoryService:
         # 2. Expand Subgraph
         hologram = self.repo.get_subgraph(anchor_ids, depth)
 
-        return hologram  # type: ignore
+        # 3. Assemble and Optimize
+        # Convert list to map for easier dedup if needed, but repo returns deduplicated lists usually.
+        # But we need to separate nodes and edges for optimization.
+
+        raw_nodes = hologram.get("nodes", [])
+        raw_edges = hologram.get("edges", [])
+
+        # Optimize using Token Budget
+        optimized_nodes = self.context_manager.optimize(raw_nodes, max_tokens=max_tokens)
+
+        # Filter edges: only keep edges where both nodes are in the optimized set
+        final_node_ids = {n["id"] for n in optimized_nodes}
+
+        optimized_edges = [
+            e for e in raw_edges if e["source"] in final_node_ids and e["target"] in final_node_ids
+        ]
+
+        return {
+            "query": query,
+            "anchors": [a.dict() for a in anchors],
+            "nodes": optimized_nodes,
+            "edges": optimized_edges,
+            "stats": {
+                "total_nodes": len(optimized_nodes),
+                "total_edges": len(optimized_edges),
+                "original_node_count": len(raw_nodes),
+                "pruned": len(raw_nodes) > len(optimized_nodes),
+            },
+        }
