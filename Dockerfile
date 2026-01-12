@@ -12,25 +12,29 @@ RUN apt-get update && apt-get install -y \
 # Copy configuration first for caching
 COPY pyproject.toml .
 
-# Install dependencies (including torch)
-# We install the project in editable mode initially or just the deps
-# Pip can install from toml directly if it has [project] table (modern standard)
-# But typically we need 'pip install .'
-RUN pip install --no-cache-dir .
+# Install dependencies ONLY (using a dummy file or just installing the project deps if possible)
+# We use a trick: Install dependencies by creating a dummy src layout if needed,
+# or just run pip install -e . --no-deps to get metadata if possible?
+# Better: generic install of pyproject dependencies.
+# IMPORTANT: Since we don't have a requirements.txt, we let pip solve it.
+# To allow caching, we copy ONLY the toml, then install deps.
+# But `pip install .` needs source.
+# Solution:
+# 1. Create a requirements.txt export (best practice but extra step).
+# 2. Or: Just rely on pyproject.toml if we can.
+# Let's try installing just the runtime dependencies manually or via a generated requirements step.
+# For now, simpler fix: Move COPY . . AFTER the heavy lifting if possible.
+# Actually, the simplest fix for users is to NOT trigger --build every time.
 
-# Copy source code
-COPY src/ src/
-COPY scripts/ scripts/
+# IMPROVED LAYERING:
+# 1. Copy config
+COPY pyproject.toml README.md ./
 
-# Re-install payload (update code without re-installing deps if possible?)
-# Since we did 'pip install .' before copying src, it might have failed if src was missing but pyproject needed it?
-# Actually 'pip install .' needs the source usually unless we do 'pip install -e .'
-# A better pattern is to export requirements or use 'uv' or 'poetry'.
-# Given standard pip: COPY . . AND THEN RUN pip install.
-# To OPTIMIZE:
-# We'll stick to simple COPY . . -> pip install for V1 to ensure correctness first.
-# Optimization comes later (Mercenary Check: Correctness > Optimization).
+# 2. Generate requirements from pyproject.toml (hacky but works without extra tools)
+# or just install the heavy hitters explicitly to cache them.
+RUN pip install --no-cache-dir torch==2.9.1 sentence-transformers qdrant-client redis neo4j pandas
 
+# 3. Now copy source and install the rest (project itself)
 COPY . .
 RUN pip install --no-cache-dir .
 

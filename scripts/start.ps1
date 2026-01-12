@@ -4,7 +4,7 @@
 Write-Host "Resuming The Exocortex..." -ForegroundColor Green
 
 # Start containers (Builds only if necessary, preserves volumes)
-docker-compose up -d --build
+docker-compose up -d
 
 # Wait a moment
 Start-Sleep -Seconds 5
