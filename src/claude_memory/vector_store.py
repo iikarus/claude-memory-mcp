@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Any, Dict, List, Optional, Protocol
 
 from qdrant_client import AsyncQdrantClient
@@ -30,12 +31,14 @@ class QdrantVectorStore:
 
     def __init__(
         self,
-        host: str = "qdrant",
-        port: int = 6333,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
         collection: str = "memory_embeddings",
         vector_size: int = 1024,
     ):
-        self.client = AsyncQdrantClient(host=host, port=port)
+        self.host = host or os.getenv("QDRANT_HOST", "localhost")
+        self.port = port or int(os.getenv("QDRANT_PORT", 6333))
+        self.client = AsyncQdrantClient(host=self.host, port=self.port)
         self.collection = collection
         self.vector_size = vector_size
         self._initialized = False
@@ -96,20 +99,27 @@ class QdrantVectorStore:
             if must_conditions:
                 q_filter = models.Filter(must=must_conditions)
 
-        # Search in Qdrant
-        # Note: qdrant-client 1.7+ has search, but mypy might not see it correctly on Async client dynamic proxy
-        results = await self.client.search(
-            collection_name=self.collection, query_vector=vector, limit=limit, query_filter=q_filter
+        # Search using query_points (search was removed/deprecated)
+        # We need to map 'query_vector' to 'query'
+        results = await self.client.query_points(
+            collection_name=self.collection,
+            query=vector,
+            limit=limit,
+            query_filter=q_filter,
+            with_payload=True,
+            with_vectors=False,
         )
 
-        # Transform back to Dict
-        output = []
-        for hit in results:
-            item = hit.payload or {}
-            item["_id"] = hit.id
-            item["_score"] = hit.score
-            output.append(item)
-        return output
+        # Results from query_points are ScoredPoint objects directly
+        # AsyncQdrantClient.query_points returns QueryResponse, which has a 'points' attribute.
+        return [
+            {
+                "_id": point.id,
+                "_score": point.score,
+                "payload": point.payload or {},
+            }
+            for point in results.points
+        ]
 
     async def delete(self, id: str) -> None:
         await self._ensure_collection()

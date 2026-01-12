@@ -33,6 +33,7 @@ services:
     environment:
       - FALKORDB_HOST=graphdb
       - FALKORDB_PORT=6379
+      - QDRANT_HOST=qdrant
     depends_on:
       - graphdb
     volumes:
