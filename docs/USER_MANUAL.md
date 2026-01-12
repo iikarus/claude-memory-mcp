@@ -23,12 +23,16 @@ The system exposes the following tools via the Model Context Protocol.
 ### Retrieval Tools (The Magic)
 
 - **`search_memory(query)`**
-  - Standard semantic search. Returns individual matching nodes.
-- **`get_hologram(query, depth=2)`**
-  - **Best for Context**. Retrieves the search results AND their connected neighbors. Use this to understand the "situation".
-- **`traverse_path(from, to)`**
+  - Standard semantic search. Returns best matching nodes.
+- **`get_neighbors(entity_id, depth=1, limit=20)`**
+  - Explore the graph. Returns the "Hologram" (connected context) around a node.
+- **`traverse_path(from_id, to_id)`**
   - Finds the shortest path between two concepts.
-- **`point_in_time_query(query, as_of)`**
+- **`find_cross_domain_patterns(entity_id, limit=10)`**
+  - **The Sexy One**. Discovers non-obvious connections across disparate domains.
+- **`get_evolution(entity_id)`**
+  - Tracks the history/observations of an entity over time.
+- **`point_in_time_query(query_text, as_of)`**
   - Time-travel search. "What did we know about X last week?"
 
 ### Maintenance (Manual)
