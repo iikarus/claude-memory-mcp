@@ -25,6 +25,8 @@ services:
       - FALKORDB_PORT=6379
     depends_on:
       - graphdb
+    volumes:
+      - ./src:/app/src
     restart: unless-stopped
     command: streamlit run src/dashboard/app.py
 

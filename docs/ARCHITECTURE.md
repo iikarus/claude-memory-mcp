@@ -10,10 +10,17 @@
 
 ### Entities
 
-Nodes in the graph.
+Nodes in the graph (FalkorDB).
 
 - **Properties**: `id`, `name`, `description`, `created_at`.
-- **Vector**: 1024d float array (stored in `embedding` property).
+- **Vector**: Stored in Qdrant (linked by `id`).
+
+### Vector Store (Qdrant)
+
+High-performance vector similarity search.
+
+- **Collection**: `memory_embeddings`
+- **Payload**: Stores `entity_id` and embedding vector (1024d).
 
 ### Relationships
 
@@ -33,18 +40,16 @@ Instead of `SELECT * FROM Memories WHERE text MATCH query`, we do:
 
 ## Component Interaction
 
-```mermaid
-graph TD
     A[MCP Human/Agent] -->|request| B[Server (FastMCP)]
     B -->|delegates| C[MemoryService]
     C -->|embeds| D[EmbeddingService]
     C -->|persists| E[Repository]
-    E -->|queries| F[(FalkorDB)]
+    E -->|structure| F[(FalkorDB)]
+    E -->|vectors| I[(Qdrant)]
 
     G[LibrarianAgent] -->|monitors| C
     G -->|clusters| H[ClusteringService]
-    H -->|reads vectors| C
-```
+    H -->|reads vectors| I
 
 ## Future Roadmap (V2+)
 

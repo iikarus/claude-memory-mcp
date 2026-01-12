@@ -3,8 +3,8 @@
 ## 1. Vector Dimensions
 
 - **Gotcha**: We strictly use **1024 dimensions** (`BAAI/bge-m3`).
-- **Risk**: If you switch models to `all-MiniLM-L6-v2` (384d) without re-indexing, FalkorDB queries will fail or return garbage.
-- **Fix**: Update `embedding.py` AND drop/recreate the index in `repository.py`.
+- **Risk**: If you switch models to `all-MiniLM-L6-v2` (384d) without re-indexing, Qdrant queries will fail (dimension mismatch).
+- **Fix**: Update `embedding.py` AND drop/recreate the collection via `nuke_data.py`.
 
 ## 2. Pydantic & Enums
 

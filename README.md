@@ -15,7 +15,7 @@ A long-term memory system for Claude, built as a Model Context Protocol (MCP) se
 
 ## 🛠️ Architecture
 
-- **Backend**: `falkordb` (Graph Database + Vector Index)
+- **Backend**: `falkordb` (Graph) + `qdrant` (Vectors)
 - **Server**: `mcp` (Model Context Protocol) via `FastMCP`
 - **ML Layer**: `sentence-transformers` (`BAAI/bge-m3`) for 1024d embeddings.
 - **Clustering**: `scikit-learn` (DBSCAN) for concept discovery.

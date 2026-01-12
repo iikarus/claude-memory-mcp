@@ -22,19 +22,33 @@ Currently triggered manually via `run_librarian_cycle`.
 
 Data is stored in the `falkordb` docker volume.
 
-### Full Backup (Docker)
+### Quick Backup (Snapshot)
 
-```bash
-# Stop the container
-docker-compose stop db
+To create a "Git-style" save point of the entire database state:
 
-# Backup volume
-docker run --rm --volumes-from claude-memory-mcp-db-1 -v $(pwd):/backup ubuntu tar cvf /backup/memory_backup.tar /data
+```powershell
+python scripts/backup_restore.py save --tag "my_backup_name"
 ```
 
-### Scripted Backup (Logical)
+Snapshots are saved in `backups/`.
 
-Use `scripts/operations.py` (if fully implemented for V2) or `falkordb-cli` to dump the graph.
+### Restore (Load)
+
+To verify or roll back to a previous state:
+
+```powershell
+python scripts/backup_restore.py load "my_backup_name"
+```
+
+## ☢️ Reset (Nuke)
+
+To completely wipe all data (Graph + Vectors) and start fresh:
+
+```powershell
+python scripts/nuke_data.py
+```
+
+_Use with caution._
 
 ## 🗑️ Pruning
 
