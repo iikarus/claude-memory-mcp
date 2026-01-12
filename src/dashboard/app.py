@@ -22,14 +22,26 @@ def get_service() -> MemoryService:
     return MemoryService(embedding_service=embedder)
 
 
-async def get_graph_data(limit: int = 100) -> Any:
+async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
     service = get_service()
-    # Direct cypher for graph viz
-    q = f"""
-    MATCH (n:Entity)
-    OPTIONAL MATCH (n)-[r]->(m:Entity)
-    RETURN n, r, m LIMIT {limit}
-    """
+
+    if focus:
+        # Focused Query (Neighborhood)
+        # Try to find node by ID or Name
+        # We use OPTIONAL MATCH to get connections
+        q = f"""
+        MATCH (n:Entity)
+        WHERE n.id = '{focus}' OR n.name CONTAINS '{focus}'
+        OPTIONAL MATCH (n)-[r]-(m:Entity)
+        RETURN n, r, m LIMIT {limit}
+        """
+    else:
+        # Global Query
+        q = f"""
+        MATCH (n:Entity)
+        OPTIONAL MATCH (n)-[r]->(m:Entity)
+        RETURN n, r, m LIMIT {limit}
+        """
     return service.repo.execute_cypher(q)
 
 
@@ -54,10 +66,14 @@ def main() -> None:
 
     if menu == "Explorer":
         st.header("Graph View")
-        limit = st.slider("Max Nodes", 10, 500, 100)
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            limit = st.slider("Max Nodes", 10, 500, 100)
+        with col2:
+            focus = st.text_input("Focus Node (ID or Name)", help="Leave empty for global view")
 
         if st.button("Refresh Graph"):
-            res = asyncio.run(get_graph_data(limit))
+            res = asyncio.run(get_graph_data(limit, focus))
 
             net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
 

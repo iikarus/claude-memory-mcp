@@ -59,6 +59,17 @@ class MemoryRepository:
         result = graph.query(query, params)
         return result.result_set[0][0].properties  # type: ignore
 
+    def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves a node by its ID."""
+        graph = self.select_graph()
+        query = "MATCH (n) WHERE n.id = $id RETURN n"
+        result = graph.query(query, {"id": node_id})
+
+        if not result.result_set:
+            return None
+
+        return result.result_set[0][0].properties  # type: ignore
+
     def update_node(self, node_id: str, properties: Dict[str, Any]) -> Dict[str, Any]:
         """Updates a node's properties."""
         graph = self.select_graph()

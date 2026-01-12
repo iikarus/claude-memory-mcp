@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Optional, cast
 
 import torch
@@ -13,8 +14,8 @@ class EmbeddingService:
     Encapsulates model loading and GPU management.
     """
 
-    def __init__(self, model_name: str = "BAAI/bge-m3"):
-        self.model_name = model_name
+    def __init__(self, model_name: Optional[str] = None):
+        self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
         self._encoder: Optional[SentenceTransformer] = None
         self._device: Optional[str] = None
 

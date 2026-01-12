@@ -56,12 +56,23 @@ async def test_soft_delete_entity(memory_service: MemoryService) -> None:
     mock_node.properties = {"id": "123", "deleted": True}
     graph.query.return_value.result_set = [[mock_node]]
 
-    params = EntityDeleteParams(entity_id="123", reason="Duplicated", soft_delete=True)
+    result = await memory_service.delete_entity(
+        EntityDeleteParams(entity_id="123", reason="cleanup", soft_delete=True)
+    )
 
-    result = await memory_service.delete_entity(params)
+    assert result["status"] == "archived"
+    assert result["id"] == "123"
 
-    assert result["status"] == "soft_deleted"
-    assert "SET n.deleted = true" in graph.query.call_args[0][0]
+    # Verify we called update_node via graph.query
+    args, _ = graph.query.call_args
+    query = args[0]
+    # We expect an update query now
+    assert "SET n += $props" in query
+
+    # Check params for status=archived
+    params_dict = args[1]
+    assert params_dict["props"]["status"] == "archived"
+    assert "archived_at" in params_dict["props"]
 
 
 @pytest.mark.asyncio
@@ -72,8 +83,8 @@ async def test_hard_delete_entity(memory_service: MemoryService) -> None:
 
     result = await memory_service.delete_entity(params)
 
-    assert result["status"] == "hard_deleted"
-    assert "DETACH DELETE n" in graph.query.call_args[0][0]
+    assert result["status"] == "deleted"
+    assert "DETACH DELETE" in graph.query.call_args[0][0]
 
 
 @pytest.mark.asyncio

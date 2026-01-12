@@ -96,6 +96,8 @@ class QdrantVectorStore:
             if must_conditions:
                 q_filter = models.Filter(must=must_conditions)
 
+        # Search in Qdrant
+        # Note: qdrant-client 1.7+ has search, but mypy might not see it correctly on Async client dynamic proxy
         results = await self.client.search(
             collection_name=self.collection, query_vector=vector, limit=limit, query_filter=q_filter
         )

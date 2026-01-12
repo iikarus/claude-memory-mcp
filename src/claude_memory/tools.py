@@ -40,165 +40,238 @@ class MemoryService:
         self.embedder = embedding_service
         self.vector_store = vector_store or QdrantVectorStore()
 
+        from .lock_manager import LockManager
         from .ontology import OntologyManager
 
         # Core Components
         self.ontology = OntologyManager()
         self.context_manager = ContextManager()
+        # Share connection config
+        self.lock_manager = LockManager(host, port)
 
     async def create_entity(self, params: EntityCreateParams) -> EntityCommitReceipt:
         """Creates an entity node in the graph."""
 
-        # Validate Dynamic Type
-        if not self.ontology.is_valid_type(params.node_type):
-            raise ValueError(
-                f"Invalid memory type: '{params.node_type}'. "
-                f"Allowed types: {self.ontology.list_types()}"
+        # Concurrency Control: Project-Project-Level Lock
+        # We lock based on the target project to prevent race conditions within the same project space.
+        project_id = params.project_id
+
+        with self.lock_manager.lock(project_id):
+            # Validate Dynamic Type
+            if not self.ontology.is_valid_type(params.node_type):
+                raise ValueError(
+                    f"Invalid memory type: '{params.node_type}'. "
+                    f"Allowed types: {self.ontology.list_types()}"
+                )
+
+            start_time = datetime.now()
+            logger.info(f"Creating entity: {params.name} ({params.node_type})")
+
+            props = params.properties.copy()
+            import uuid
+
+            props["id"] = params.properties.get("id") or str(uuid.uuid4())
+            props.update(
+                {
+                    "name": params.name,
+                    "node_type": params.node_type,
+                    "project_id": params.project_id,
+                    "certainty": params.certainty,
+                    "evidence": params.evidence,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
             )
 
-        start_time = datetime.now()
-        logger.info(f"Creating entity: {params.name} ({params.node_type})")
+            # Compute embedding (AI Layer)
+            desc = props.get("description", "")
+            text_to_embed = f"{params.name} {params.node_type} {desc}"
+            embedding = self.embedder.encode(text_to_embed)
 
-        props = params.properties.copy()
-        import uuid
+            # 1. Write to Graph (FalkorDB) - Source of Truth for Structure
+            # Note: We do NOT pass embedding to repo anymore.
+            node_props = self.repo.create_node(params.node_type, props)
 
-        props["id"] = params.properties.get("id") or str(uuid.uuid4())
-        props.update(
-            {
+            # 2. Write to Vector Engine (Qdrant) - Source of Truth for Search
+            # We use the ID returned/confirmed by the Repo (in case of deduplication, we might update vector)
+            node_id = str(node_props["id"])
+
+            # Determine valid payload (flat dict preferred for vector DBs)
+            payload = {
                 "name": params.name,
                 "node_type": params.node_type,
                 "project_id": params.project_id,
-                "certainty": params.certainty,
-                "evidence": params.evidence,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
-        )
+            await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
 
-        # Compute embedding (AI Layer)
-        desc = props.get("description", "")
-        text_to_embed = f"{params.name} {params.node_type} {desc}"
-        embedding = self.embedder.encode(text_to_embed)
+            # Execute creation (Redundant variable assignment removed from logic flow above)
+            result = node_props
 
-        # 1. Write to Graph (FalkorDB) - Source of Truth for Structure
-        # Note: We do NOT pass embedding to repo anymore.
-        node_props = self.repo.create_node(params.node_type, props)
+            final_id = str(result["id"])
+            duration = int((datetime.now() - start_time).total_seconds() * 1000)
+            status = "created"  # or "merged"
 
-        # 2. Write to Vector Engine (Qdrant) - Source of Truth for Search
-        # We use the ID returned/confirmed by the Repo (in case of deduplication, we might update vector)
-        node_id = str(node_props["id"])
+            # 3. Get total count (for receipt)
+            total_count = self.repo.get_total_node_count()
 
-        # Determine valid payload (flat dict preferred for vector DBs)
-        payload = {
-            "name": params.name,
-            "node_type": params.node_type,
-            "project_id": params.project_id,
-        }
-        await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
-
-        # Execute creation (Redundant variable assignment removed from logic flow above)
-        result = node_props
-
-        # Calculate Receipt Data
-        duration = (datetime.now() - start_time).total_seconds() * 1000
-        total_count = self.repo.get_total_node_count()
-
-        # Correct ID from DB (in case of deduplication)
-        final_id = result.get("id", props["id"])
-
-        status = "deduplicated" if final_id != props["id"] else "committed"
-
-        return EntityCommitReceipt(
-            id=final_id,
-            name=params.name,
-            status="committed",  # Schema limit, keeping "committed" for simplicity unless schema updated.
-            operation_time_ms=duration,
-            total_memory_count=total_count,
-            message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
-        )
+            return EntityCommitReceipt(
+                id=final_id,
+                name=params.name,
+                status="committed",  # Schema limit, keeping "committed" for simplicity unless schema updated.
+                operation_time_ms=duration,
+                total_memory_count=total_count,
+                message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
+            )
 
     async def create_relationship(self, params: RelationshipCreateParams) -> Dict[str, Any]:
         """Creates a typed relationship between two entities."""
-        logger.info(
-            f"Creating relationship: {params.from_entity} -[{params.relationship_type}]-> {params.to_entity}"
-        )
 
-        props = params.properties.copy()
-        props["confidence"] = params.confidence
-        props["created_at"] = datetime.now(timezone.utc).isoformat()
-        import uuid
+        # Concurrency: Best effort lock on source entity's project
+        # We need to look up the source entity to find the project.
+        # This adds a read, but ensures safety.
+        source_node = self.repo.get_node(params.from_entity)
 
-        if "id" not in props:
-            props["id"] = str(uuid.uuid4())
+        if source_node and "project_id" in source_node:
+            # Manually manage lock context since it's conditional
+            # actually, let's use the context manager.
+            # We can't conditionally enter "with".
+            # So we use the helper logic.
+            pass
 
-        res = self.repo.create_edge(
-            params.from_entity, params.to_entity, params.relationship_type, props
-        )
-        if not res:
-            return {"error": "Could not create relationship. Check entity IDs."}
-        return cast(Dict[str, Any], res)
+        # Simplified approach: If we can't determine project easily, we proceed without lock
+        # OR we enforce fetching. Safety first -> Fetch.
+
+        project_id = source_node.get("project_id") if source_node else None
+
+        # Helper to run logic
+        async def _do_create() -> Dict[str, Any]:
+            logger.info(
+                f"Creating relationship: {params.from_entity} -[{params.relationship_type}]-> {params.to_entity}"
+            )
+
+            props = params.properties.copy()
+            props["confidence"] = params.confidence
+            props["created_at"] = datetime.now(timezone.utc).isoformat()
+            import uuid
+
+            if "id" not in props:
+                props["id"] = str(uuid.uuid4())
+
+            res = self.repo.create_edge(
+                params.from_entity, params.to_entity, params.relationship_type, props
+            )
+            if not res:
+                return {"error": "Could not create relationship. Check entity IDs."}
+            return cast(Dict[str, Any], res)
+
+        if project_id:
+            with self.lock_manager.lock(project_id):
+                return await _do_create()
+        else:
+            return await _do_create()
 
     async def update_entity(self, params: EntityUpdateParams) -> Dict[str, Any]:
         """Updates properties of an existing entity."""
-        logger.info(f"Updating entity: {params.entity_id}")
 
-        props = params.properties.copy()
-        timestamp = datetime.now(timezone.utc).isoformat()
-        props["updated_at"] = timestamp
-
-        # Embed re-calculation logic (Business Logic)
-        embedding = None
-        if "name" in props or "description" in props:
-            # Need to fetch old if partial update?
-            # Repo doesn't support 'fetch before update' easily.
-            # We can use execute_cypher or add 'get_node'.
-            # For strict decoupling, we should ask repo for the node.
-
-            # Helper to get node props
-            q = "MATCH (n:Entity {id: $id}) RETURN n"
-            res = self.repo.execute_cypher(q, {"id": params.entity_id})
-            if res.result_set:
-                curr = res.result_set[0][0].properties
-                curr_name = curr.get("name", "")
-                curr_desc = curr.get("description", "")
-
-                new_name = props.get("name", curr_name)
-                new_desc = props.get("description", curr_desc)
-
-                text_to_embed = f"{new_name} {params.entity_id} {new_desc}"
-                embedding = self.embedder.encode(text_to_embed)
-
-                # Update Vector Store
-                # We need project_id for filtering, fetch it if not in props
-                project_id = props.get("project_id", curr.get("project_id"))
-                payload = {
-                    "name": new_name,
-                    "node_type": curr.get("node_type", "Entity"),
-                    "project_id": project_id,
-                }
-                await self.vector_store.upsert(
-                    id=params.entity_id, vector=embedding, payload=payload
-                )
-
-        # Update Graph (FalkorDB)
-        result = self.repo.update_node(params.entity_id, props)
-        if not result:
+        # Fetch for Locking
+        existing_node = self.repo.get_node(params.entity_id)
+        if not existing_node:
             return {"error": "Entity not found"}
-        return cast(Dict[str, Any], result)
+
+        project_id = existing_node.get("project_id")
+
+        async def _do_update() -> Dict[str, Any]:
+            logger.info(f"Updating entity: {params.entity_id}")
+
+            props = params.properties.copy()
+            timestamp = datetime.now(timezone.utc).isoformat()
+            props["updated_at"] = timestamp
+
+            # Embed re-calculation logic (Business Logic)
+            embedding = None
+            # If name or node_type or description changed, re-embed.
+            # We don't have old description here unless we used existing_node above.
+            # We have existing_node!
+
+            # Check if embedding relevant fields changed
+            # This is a good optimization opportunity too.
+            # For correctness, let's assume if properties are passed, we might need update.
+            # But params.properties usually contains only changes? No, it's a replacement or merge?
+            # The tool def says "properties to update".
+
+            # Simple logic: Always re-embed if name/desc/type are in props, or just do it.
+            # To do it properly we need the FULL content.
+            # existing_node has current state. props has updates.
+            merged_props = existing_node.copy()
+            merged_props.update(props)
+
+            desc = merged_props.get("description", "")
+            name = merged_props.get("name", "")
+            node_type = merged_props.get("node_type", "Entity")
+
+            text_to_embed = f"{name} {node_type} {desc}"
+            embedding = self.embedder.encode(text_to_embed)
+
+            # 1. Update Graph
+            updated_node = self.repo.update_node(params.entity_id, props)
+
+            # 2. Update Vector Store
+            payload = {
+                "name": name,
+                "node_type": node_type,
+                "project_id": project_id,  # Keep existing project_id
+            }
+            # qdrant upsert overwrites payload. We need full payload?
+            # Yes, standard behavior.
+            await self.vector_store.upsert(id=params.entity_id, vector=embedding, payload=payload)
+
+            return cast(Dict[str, Any], updated_node)
+
+        if project_id:
+            with self.lock_manager.lock(project_id):
+                return await _do_update()
+        else:
+            # Should not happen for valid entities, but fallback
+            return await _do_update()
 
     async def delete_entity(self, params: EntityDeleteParams) -> Dict[str, Any]:
-        """Deletes (or soft deletes) an entity."""
-        logger.info(f"Deleting entity: {params.entity_id} (Soft: {params.soft_delete})")
+        """Deletes an entity."""
 
-        if self.repo.delete_node(params.entity_id, params.soft_delete, params.reason):
-            # If hard delete, remove from vector store
-            if not params.soft_delete:
-                await self.vector_store.delete(params.entity_id)
-
-            status = "soft_deleted" if params.soft_delete else "hard_deleted"
-            return {"status": status, "id": params.entity_id}
-        else:
+        existing_node = self.repo.get_node(params.entity_id)
+        if not existing_node:
             return {"error": "Entity not found"}
+
+        project_id = existing_node.get("project_id")
+
+        async def _do_delete() -> Dict[str, Any]:
+            logger.info(f"Deleting entity: {params.entity_id} ({params.reason})")
+
+            if params.soft_delete:
+                # 1. Archive in Graph
+                self.repo.update_node(
+                    params.entity_id,
+                    {"status": "archived", "archived_at": datetime.now(timezone.utc).isoformat()},
+                )
+                # 2. Remove from Vector Store (so it's not searchable)
+                try:
+                    await self.vector_store.delete(params.entity_id)
+                except Exception as e:
+                    logger.warning(f"Failed to delete vector for {params.entity_id}: {e}")
+                return {"status": "archived", "id": params.entity_id}
+            else:
+                # Hard Delete
+                self.repo.delete_node(params.entity_id)
+                try:
+                    await self.vector_store.delete(params.entity_id)
+                except Exception as e:
+                    logger.warning(f"Failed to delete vector for {params.entity_id}: {e}")
+                return {"status": "deleted", "id": params.entity_id}
+
+        if project_id:
+            with self.lock_manager.lock(project_id):
+                return await _do_delete()
+        else:
+            return await _do_delete()
 
     async def delete_relationship(self, params: RelationshipDeleteParams) -> Dict[str, Any]:
         """Deletes a relationship."""
