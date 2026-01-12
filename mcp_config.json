@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "claude-memory": {
+      "command": "python",
+      "args": ["-m", "claude_memory.server"],
+      "env": {
+        "PYTHONPATH": "src",
+        "FALKORDB_HOST": "localhost",
+        "QDRANT_HOST": "localhost"
+      }
+    }
+  }
+}

@@ -42,4 +42,8 @@ Structure your browsing via the Streamlit UI (`http://localhost:8501`).
 
 - **Search Tab**: Type a query to see a visual graph of results.
 - **Stats Tab**: View system health, total node counts, and memory growth.
-- **Explorer**: Click on nodes in the graph to see their full properties and history.
+- **Explorer**:
+  - **Graph View**: Interactively navigate the knowledge graph.
+  - **Focus Node**: Filter the graph to show only a specific node and its immediate neighbors (1-2 hops).
+  - **Limit**: Adjust the number of nodes rendered (Warning: High limits > 500 may slow down rendering).
+  - **Text Filter**: Highlight nodes matching a specific regex pattern.

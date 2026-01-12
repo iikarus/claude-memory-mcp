@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from mcp.server.fastmcp import FastMCP
 
@@ -208,9 +208,11 @@ async def prune_stale(days: int = 30) -> Dict[str, Any]:
 @mcp.tool()  # type: ignore[misc]
 async def search_memory(
     query: str, project_id: Optional[str] = None, limit: int = 10
-) -> List[Dict[str, Any]]:
+) -> Union[List[Dict[str, Any]], str]:
     """Search for entities using hybrid search."""
     results = await service.search(query, project_id, limit)
+    if not results:
+        return "No results found."
     return [res.model_dump() for res in results]
 
 
