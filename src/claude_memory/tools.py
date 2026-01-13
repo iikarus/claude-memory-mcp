@@ -505,9 +505,11 @@ class MemoryService:
                     SearchResult(
                         id=node_id,
                         name=node_props.get("name", "Unknown"),
-                        type=node_props.get("node_type", "Entity"),
-                        excerpt=node_props.get("description", ""),
-                        confidence=v_res["_score"],  # 0..1 score from Qdrant
+                        node_type=node_props.get("node_type", "Entity"),
+                        project_id=node_props.get("project_id", "unknown"),
+                        content=node_props.get("description", ""),
+                        score=v_res["_score"],
+                        distance=1.0 - v_res["_score"],  # Approximation for Cosine
                     )
                 )
         return results
