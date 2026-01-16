@@ -51,3 +51,10 @@ Structure your browsing via the Streamlit UI (`http://localhost:8501`).
   - **Focus Node**: Filter the graph to show only a specific node and its immediate neighbors (1-2 hops).
   - **Limit**: Adjust the number of nodes rendered (Warning: High limits > 500 may slow down rendering).
   - **Text Filter**: Highlight nodes matching a specific regex pattern.
+
+### System Control (Sidebar)
+
+- **Safe Shutdown**:
+  - Automatically creates a backup timestamped `backups/YYYY-MM-DD...`.
+  - Gracefully stops all containers.
+  - **Use this instead of killing the terminal** to ensure data integrity.

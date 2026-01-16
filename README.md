@@ -28,11 +28,12 @@ A long-term memory system for Claude, built as a Model Context Protocol (MCP) se
 One command to rule them all. Spins up Database, Server, and Dashboard.
 
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
 
 - **MCP Endpoint**: `http://localhost:8000/sse` (or stdio if configured)
 - **Dashboard**: `http://localhost:8501`
+- **Embedding API**: `http://localhost:8001` (Internal/Debug)
 
 ### Option 2: Local Dev
 

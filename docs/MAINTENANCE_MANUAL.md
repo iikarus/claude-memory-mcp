@@ -24,7 +24,10 @@ Data is stored in the `falkordb` docker volume.
 
 ### Quick Backup (Snapshot)
 
-To create a "Git-style" save point of the entire database state:
+**Preferred Method**: Use the **"Safe Shutdown"** button in the Streamlit Dashboard (`localhost:8501`). It creates a backup automatically before stopping services.
+
+**Manual Method**:
+To create a "Git-style" save point via CLI:
 
 ```powershell
 python scripts/backup_restore.py save --tag "my_backup_name"

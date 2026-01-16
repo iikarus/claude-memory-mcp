@@ -42,10 +42,12 @@ Instead of `SELECT * FROM Memories WHERE text MATCH query`, we do:
 
     A[MCP Human/Agent] -->|request| B[Server (FastMCP)]
     B -->|delegates| C[MemoryService]
-    C -->|embeds| D[EmbeddingService]
+    C -->|remote call| D[Embedding Microservice]
     C -->|persists| E[Repository]
     E -->|structure| F[(FalkorDB)]
     E -->|vectors| I[(Qdrant)]
+
+    D -->|loads| M[Model (GPU)]
 
     G[LibrarianAgent] -->|monitors| C
     G -->|clusters| H[ClusteringService]
