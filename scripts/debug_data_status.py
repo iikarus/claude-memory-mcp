@@ -30,6 +30,26 @@ def check_data() -> None:
             # Response format: [header, [row1]]
             count = res[1][0][0]
             print(f"\n📊 Graph '{graph_key}' Node Count: {count}")
+
+            # Sample 3 nodes to verify metadata
+            res_sample = r.execute_command("GRAPH.QUERY", graph_key, "MATCH (n) RETURN n LIMIT 3")
+            if res_sample and res_sample[1]:
+                print("\n🕵️ Metadata Check (Sample Nodes):")
+                for row in res_sample[1]:
+                    # RedisGraph returns [ [props_list] ] structure
+                    # But raw response parsing is tricky.
+                    # easier to query specific properties
+                    pass
+
+            # Query properties directly for clarity
+            res_props = r.execute_command(
+                "GRAPH.QUERY", graph_key, "MATCH (n) RETURN n.name, n.project_id LIMIT 3"
+            )
+            if res_props and res_props[1]:
+                for row in res_props[1]:
+                    name = row[0].decode("utf-8") if isinstance(row[0], bytes) else row[0]
+                    pid = row[1].decode("utf-8") if isinstance(row[1], bytes) else row[1]
+                    print(f"   - Name: {name} | Project ID: {pid}")
         except Exception as e:
             print(f"\n⚠️ Could not query graph '{graph_key}': {e}")
             print("Trying to find other graphs...")

@@ -24,6 +24,16 @@ def check_qdrant_count() -> None:
         count_res = client.count(collection_name=collection_name)
         print(f"\n📊 Qdrant Collection '{collection_name}' Count: {count_res.count}")
 
+        if count_res.count > 0:
+            res, _ = client.scroll(
+                collection_name=collection_name, limit=1, with_payload=True, with_vectors=False
+            )
+            if res:
+                print("\n📝 Sample Payload:")
+                import json
+
+                print(json.dumps(res[0].payload, indent=2))
+
     except Exception as e:
         print(f"❌ Qdrant Check Failed: {e}")
 

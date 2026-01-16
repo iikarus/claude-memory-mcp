@@ -101,7 +101,7 @@ def backup(tag: Optional[str] = None) -> None:
     print(f"✨ Save Point Created in {target_dir}")
 
 
-def restore(tag: str) -> None:
+def restore(tag: str, force: bool = False) -> None:
     target_dir = os.path.join(BACKUP_DIR, tag)
     if not os.path.exists(target_dir):
         print(f"❌ Backup '{tag}' not found in {BACKUP_DIR}")
@@ -109,10 +109,14 @@ def restore(tag: str) -> None:
 
     print(f"♻️  Restoring Save Point: {tag}")
     print("⚠️  WARNING: This will overwrite current database state.")
-    confirm = input("Type 'RESTORE' to confirm: ")
-    if confirm != "RESTORE":
-        print("Aborted.")
-        return
+
+    if not force:
+        confirm = input("Type 'RESTORE' to confirm: ")
+        if confirm != "RESTORE":
+            print("Aborted.")
+            return
+    else:
+        print("Force mode enabled. Proceeding immediately.")
 
     # Stop containers first to avoid corruption
     print("Stopping containers...")
@@ -172,12 +176,13 @@ if __name__ == "__main__":
 
     p_restore = subparsers.add_parser("load", help="Restore a backup snapshot")
     p_restore.add_argument("tag", help="Name of the backup to restore")
+    p_restore.add_argument("--force", action="store_true", help="Skip confirmation prompt")
 
     args = parser.parse_args()
 
     if args.command == "save":
         backup(args.tag)
     elif args.command == "load":
-        restore(args.tag)
+        restore(args.tag, args.force)
     else:
         parser.print_help()
