@@ -23,8 +23,12 @@ services:
     environment:
       - FALKORDB_HOST=graphdb
       - FALKORDB_PORT=6379
+      # Dashboard needs to talk to logic layer? No, logic layer is library code imported by dashboard.
+      # So Dashboard ALSO needs to talk to Embedding Service.
+      - EMBEDDING_API_URL=http://embeddings:8000
     depends_on:
       - graphdb
+      - embeddings
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
@@ -35,17 +39,12 @@ services:
     restart: unless-stopped
     command: streamlit run src/dashboard/app.py
 
-  server:
+  embeddings:
     build: .
     environment:
-      - FALKORDB_HOST=graphdb
-      - FALKORDB_PORT=6379
-      - QDRANT_HOST=qdrant
-    depends_on:
-      - graphdb
-    volumes:
-      - ./src:/app/src
-      - ./scripts:/app/scripts
+      - PORT=8000
+    ports:
+      - "8001:8000"
     deploy:
       resources:
         reservations:
@@ -54,12 +53,27 @@ services:
               count: 1
               capabilities: [ gpu ]
     restart: unless-stopped
-    # Assuming 'mcp' CLI is installed or we run python server.py directly?
-    # server.py uses FastMCP. .run() uses stdio by default?
-    # If stdio, docker logs will be messy. We likely want SSE for docker?
-    # FastMCP supports different transports.
-    # For now, let's just run it to prove it builds, but maybe not expose it.
-    # Or use python -m src.claude_memory.server
+    command: python src/claude_memory/embedding_server.py
+
+  server:
+    build: .
+    environment:
+      - FALKORDB_HOST=graphdb
+      - FALKORDB_PORT=6379
+      - QDRANT_HOST=qdrant
+      - MCP_TRANSPORT=sse
+      - PORT=8000
+      - EMBEDDING_API_URL=http://embeddings:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - graphdb
+      - embeddings
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    restart: unless-stopped
+    # Lightweight logic server
     command: python src/claude_memory/server.py
 
 volumes:

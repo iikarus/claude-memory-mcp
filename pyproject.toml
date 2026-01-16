@@ -15,6 +15,9 @@ dependencies = [
     "qdrant-client>=1.7.0",
     "pyvis>=0.3.2",
     "redis>=5.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "httpx>=0.26.0",
 ]
 
 [project.scripts]

@@ -6,7 +6,8 @@
       "env": {
         "PYTHONPATH": "src",
         "FALKORDB_HOST": "localhost",
-        "QDRANT_HOST": "localhost"
+        "QDRANT_HOST": "localhost",
+        "EMBEDDING_API_URL": "http://localhost:8001"
       }
     }
   }

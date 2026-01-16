@@ -237,7 +237,18 @@ async def create_memory_type(
 
 
 def main() -> None:
-    mcp.run()
+    import os
+
+    transport = os.getenv("MCP_TRANSPORT", "stdio")
+    if transport == "sse":
+        import uvicorn
+
+        # Extract port from env or default to 8000
+        port = int(os.getenv("PORT", "8000"))
+        # sse_app property returns the Starlette/FastAPI app for SSE
+        uvicorn.run(mcp.sse_app, host="0.0.0.0", port=port)
+    else:
+        mcp.run()
 
 
 if __name__ == "__main__":
