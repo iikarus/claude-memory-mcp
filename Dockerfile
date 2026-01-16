@@ -33,16 +33,17 @@ COPY pyproject.toml README.md ./
 
 # 2. Generate requirements from pyproject.toml (hacky but works without extra tools)
 # or just install the heavy hitters explicitly to cache them.
-RUN pip install --no-cache-dir torch==2.9.1 sentence-transformers qdrant-client redis neo4j pandas
+RUN pip install --no-cache-dir torch==2.9.1 sentence-transformers qdrant-client redis neo4j pandas fastapi uvicorn httpx
 
-# 3. Now copy source and install the rest (project itself)
-COPY . .
-RUN pip install --no-cache-dir .
-
-# Bake embedding model into the image
-# This ensures no network calls are needed at runtime for model loading
+# 3. Model Caching Layer (Isolate this!)
+# Copy ONLY the download script first so this layer is cached unless the script changes
+COPY scripts/download_model.py scripts/download_model.py
 ENV EMBEDDING_MODEL=BAAI/bge-m3
 RUN python scripts/download_model.py
+
+# 4. Now copy source and install the rest (project itself)
+COPY . .
+RUN pip install --no-cache-dir .
 
 # Set Env Defaults
 ENV FALKORDB_HOST=graphdb
