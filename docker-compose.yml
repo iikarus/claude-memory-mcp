@@ -27,6 +27,11 @@ services:
       - graphdb
     volumes:
       - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./backups:/app/backups
+      - /var/run/docker.sock:/var/run/docker.sock
+      - falkordb_data:/mnt/falkor_data:ro
+      - qdrant_data:/mnt/qdrant_data:ro
     restart: unless-stopped
     command: streamlit run src/dashboard/app.py
 

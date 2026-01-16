@@ -16,33 +16,43 @@ def backup(tag: Optional[str] = None) -> None:
 
     print(f"💾 Creating Save Point: {tag}")
 
-    # 1. Backup FalkorDB Volume
+    # Check execution environment (Container vs Host)
+    # If we are in the dashboard container, we have direct read-only access to data via /mnt
+    falkor_mount = "/mnt/falkor_data"
+    qdrant_mount = "/mnt/qdrant_data"
+    in_container = os.path.exists(falkor_mount) and os.path.exists(qdrant_mount)
+
+    # 1. Backup FalkorDB
     print("   Backing up FalkorDB...", end=" ", flush=True)
-    # We use a helper container to mount the volume and tar it to host
-    # Assuming volume name 'claude-memory-mcp_falkordb_data' (standard compose name)
-    # Correct method: use docker run --rm -v vol:/data -v host:/backup ubuntu tar ...
+    falkor_archive = os.path.join(target_dir, "falkor_data.tar.gz")
 
-    # First, identify volumes (Compose usually prefixes with project name)
-    project_name = "claude-memory-mcp"
-    falkor_vol = f"{project_name}_falkordb_data"
-    qdrant_vol = f"{project_name}_qdrant_data"
+    if in_container:
+        # Direct Tar
+        cmd_falkor = ["tar", "czf", falkor_archive, "-C", falkor_mount, "."]
+    else:
+        # Docker Run (Host Mode)
+        project_name = "claude-memory-mcp"
+        falkor_vol = f"{project_name}_falkordb_data"
 
-    cmd_falkor = [
-        "docker",
-        "run",
-        "--rm",
-        "-v",
-        f"{falkor_vol}:/data",
-        "-v",
-        f"{os.path.abspath(target_dir)}:/backup",
-        "alpine",
-        "tar",
-        "czf",
-        "/backup/falkor_data.tar.gz",
-        "-C",
-        "/data",
-        ".",
-    ]
+        # Resolve absolute path for Host volume mount
+        host_target_dir = os.path.abspath(target_dir)
+
+        cmd_falkor = [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{falkor_vol}:/data",
+            "-v",
+            f"{host_target_dir}:/backup",
+            "alpine",
+            "tar",
+            "czf",
+            "/backup/falkor_data.tar.gz",
+            "-C",
+            "/data",
+            ".",
+        ]
 
     res = subprocess.run(cmd_falkor, capture_output=True)
     if res.returncode == 0:
@@ -51,24 +61,36 @@ def backup(tag: Optional[str] = None) -> None:
         print("❌")
         print(res.stderr.decode("utf-8"))
 
-    # 2. Backup Qdrant Volume
+    # 2. Backup Qdrant
     print("   Backing up Qdrant...", end=" ", flush=True)
-    cmd_qdrant = [
-        "docker",
-        "run",
-        "--rm",
-        "-v",
-        f"{qdrant_vol}:/qdrant/storage",
-        "-v",
-        f"{os.path.abspath(target_dir)}:/backup",
-        "alpine",
-        "tar",
-        "czf",
-        "/backup/qdrant_data.tar.gz",
-        "-C",
-        "/qdrant/storage",
-        ".",
-    ]
+    qdrant_archive = os.path.join(target_dir, "qdrant_data.tar.gz")
+
+    if in_container:
+        # Direct Tar
+        cmd_qdrant = ["tar", "czf", qdrant_archive, "-C", qdrant_mount, "."]
+    else:
+        # Docker Run (Host Mode)
+        project_name = "claude-memory-mcp"
+        qdrant_vol = f"{project_name}_qdrant_data"
+        host_target_dir = os.path.abspath(target_dir)
+
+        cmd_qdrant = [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{qdrant_vol}:/qdrant/storage",
+            "-v",
+            f"{host_target_dir}:/backup",
+            "alpine",
+            "tar",
+            "czf",
+            "/backup/qdrant_data.tar.gz",
+            "-C",
+            "/qdrant/storage",
+            ".",
+        ]
+
     res = subprocess.run(cmd_qdrant, capture_output=True)
     if res.returncode == 0:
         print("✅")

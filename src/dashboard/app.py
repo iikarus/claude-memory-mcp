@@ -122,6 +122,72 @@ def main() -> None:
             st.write(f"Found {len(stale)} stale entities.")
             st.dataframe(stale)
 
+    # === SHUTDOWN CONTROLS ===
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("System Control")
+    if st.sidebar.button("⛔ Safe Shutdown"):
+        with st.sidebar.status("Initiating Shutdown Sequence...") as status:
+
+            # 1. Perform Backup
+            status.write("💾 Performing Backup...")
+            import datetime
+            import subprocess
+
+            tag = f"shutdown_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+            # Run script (assuming cwd is /app, so scripts/ is available)
+            # We must use 'python' to run it.
+            try:
+                # We need to ensure we capture Output to debug if it fails
+                res = subprocess.run(
+                    ["python", "scripts/backup_restore.py", "save", "--tag", tag],
+                    capture_output=True,
+                    text=True,
+                )
+                if res.returncode == 0:
+                    status.write(f"✅ Backup Successful: {tag}")
+                else:
+                    status.write("❌ Backup Failed!")
+                    status.write(res.stderr)
+                    # We might want to abort or ask user?
+                    # For safety, we proceed only if backup success?
+                    # User said "perform a backup first". Implies prerequisite.
+                    st.error("Shutdown functions halted. Backup failed.")
+                    st.code(res.stderr)
+                    return
+            except Exception as e:
+                st.error(f"Backup Error: {e}")
+                return
+
+            # 2. Stop Containers
+            status.write("🛑 Stopping Exocortex...")
+
+            # We use docker CLI to find and stop siblings
+            # Filter by compose project: claude-memory-mcp
+            # We exclude our own container ID? Or just kill all.
+            # If we kill all, we die. That's fine.
+
+            try:
+                # Get all container IDs for this project
+                # We assume standard project name 'claude-memory-mcp'.
+                # Ideally, we inspect our own labels to find project name.
+                # But hardcoding is safer v0.
+
+                cmd = "docker ps -q --filter label=com.docker.compose.project=claude-memory-mcp"
+                ids_res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                ids = ids_res.stdout.strip().split()
+
+                if not ids:
+                    status.write("System already stopped? (No containers found)")
+                else:
+                    # Stop them
+                    subprocess.run(["docker", "stop"] + ids)
+                    status.write("✅ System Shutdown Complete.")
+                    st.stop()  # Stop the streamlit script
+
+            except Exception as e:
+                status.write(f"❌ Shutdown Failed: {e}")
+
 
 if __name__ == "__main__":
     main()
