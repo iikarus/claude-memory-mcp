@@ -31,6 +31,13 @@ def check_data() -> None:
             count = res[1][0][0]
             print(f"\n📊 Graph '{graph_key}' Node Count: {count}")
 
+            # COUNT Relationships
+            res_edges = r.execute_command(
+                "GRAPH.QUERY", graph_key, "MATCH ()-[r]->() RETURN count(r)"
+            )
+            count_edges = res_edges[1][0][0]
+            print(f"🔗 Graph '{graph_key}' Edge Count: {count_edges}")
+
             # Sample 3 nodes to verify metadata
             res_sample = r.execute_command("GRAPH.QUERY", graph_key, "MATCH (n) RETURN n LIMIT 3")
             if res_sample and res_sample[1]:

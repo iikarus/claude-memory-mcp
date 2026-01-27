@@ -16,6 +16,9 @@ def backup(tag: Optional[str] = None) -> None:
 
     print(f"💾 Creating Save Point: {tag}")
 
+    # 0. Sync to Disk
+    _trigger_persistence()
+
     # Check execution environment (Container vs Host)
     # If we are in the dashboard container, we have direct read-only access to data via /mnt
     falkor_mount = "/mnt/falkor_data"
@@ -99,6 +102,41 @@ def backup(tag: Optional[str] = None) -> None:
         print(res.stderr.decode("utf-8"))
 
     print(f"✨ Save Point Created in {target_dir}")
+    _verify_backup(target_dir)
+
+
+def _trigger_persistence() -> None:
+    """Forces databases to flush to disk before backup."""
+    # 1. FalkorDB (Redis)
+    try:
+        host = os.getenv("FALKORDB_HOST", "localhost")
+        port = int(os.getenv("FALKORDB_PORT", 6379))
+        import redis
+
+        r = redis.Redis(host=host, port=port)
+        r.save()  # Synchronous save
+        print("💾 FalkorDB Saved to Disk.")
+    except Exception:
+        print("⚠️ Could not trigger FalkorDB SAVE. Proceeding anyway.")
+
+
+def _verify_backup(target_dir: str) -> None:
+    """Checks if backup files are valid (non-empty)."""
+    min_size = 1024 * 10  # 10KB minimum
+
+    for filename in ["falkor_data.tar.gz", "qdrant_data.tar.gz"]:
+        path = os.path.join(target_dir, filename)
+        if not os.path.exists(path):
+            print(f"❌ ERROR: Missing backup file {filename}")
+            continue
+
+        size = os.path.getsize(path)
+        if size < min_size:
+            print(
+                f"⚠️  WARNING: {filename} is suspiciously small ({size} bytes). Backup might be empty."
+            )
+        else:
+            print(f"✅ Verified {filename} ({size / 1024:.2f} KB)")
 
 
 def restore(tag: str, force: bool = False) -> None:

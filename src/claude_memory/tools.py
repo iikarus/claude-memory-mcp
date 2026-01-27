@@ -603,7 +603,10 @@ class MemoryService:
         LIMIT 20
         """
         res = self.repo.execute_cypher(query, {"cutoff": cutoff})
-        return [row[0].properties for row in res.result_set]
+        entities = [row[0].properties for row in res.result_set]
+        for e in entities:
+            e.pop("embedding", None)
+        return entities
 
     async def consolidate_memories(self, entity_ids: List[str], summary: str) -> Dict[str, Any]:
         """Merge multiple entities into a new Consolidated concept."""
@@ -713,6 +716,12 @@ class MemoryService:
 
         raw_nodes = hologram.get("nodes", [])
         raw_edges = hologram.get("edges", [])
+
+        # Sanitization: Strip embeddings to prevent context flood
+        # This is critical as nodes recovered from vector store mirror the embedding
+        for n in raw_nodes:
+            if isinstance(n, dict):
+                n.pop("embedding", None)
 
         # Optimize using Token Budget
         optimized_nodes = self.context_manager.optimize(raw_nodes, max_tokens=max_tokens)
