@@ -405,7 +405,10 @@ class MemoryService:
         LIMIT $limit
         """
         res = self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
-        return [row[0].properties for row in res.result_set if row]
+        nodes = [row[0].properties for row in res.result_set if row]
+        for n in nodes:
+            n.pop("embedding", None)
+        return nodes
 
     async def traverse_path(self, from_id: str, to_id: str) -> List[Dict[str, Any]]:
         """Find the shortest path between two entities."""
@@ -420,7 +423,9 @@ class MemoryService:
             path_obj = res.result_set[0][0]
             if hasattr(path_obj, "nodes"):
                 for node in path_obj.nodes:
-                    path_data.append(node.properties)
+                    props = node.properties
+                    props.pop("embedding", None)
+                    path_data.append(props)
         return path_data
 
     async def find_cross_domain_patterns(
@@ -435,7 +440,10 @@ class MemoryService:
         LIMIT $limit
         """
         res = self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
-        return [row[0].properties for row in res.result_set if row]
+        nodes = [row[0].properties for row in res.result_set if row]
+        for n in nodes:
+            n.pop("embedding", None)
+        return nodes
 
     async def get_evolution(self, entity_id: str) -> List[Dict[str, Any]]:
         """Retrieve the evolution (history/observations) of an entity."""
@@ -445,7 +453,10 @@ class MemoryService:
         ORDER BY o.created_at DESC
         """
         res = self.repo.execute_cypher(query, {"entity_id": entity_id})
-        return [row[0].properties for row in res.result_set if row]
+        nodes = [row[0].properties for row in res.result_set if row]
+        for n in nodes:
+            n.pop("embedding", None)
+        return nodes
 
     async def point_in_time_query(self, query_text: str, as_of: str) -> List[Dict[str, Any]]:
         """Execute a search considering only knowledge known before `as_of`."""
@@ -465,7 +476,10 @@ class MemoryService:
         graph_data = self.repo.get_subgraph(ids, depth=0)
 
         # Flatten
-        return [node for node in graph_data["nodes"]]
+        nodes = [node for node in graph_data["nodes"]]
+        for n in nodes:
+            n.pop("embedding", None)
+        return nodes
 
     async def search(
         self, query: str, limit: int = 5, project_id: Optional[str] = None

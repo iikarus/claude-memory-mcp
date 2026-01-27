@@ -139,3 +139,25 @@ async def test_get_hologram_strips_embedding(mock_service):
     nodes = result["nodes"]
     assert len(nodes) > 0
     assert "embedding" not in nodes[0], "Embedding field was leaked in output!"
+
+
+@pytest.mark.asyncio
+async def test_get_neighbors_strips_embedding(mock_service):
+    """Verify get_neighbors logic strips embeddings."""
+    # Setup
+    # Mock execute_cypher returns a row with a Node object
+    mock_node = MagicMock()
+    mock_node.properties = {"id": "1", "name": "Neighbor", "embedding": [0.1] * 1024}  # Leak source
+
+    mock_row = [mock_node]
+    mock_res = MagicMock()
+    mock_res.result_set = [mock_row]  # One row
+
+    mock_service.repo.execute_cypher.return_value = mock_res
+
+    # Act
+    neighbors = await mock_service.get_neighbors("root_id")
+
+    # Assert
+    assert len(neighbors) == 1
+    assert "embedding" not in neighbors[0], "get_neighbors leaked embedding!"
