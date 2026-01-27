@@ -25,13 +25,14 @@ A manifest of the project structure.
 
 ## Tests (`tests/`)
 
-| File                            | Coverage                             |
-| ------------------------------- | ------------------------------------ |
-| `unit/test_entity_lifecycle.py` | CRUD operations.                     |
-| `unit/test_hologram.py`         | Retrieval logic (Search + Subgraph). |
-| `unit/test_librarian.py`        | Autonomous interaction logic.        |
-| `unit/test_clustering.py`       | DBSCAN wrapper logic.                |
-| `unit/test_interfaces.py`       | Protocol compliance.                 |
+| File                            | Coverage                                                        |
+| ------------------------------- | --------------------------------------------------------------- |
+| `unit/test_entity_lifecycle.py` | CRUD operations.                                                |
+| `unit/test_hologram.py`         | Retrieval logic (Search + Subgraph).                            |
+| `unit/test_librarian.py`        | Autonomous interaction logic.                                   |
+| `unit/test_clustering.py`       | DBSCAN wrapper logic.                                           |
+| `unit/test_interfaces.py`       | Protocol compliance.                                            |
+| `unit/test_embedding_filter.py` | **Safety Check**. Verifies embedding stripping ("The Bouncer"). |
 
 ## Configuration
 
@@ -60,3 +61,5 @@ A manifest of the project structure.
 | `simulate_day.py`       | Simulation of user interaction (Mocked).                                |
 | `download_model.py`     | Pre-downloads ML models during Docker build.                            |
 | `generate_config.py`    | Utils for config generation.                                            |
+| `final_check.py`        | **E2E Verification**. The "Golden Master" test for system health.       |
+| `docker_cleanup.ps1`    | **Hygiene**. Aggressive disk cleanup for Docker artifacts.              |

@@ -38,6 +38,13 @@ Instead of `SELECT * FROM Memories WHERE text MATCH query`, we do:
 2.  **Expand**: BFS Traverse outward (Depth 2-3).
 3.  **Return**: The connected subgraph.
 
+### API Sanitization Layer ("The Bouncer")
+
+Before any data leaves the `MemoryService` to return to the user/LLM:
+
+- **Strip Embeddings**: We aggressively remove the `embedding` field (1024 floats) from all nodes.
+- **Why**: Vectors are for machines (clustering/search), not for LLM context windows. Returning them wastes token budget (4KB/node) and degrades performance.
+
 ## Component Interaction
 
     A[MCP Human/Agent] -->|request| B[Server (FastMCP)]
