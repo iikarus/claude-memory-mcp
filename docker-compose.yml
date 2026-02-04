@@ -5,7 +5,7 @@ services:
       - "6379:6379"
       - "3000:3000"
     volumes:
-      - falkordb_data:/data
+      - falkordb_data:/var/lib/falkordb/data
     restart: unless-stopped
 
   qdrant:
@@ -51,7 +51,7 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [ gpu ]
+              capabilities: [gpu]
     restart: unless-stopped
     command: python src/claude_memory/embedding_server.py
 
