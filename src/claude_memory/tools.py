@@ -505,12 +505,14 @@ class MemoryService:
         vec = self.embedder.encode(query)
 
         # 2. Search Vector Store
-        # TODO: Add filter support to VectorStore protocol if project_id is needed
-        # For now, we search global or assume VectorStore handles filtering via payload
-        # Our QdrantStore implementation doesn't support complex filters via upsert/search args yet,
-        # but we can add filter logic later. Strict Interface for now.
+        # 2. Search Vector Store with optional project filter
+        search_filter: dict[str, Any] | None = None
+        if project_id:
+            search_filter = {"project_id": project_id}
 
-        vector_results = await self.vector_store.search(vector=vec, limit=limit)
+        vector_results = await self.vector_store.search(
+            vector=vec, limit=limit, filter=search_filter
+        )
 
         if not vector_results:
             return []
