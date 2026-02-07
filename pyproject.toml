@@ -25,28 +25,100 @@ claude-memory = "claude_memory.server:main"
 
 [project.optional-dependencies]
 dev = [
-    "black>=24.0.0",
-    "isort>=5.12.0",
+    # 1. Automation
+    "pre-commit>=3.6.0",
+    # 2. Linting/Formatting
     "ruff>=0.1.0",
-    "mypy>=1.8.0",
+    # 3. Testing
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
-    "pre-commit>=3.6.0",
+    # 4. Coverage
+    "pytest-cov>=4.1.0",
+    # 5. Coverage Engine
+    "coverage>=7.4.0",
+    # 6. Property Testing
+    "hypothesis>=6.90.0",
+    # 7. Flakiness Hunter
+    "pytest-randomly>=3.15.0",
+    # 8. Quality Gate
+    "diff-cover>=9.0.0",
+    # 9. Mutation Testing (Windows compatible)
+    "mutatest>=3.0.0",
+    # 10. Symbolic Execution
+    "crosshair-tool>=0.0.74",
+    # 11. Static Analysis
+    "semgrep>=1.50.0",
+    # 12. Security Linter
+    "bandit>=1.7.0",
+    # 13. Dependency Security
+    "pip-audit>=2.7.0",
+    # 14. Secret Leakage
+    "detect-secrets>=1.4.0",
+    # 15. Spell Checker
+    "codespell>=2.2.0",
+    # 16. Docstring Coverage
+    "docstr-coverage>=2.3.0",
+    # Orchestration
+    "tox>=4.12.0",
 ]
 
+# --- Tool Configurations ---
+
 [tool.black]
+# Deprecated in favor of Ruff, but kept for compatibility if needed.
 line-length = 100
 target-version = ["py312"]
 
-[tool.isort]
-profile = "black"
-line_length = 100
-known_first_party = ["claude_memory"]
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit (Security)
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "PL",  # pylint
+    "RUF", # ruff specific
+    "C90", # mccabe complexity
+]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "PLR2004", "PLC0415"] # Allow asserts, magic numbers, and lazy imports in tests
+"scripts/*" = ["E501", "S603", "S602", "S105", "S106", "S311", "PLC0415", "PLW1508", "PLR2004", "PLR0915", "PLR1722", "B007", "E402", "UP022"] # Relaxed for utility scripts
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["claude_memory", "dashboard"]
+omit = ["tests/*", "scripts/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    'class .*\bProtocol\):',
+    '@(abc\.)?abstractmethod',
+]
+fail_under = 30
 
 [[tool.mypy.overrides]]
 module = [
@@ -57,15 +129,30 @@ module = [
     "graphiti_core.*"
 ]
 ignore_missing_imports = true
-disallow_untyped_calls = false
-disallow_untyped_defs = false
-disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
 module = "tests.*"
-disallow_untyped_defs = false
-disallow_untyped_decorators = false
+allow_untyped_defs = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+addopts = "-v"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+
+
+[tool.codespell]
+skip = "*.lock,*.json,*.html"
+ignore-words-list = "ne,falkordb"
+
+[tool.docstr_coverage]
+skip_magic = true
+skip_file_docstring = false
+skip_init = true
+skip_class_def = false
+skip_private = true
+fail_under = 80

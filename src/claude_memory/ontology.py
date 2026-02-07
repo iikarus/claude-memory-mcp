@@ -1,7 +1,9 @@
+"""Dynamic ontology management — defines and persists memory node type schemas."""
+
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,15 +45,16 @@ class OntologyManager:
     """
 
     def __init__(self, config_path: str = "ontology.json"):
+        """Load or initialize the ontology from disk."""
         self.config_path = config_path
-        self._ontology: Dict[str, Dict[str, Any]] = DEFAULT_ONTOLOGY.copy()
+        self._ontology: dict[str, dict[str, Any]] = DEFAULT_ONTOLOGY.copy()
         self._load()
 
     def _load(self) -> None:
         """Load ontology from disk if exists."""
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, "r") as f:
+                with open(self.config_path) as f:
                     saved = json.load(f)
                     # Merge with defaults (defaults always exist)
                     self._ontology.update(saved)
@@ -73,8 +76,12 @@ class OntologyManager:
         """Check if a node type is defined."""
         return node_type in self._ontology
 
-    def add_type(self, name: str, description: str, required_properties: List[str] = []) -> None:
+    def add_type(
+        self, name: str, description: str, required_properties: list[str] | None = None
+    ) -> None:
         """Register a new memory type."""
+        if required_properties is None:
+            required_properties = []
         if name in self._ontology:
             logger.warning(f"Overwriting memory type: {name}")
 
@@ -85,8 +92,10 @@ class OntologyManager:
         self._save()
         logger.info(f"Registered memory type: {name}")
 
-    def get_type_definition(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_type_definition(self, name: str) -> dict[str, Any] | None:
+        """Return the schema definition for a given type name, or None."""
         return self._ontology.get(name)
 
-    def list_types(self) -> List[str]:
+    def list_types(self) -> list[str]:
+        """Return all registered memory type names."""
         return list(self._ontology.keys())

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -6,7 +6,7 @@ from claude_memory.clustering import ClusteringService
 
 
 @pytest.fixture
-def sample_nodes() -> List[Dict[str, Any]]:
+def sample_nodes() -> list[dict[str, Any]]:
     # Create two clear clusters in 2D space (mocked as embeddings)
     # Cluster 1: Near (0,0)
     # Cluster 2: Near (10,10)
@@ -21,7 +21,7 @@ def sample_nodes() -> List[Dict[str, Any]]:
     ]
 
 
-def test_clustering_dbscan(sample_nodes: List[Dict[str, Any]]) -> None:
+def test_clustering_dbscan(sample_nodes: list[dict[str, Any]]) -> None:
     # Use small epsilon sufficient to group the dense points but exclude noise
     # Euclidean distance between (0.1,0.1) and (0.2,0.2) is small (~0.14)
     service = ClusteringService(eps=0.5, min_samples=2)

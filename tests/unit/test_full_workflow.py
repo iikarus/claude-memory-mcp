@@ -20,7 +20,6 @@ def memory_service(mock_vector_store: Any) -> Any:
         patch("claude_memory.repository.FalkorDB") as mock_db,
         patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
-
         # Mock DB
         mock_client = MagicMock()
         mock_db.return_value = mock_client
@@ -54,7 +53,7 @@ async def test_day_in_the_life(memory_service: Any) -> None:
         "uuid.uuid4", side_effect=["cnt-1", "sess-1", "obs-1", "bk-1", "other-1", "other-2"]
     ):
         # 1. Create Entity (Project)
-        # Mock what the DB *returns* (which should match what we insert if logic relies on DB return)
+        # Mock what the DB *returns* (which should match what we insert)
         graph.query.return_value.result_set = [
             [MagicMock(properties={"id": "cnt-1", "name": "Content"})]
         ]

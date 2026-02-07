@@ -1,6 +1,8 @@
+"""FalkorDB data access layer — Cypher queries, node/edge CRUD, and index management."""
+
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from falkordb import FalkorDB
 
@@ -14,10 +16,11 @@ class MemoryRepository:
     """
 
     def __init__(
-        self, host: Optional[str] = None, port: Optional[int] = None, password: Optional[str] = None
+        self, host: str | None = None, port: int | None = None, password: str | None = None
     ) -> None:
+        """Connect to FalkorDB using host, port, and password from args or env vars."""
         self.host = host or os.getenv("FALKORDB_HOST", "localhost")
-        self.port = port or int(os.getenv("FALKORDB_PORT", 6379))
+        self.port = port or int(os.getenv("FALKORDB_PORT", "6379"))
         self.password = password or os.getenv("FALKORDB_PASSWORD")
 
         self.client = FalkorDB(
@@ -28,6 +31,7 @@ class MemoryRepository:
         self.graph_name = "claude_memory"
 
     def select_graph(self) -> Any:
+        """Return the active FalkorDB graph handle."""
         return self.client.select_graph(self.graph_name)
 
     def ensure_indices(self) -> None:
@@ -36,13 +40,13 @@ class MemoryRepository:
         # Could add index on 'id' or 'name' for speed if not implicit in Node Key.
         pass
 
-    def create_node(self, label: str, properties: Dict[str, Any]) -> Dict[str, Any]:
+    def create_node(self, label: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Creates a node (embedding logic moved to VectorStore)."""
         graph = self.select_graph()
         props = properties.copy()
 
         # Build query
-        params: Dict[str, Any] = {"props": props}
+        params: dict[str, Any] = {"props": props}
 
         # MERGE to prevent duplicates
         params["name"] = props.get("name")
@@ -59,7 +63,7 @@ class MemoryRepository:
         result = graph.query(query, params)
         return result.result_set[0][0].properties  # type: ignore
 
-    def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
+    def get_node(self, node_id: str) -> dict[str, Any] | None:
         """Retrieves a node by its ID."""
         graph = self.select_graph()
         query = "MATCH (n) WHERE n.id = $id RETURN n"
@@ -70,7 +74,7 @@ class MemoryRepository:
 
         return result.result_set[0][0].properties  # type: ignore
 
-    def update_node(self, node_id: str, properties: Dict[str, Any]) -> Dict[str, Any]:
+    def update_node(self, node_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Updates a node's properties."""
         graph = self.select_graph()
         props = properties.copy()
@@ -89,13 +93,16 @@ class MemoryRepository:
         return result.result_set[0][0].properties  # type: ignore
 
     def delete_node(
-        self, node_id: str, soft_delete: bool = False, reason: Optional[str] = None
+        self, node_id: str, soft_delete: bool = False, reason: str | None = None
     ) -> bool:
         """Deletes a node (hard or soft)."""
         graph = self.select_graph()
 
         if soft_delete:
-            query = "MATCH (n) WHERE n.id = $id SET n.deleted = true, n.deletion_reason = $reason RETURN n"
+            query = (
+                "MATCH (n) WHERE n.id = $id SET n.deleted = true, "
+                "n.deletion_reason = $reason RETURN n"
+            )
             res = graph.query(query, {"id": node_id, "reason": reason})
             return bool(res.result_set)
         else:
@@ -104,8 +111,8 @@ class MemoryRepository:
             return True
 
     def create_edge(
-        self, from_id: str, to_id: str, relation_type: str, properties: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, from_id: str, to_id: str, relation_type: str, properties: dict[str, Any]
+    ) -> dict[str, Any]:
         """Creates a relationship between two nodes."""
         graph = self.select_graph()
 
@@ -128,12 +135,12 @@ class MemoryRepository:
         graph.query(query, {"id": edge_id})
         return True
 
-    def execute_cypher(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def execute_cypher(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Executes a raw Cypher query."""
         graph = self.select_graph()
         return graph.query(query, params or {})
 
-    def get_subgraph(self, start_node_ids: List[str], depth: int = 1) -> Dict[str, Any]:
+    def get_subgraph(self, start_node_ids: list[str], depth: int = 1) -> dict[str, Any]:
         """Retrieves a subgraph of connected nodes up to 'depth' hops from start nodes."""
         if not start_node_ids:
             return {"nodes": [], "edges": []}
@@ -144,12 +151,19 @@ class MemoryRepository:
         if depth == 0:
             query_nodes = """
             MATCH (n:Entity) WHERE n.id IN $ids
-            RETURN collect(distinct {id: n.id, labels: labels(n), properties: properties(n)}) as nodes
+            RETURN collect(distinct {
+                id: n.id,
+                labels: labels(n),
+                properties: properties(n)
+            }) as nodes
             """
             res_nodes = graph.query(query_nodes, {"ids": start_node_ids})
             if res_nodes.result_set:
                 # Extract inner dict properties
-                return {"nodes": [n["properties"] for n in res_nodes.result_set[0][0]], "edges": []}
+                return {
+                    "nodes": [n["properties"] for n in res_nodes.result_set[0][0]],
+                    "edges": [],
+                }
             return {"nodes": [], "edges": []}
 
         # Variable length path query
@@ -170,7 +184,8 @@ class MemoryRepository:
 
         # Note: FalkorDB might behave differently with CALL {}; simpler version:
         # MATCH path = (root:Entity)-[*0..depth]-(neighbor) WHERE root.id IN $ids RETURN path
-        # But larger depth might explode. 'limit' helps? user implementation plan didn't specify limit but implicit safety needed.
+        # But larger depth might explode. 'limit' helps?
+        # User implementation plan didn't specify limit but implicit safety needed.
         # Let's use simple match for V1.
 
         query = f"""
@@ -180,13 +195,28 @@ class MemoryRepository:
         """
 
         # Safer Query returning distinct nodes and edges as Maps for consistent parsing
+        # We use {{ and }} to escape braces in f-string
         query = f"""
         MATCH path = (root:Entity)-[*0..{depth}]-(neighbor)
         WHERE root.id IN $ids
         UNWIND relationships(path) as r
         WITH distinct r, startNode(r) as s, endNode(r) as e
-        RETURN collect(distinct {{id: r.id, source: s.id, target: e.id, type: type(r), properties: properties(r)}}) as edges,
-               collect(distinct {{id: s.id, labels: labels(s), properties: properties(s)}}) + collect(distinct {{id: e.id, labels: labels(e), properties: properties(e)}}) as nodes
+        RETURN collect(distinct {{
+            id: r.id,
+            source: s.id,
+            target: e.id,
+            type: type(r),
+            properties: properties(r)
+        }}) as edges,
+        collect(distinct {{
+            id: s.id,
+            labels: labels(s),
+            properties: properties(s)
+        }}) + collect(distinct {{
+            id: e.id,
+            labels: labels(e),
+            properties: properties(e)
+        }}) as nodes
         """
 
         result = graph.query(query, {"ids": start_node_ids})
@@ -197,11 +227,18 @@ class MemoryRepository:
             # Fallback for isolated nodes (depth 0)
             query_nodes = """
              MATCH (n:Entity) WHERE n.id IN $ids
-             RETURN collect(distinct {id: n.id, labels: labels(n), properties: properties(n)}) as nodes
+             RETURN collect(distinct {
+                id: n.id,
+                labels: labels(n),
+                properties: properties(n)
+             }) as nodes
              """
             res_nodes = graph.query(query_nodes, {"ids": start_node_ids})
             if res_nodes.result_set:
-                return {"nodes": [n["properties"] for n in res_nodes.result_set[0][0]], "edges": []}
+                return {
+                    "nodes": [n["properties"] for n in res_nodes.result_set[0][0]],
+                    "edges": [],
+                }
             return {"nodes": [], "edges": []}
 
         row = result.result_set[0]
@@ -214,7 +251,7 @@ class MemoryRepository:
 
         return {"nodes": list(unique_nodes.values()), "edges": list(unique_edges.values())}
 
-    def get_all_nodes(self, limit: int = 1000) -> List[Dict[str, Any]]:
+    def get_all_nodes(self, limit: int = 1000) -> list[dict[str, Any]]:
         """Retrieves all entity nodes with their embeddings for clustering."""
         graph = self.select_graph()
         query = """

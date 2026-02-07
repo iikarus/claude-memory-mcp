@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 from unittest.mock import MagicMock
 
 # Import strict modules
@@ -27,8 +27,8 @@ async def run_simulation() -> None:
     service = MemoryService(embedding_service=mock_embedder)
 
     # Build a simple In-Memory Graph for the Mock Repo
-    in_memory_nodes: Dict[str, Any] = {}
-    in_memory_edges: List[Dict[str, Any]] = []
+    in_memory_nodes: dict[str, Any] = {}
+    in_memory_edges: list[dict[str, Any]] = []
 
     # Mocking Repo Methods to hit in_memory_nodes
     service.repo.create_node = MagicMock(
@@ -109,8 +109,8 @@ async def run_simulation() -> None:
     logger.info(f" -> Librarian Report: {report}")
 
     if report["clusters_found"] > 0:
-        logger.info(" -> \U0001F4DA CLUSTER DETECTED!")
-        logger.info(" -> \U0001F9EA SYNTHESIZING CONCEPTS...")
+        logger.info(" -> \U0001f4da CLUSTER DETECTED!")
+        logger.info(" -> \U0001f9ea SYNTHESIZING CONCEPTS...")
         logger.info(f" -> Concepts Created: {report['consolidations_created']}")
 
         # Verify the new Concept exists
@@ -139,11 +139,11 @@ async def run_simulation() -> None:
 
 
 def _mock_create(
-    store: Dict[str, Any],
+    store: dict[str, Any],
     label: str,
-    props: Dict[str, Any],
-    embedding: Optional[List[float]] = None,
-) -> Dict[str, Any]:
+    props: dict[str, Any],
+    embedding: list[float] | None = None,
+) -> dict[str, Any]:
     import uuid
 
     pid = props.get("id") or str(uuid.uuid4())
@@ -155,8 +155,8 @@ def _mock_create(
 
 
 def _mock_update(
-    store: Dict[str, Any], pid: str, props: Dict[str, Any], embedding: Optional[List[float]] = None
-) -> Optional[Dict[str, Any]]:
+    store: dict[str, Any], pid: str, props: dict[str, Any], embedding: list[float] | None = None
+) -> dict[str, Any] | None:
     if pid in store:
         store[pid].update(props)
         if embedding:
@@ -166,8 +166,8 @@ def _mock_update(
 
 
 def _mock_edge(
-    edge_store: List[Dict[str, Any]], f: str, t: str, r: str, p: Dict[str, Any]
-) -> Dict[str, Any]:
+    edge_store: list[dict[str, Any]], f: str, t: str, r: str, p: dict[str, Any]
+) -> dict[str, Any]:
     edge_store.append({"from": f, "to": t, "type": r, "props": p})
     return p
 

@@ -1,6 +1,8 @@
+"""FastAPI microservice exposing the EmbeddingService as an HTTP endpoint."""
+
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -15,20 +17,25 @@ logger = logging.getLogger("embedding-server")
 app = FastAPI(title="Embedding Service")
 
 # Global instance
-service: Optional[EmbeddingService] = None
+service: EmbeddingService | None = None
 
 
 class EmbedRequest(BaseModel):
-    texts: List[str]
+    """Request payload containing texts to embed."""
+
+    texts: list[str]
 
 
 class EmbedResponse(BaseModel):
-    embeddings: List[List[float]]
+    """Response payload containing computed embedding vectors."""
+
+    embeddings: list[list[float]]
 
 
 @app.on_event("startup")  # type: ignore[misc, unused-ignore]
 async def startup_event() -> None:
-    global service
+    """Initialize the global EmbeddingService and pre-load the model."""
+    global service  # noqa: PLW0603
     logger.info("Initializing Embedding Service...")
     # Force GPU usage if available by initializing explicitly
     service = EmbeddingService()
@@ -38,7 +45,8 @@ async def startup_event() -> None:
 
 
 @app.post("/embed", response_model=EmbedResponse)  # type: ignore[misc, unused-ignore]
-async def embed_texts(request: EmbedRequest) -> Dict[str, Any]:
+async def embed_texts(request: EmbedRequest) -> dict[str, Any]:
+    """Encode input texts and return their embedding vectors."""
     if not request.texts:
         return {"embeddings": []}
 
@@ -50,11 +58,12 @@ async def embed_texts(request: EmbedRequest) -> Dict[str, Any]:
         return {"embeddings": embeddings}
     except Exception as e:
         logger.error(f"Embedding failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/health")  # type: ignore[misc, unused-ignore]
-async def health() -> Dict[str, str]:
+async def health() -> dict[str, str]:
+    """Health check endpoint returning service status and device info."""
     device = service.device if service else "unknown"
     return {"status": "ok", "device": device}
 
@@ -63,4 +72,4 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)  # noqa: S104

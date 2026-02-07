@@ -6,8 +6,8 @@ import sys
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from claude_memory.schema import EntityCreateParams  # noqa: E402
-from claude_memory.server import service  # noqa: E402
+from claude_memory.schema import EntityCreateParams
+from claude_memory.server import service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -6,9 +6,9 @@ import sys
 # Ensure we can import from src
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from claude_memory.embedding import EmbeddingService  # noqa: E402
-from claude_memory.schema import EntityCreateParams  # noqa: E402
-from claude_memory.tools import MemoryService  # noqa: E402
+from claude_memory.embedding import EmbeddingService
+from claude_memory.schema import EntityCreateParams
+from claude_memory.tools import MemoryService
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

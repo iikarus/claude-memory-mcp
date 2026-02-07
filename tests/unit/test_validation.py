@@ -7,7 +7,9 @@ from claude_memory.schema import EntityCreateParams, ObservationParams, Relation
 def test_entity_creation_validation() -> None:
     # Valid
     params = EntityCreateParams(
-        name="Test", node_type="Entity", project_id="p1"  # Valid str for Literal
+        name="Test",
+        node_type="Entity",
+        project_id="p1",  # Valid str for Literal
     )
     assert params.node_type == "Entity"
 

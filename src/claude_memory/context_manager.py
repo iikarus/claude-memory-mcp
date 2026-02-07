@@ -1,5 +1,7 @@
+"""Context window optimization — manages token budgets for retrieval results."""
+
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -8,6 +10,7 @@ class TokenBudget:
     """Manages token usage against a strict budget."""
 
     def __init__(self, limit: int = 8000):
+        """Initialize with a token budget limit."""
         self.limit = limit
         self.used = 0
 
@@ -29,9 +32,11 @@ class TokenBudget:
         return cost
 
     def remaining(self) -> int:
+        """Return remaining tokens in the budget."""
         return max(0, self.limit - self.used)
 
     def reset(self) -> None:
+        """Reset consumed tokens to zero."""
         self.used = 0
 
 
@@ -39,11 +44,12 @@ class ContextManager:
     """Govern context window usage by optimizing retrieval results."""
 
     def __init__(self, default_budget: int = 8000):
+        """Initialize with a default token budget for context optimization."""
         self.default_budget = default_budget
 
     def optimize(
-        self, nodes: List[Dict[str, Any]], max_tokens: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        self, nodes: list[dict[str, Any]], max_tokens: int | None = None
+    ) -> list[dict[str, Any]]:
         """
         Optimizes a list of nodes to fit within the token budget.
 
@@ -58,7 +64,7 @@ class ContextManager:
 
         # If not, we process in provided order.
 
-        optimized_nodes: List[Dict[str, Any]] = []
+        optimized_nodes: list[dict[str, Any]] = []
 
         for node in nodes:
             # Prepare representation for estimation
@@ -78,7 +84,8 @@ class ContextManager:
             if budget.remaining() < min_cost:
                 # Can't even fit the skeleton. Stop.
                 logger.info(
-                    f"Context budget reached ({budget.used}/{budget.limit}). Pruning remaining {len(nodes) - len(optimized_nodes)} nodes."
+                    f"Context budget reached ({budget.used}/{budget.limit}). "
+                    f"Pruning remaining {len(nodes) - len(optimized_nodes)} nodes."
                 )
                 break
 

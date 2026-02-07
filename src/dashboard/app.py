@@ -1,7 +1,11 @@
+"""Streamlit dashboard for exploring and managing the Exocortex memory graph."""
+
 import asyncio
+import datetime
 import os
+import subprocess
 import sys
-from typing import Any, Tuple
+from typing import Any
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -10,19 +14,21 @@ from pyvis.network import Network
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from claude_memory.embedding import EmbeddingService  # noqa: E402
-from claude_memory.tools import MemoryService  # noqa: E402
+from claude_memory.embedding import EmbeddingService
+from claude_memory.tools import MemoryService
 
 st.set_page_config(layout="wide", page_title="Memory Explorer")
 
 
-@st.cache_resource  # type: ignore
+@st.cache_resource
 def get_service() -> MemoryService:
+    """Create and cache a MemoryService instance."""
     embedder = EmbeddingService()
     return MemoryService(embedding_service=embedder)
 
 
 async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
+    """Query the graph for node/relationship data, optionally focused on a node."""
     service = get_service()
 
     if focus:
@@ -45,14 +51,16 @@ async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
     return service.repo.execute_cypher(q)
 
 
-async def get_stats() -> Tuple[int, int]:
+async def get_stats() -> tuple[int, int]:
+    """Return total node and edge counts from the graph."""
     service = get_service()
     nodes = service.repo.execute_cypher("MATCH (n) RETURN count(n)").result_set[0][0]
     edges = service.repo.execute_cypher("MATCH ()-[r]->() RETURN count(r)").result_set[0][0]
     return nodes, edges
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901, PLR0912, PLR0915
+    """Render the Streamlit dashboard with Explorer, Search, and Maintenance modes."""
     st.title("🧠 Memory System Visual Explorer")
 
     service = get_service()
@@ -99,7 +107,7 @@ def main() -> None:
             net.repulsion()
             net.save_graph("graph.html")
 
-            with open("graph.html", "r", encoding="utf-8") as f:
+            with open("graph.html", encoding="utf-8") as f:
                 source_code = f.read()
             components.html(source_code, height=600)
 
@@ -109,7 +117,7 @@ def main() -> None:
         if query:
             results = asyncio.run(service.search(query))
             for res in results:
-                with st.expander(f"{res['name']} (Score: {res['similarity']:.2f})"):
+                with st.expander(f"{res.name} (Score: {res.score:.2f})"):
                     st.json(res)
 
     elif menu == "Maintenance":
@@ -127,11 +135,8 @@ def main() -> None:
     st.sidebar.subheader("System Control")
     if st.sidebar.button("⛔ Safe Shutdown"):
         with st.sidebar.status("Initiating Shutdown Sequence...") as status:
-
             # 1. Perform Backup
             status.write("💾 Performing Backup...")
-            import datetime
-            import subprocess
 
             tag = f"shutdown_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -139,10 +144,11 @@ def main() -> None:
             # We must use 'python' to run it.
             try:
                 # We need to ensure we capture Output to debug if it fails
-                res = subprocess.run(
-                    ["python", "scripts/backup_restore.py", "save", "--tag", tag],
+                res = subprocess.run(  # noqa: S603
+                    ["python", "scripts/backup_restore.py", "save", "--tag", tag],  # noqa: S607
                     capture_output=True,
                     text=True,
+                    check=False,
                 )
                 if res.returncode == 0:
                     status.write(f"✅ Backup Successful: {tag}")
@@ -174,14 +180,20 @@ def main() -> None:
                 # But hardcoding is safer v0.
 
                 cmd = "docker ps -q --filter label=com.docker.compose.project=claude-memory-mcp"
-                ids_res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                ids_res = subprocess.run(  # noqa: S602
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
                 ids = ids_res.stdout.strip().split()
 
                 if not ids:
                     status.write("System already stopped? (No containers found)")
                 else:
                     # Stop them
-                    subprocess.run(["docker", "stop"] + ids)
+                    subprocess.run(["docker", "stop", *ids], check=False)  # noqa: S603, S607
                     status.write("✅ System Shutdown Complete.")
                     st.stop()  # Stop the streamlit script
 

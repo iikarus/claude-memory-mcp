@@ -1,4 +1,5 @@
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -8,8 +9,8 @@ from claude_memory.tools import MemoryService
 
 @pytest.fixture
 def mock_repo() -> Generator[Any, None, None]:
-    with patch("claude_memory.tools.MemoryRepository") as MockRepo:
-        repo_instance = MockRepo.return_value
+    with patch("claude_memory.tools.MemoryRepository") as mock_repo_cls:
+        repo_instance = mock_repo_cls.return_value
         # Default returns
         repo_instance.create_node.return_value = {"id": "mock-id", "name": "Mock Node"}
         repo_instance.create_edge.return_value = {"id": "mock-rel-id"}
@@ -21,8 +22,8 @@ def mock_repo() -> Generator[Any, None, None]:
 @pytest.fixture
 def memory_service(mock_repo: Any) -> Any:
     # Initialize service with mocks
-    with patch("claude_memory.embedding.EmbeddingService") as MockEmbedder:
-        mock_embedding_service = MockEmbedder.return_value
+    with patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls:
+        mock_embedding_service = mock_embedder_cls.return_value
         # Mock encoding logic
         mock_embedding_service.encode.return_value = [0.1] * 1024
 

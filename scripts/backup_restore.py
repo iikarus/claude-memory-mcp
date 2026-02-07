@@ -2,12 +2,12 @@ import argparse
 import datetime
 import os
 import subprocess
-from typing import Optional
 
 BACKUP_DIR = "backups"
 
 
-def backup(tag: Optional[str] = None) -> None:
+def backup(tag: str | None = None) -> None:
+    """Create a snapshot of FalkorDB and Qdrant data volumes."""
     if not tag:
         tag = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -57,7 +57,7 @@ def backup(tag: Optional[str] = None) -> None:
             ".",
         ]
 
-    res = subprocess.run(cmd_falkor, capture_output=True)
+    res = subprocess.run(cmd_falkor, capture_output=True, check=False)
     if res.returncode == 0:
         print("✅")
     else:
@@ -94,7 +94,7 @@ def backup(tag: Optional[str] = None) -> None:
             ".",
         ]
 
-    res = subprocess.run(cmd_qdrant, capture_output=True)
+    res = subprocess.run(cmd_qdrant, capture_output=True, check=False)
     if res.returncode == 0:
         print("✅")
     else:
@@ -110,7 +110,7 @@ def _trigger_persistence() -> None:
     # 1. FalkorDB (Redis)
     try:
         host = os.getenv("FALKORDB_HOST", "localhost")
-        port = int(os.getenv("FALKORDB_PORT", 6379))
+        port = int(os.getenv("FALKORDB_PORT", "6379"))
         import redis
 
         r = redis.Redis(host=host, port=port)
@@ -133,13 +133,15 @@ def _verify_backup(target_dir: str) -> None:
         size = os.path.getsize(path)
         if size < min_size:
             print(
-                f"⚠️  WARNING: {filename} is suspiciously small ({size} bytes). Backup might be empty."
+                f"⚠️  WARNING: {filename} is suspiciously small"
+                f" ({size} bytes). Backup might be empty."
             )
         else:
             print(f"✅ Verified {filename} ({size / 1024:.2f} KB)")
 
 
 def restore(tag: str, force: bool = False) -> None:
+    """Restore a previously saved snapshot, overwriting current database state."""
     target_dir = os.path.join(BACKUP_DIR, tag)
     if not os.path.exists(target_dir):
         print(f"❌ Backup '{tag}' not found in {BACKUP_DIR}")
@@ -158,7 +160,10 @@ def restore(tag: str, force: bool = False) -> None:
 
     # Stop containers first to avoid corruption
     print("Stopping containers...")
-    subprocess.run(["docker-compose", "stop"])
+    subprocess.run(
+        ["docker-compose", "stop"],  # noqa: S607
+        check=False,
+    )
 
     # Restore FalkorDB
     project_name = "claude-memory-mcp"
@@ -179,7 +184,7 @@ def restore(tag: str, force: bool = False) -> None:
         "-c",
         "rm -rf /data/* && tar xzf /backup/falkor_data.tar.gz -C /data",
     ]
-    subprocess.run(cmd_falkor)
+    subprocess.run(cmd_falkor, check=False)
     print("✅")
 
     # Restore Qdrant
@@ -197,11 +202,14 @@ def restore(tag: str, force: bool = False) -> None:
         "-c",
         "rm -rf /qdrant/storage/* && tar xzf /backup/qdrant_data.tar.gz -C /qdrant/storage",
     ]
-    subprocess.run(cmd_qdrant)
+    subprocess.run(cmd_qdrant, check=False)
     print("✅")
 
     print("Restarting containers...")
-    subprocess.run(["docker-compose", "up", "-d"])
+    subprocess.run(
+        ["docker-compose", "up", "-d"],  # noqa: S607
+        check=False,
+    )
     print("✨ System Restored.")
 
 
@@ -210,7 +218,7 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest="command")
 
     p_backup = subparsers.add_parser("save", help="Create a backup snapshot")
-    p_backup.add_argument("--tag", help="Custom name for the backup")  # e.g. "pre_upgrade"
+    p_backup.add_argument("--tag", help="Custom name for the backup")
 
     p_restore = subparsers.add_parser("load", help="Restore a backup snapshot")
     p_restore.add_argument("tag", help="Name of the backup to restore")

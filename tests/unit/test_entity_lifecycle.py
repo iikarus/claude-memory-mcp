@@ -1,4 +1,5 @@
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,10 +12,10 @@ from claude_memory.tools import MemoryService
 def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, None]:
     with (
         patch("claude_memory.repository.FalkorDB"),
-        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
+        patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
         service = MemoryService(
-            embedding_service=MockEmbedder.return_value, vector_store=mock_vector_store
+            embedding_service=mock_embedder_cls.return_value, vector_store=mock_vector_store
         )
         # Mock the client and graph
         service.repo.client = MagicMock()
@@ -42,7 +43,7 @@ async def test_update_entity_success(memory_service: MemoryService) -> None:
     assert result["name"] == "Updated"
 
     # Verify query called with correct props
-    args, kwargs = graph.query.call_args
+    args, _ = graph.query.call_args
     assert "SET n += $props" in args[0]
     # Check the params dict which is the second positional argument (index 1)
     params_dict = args[1]

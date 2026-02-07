@@ -51,7 +51,8 @@ async def test_search_memory_strips_embedding(mock_service):
     # Setup
     mock_service.embedder.encode.return_value = [0.1] * 1024
 
-    # Vector store returns payload WITH embedding (if it was stored there, or if repo fetch happened)
+    # Vector store returns payload WITH embedding
+    # (if it was stored there, or if repo fetch happened)
     # Actually search_memory fetches from Vector Store which returns payload.
     # If payload has embedding, it leaks.
     mock_service.vector_store.search.return_value = [
@@ -88,8 +89,10 @@ async def test_search_memory_strips_embedding(mock_service):
     # It does NOT have 'embedding'.
     # However, if 'content' or other fields act as containers, or if we return raw dicts...
     # Wait, tools.py:search_memory returns List[SearchResult].
-    # SearchResult is a Pydantic model. If 'embedding' is passed to it, Pydantic ignores it UNLESS extra='allow'.
-    # Let's check if the leak is actually happening in the "Hologram" (get_hologram) which returns raw dicts.
+    # SearchResult is a Pydantic model.
+    # If 'embedding' is passed to it, Pydantic ignores it UNLESS extra='allow'.
+    # Let's check if the leak is actually happening in the "Hologram" (get_hologram)
+    # which returns raw dicts.
     pass
 
 
@@ -108,7 +111,8 @@ async def test_get_hologram_strips_embedding(mock_service):
     }
 
     # Act
-    # We bypass the 'anchors' logic by mocking internal search or passing depth=0 behavior if relevant
+    # We bypass the 'anchors' logic by mocking internal search
+    # or passing depth=0 behavior if relevant
     # But tools.py logic calls search first.
     # Let's mock the search to return one anchor so we proceed to get_subgraph
     # Act

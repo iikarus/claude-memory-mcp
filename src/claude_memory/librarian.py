@@ -1,5 +1,7 @@
+"""Autonomous librarian agent — clusters, consolidates, and prunes memory nodes."""
+
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from .clustering import ClusteringService
 from .tools import MemoryService
@@ -18,10 +20,11 @@ class LibrarianAgent:
         memory_service: MemoryService,
         clustering_service: ClusteringService,
     ):
+        """Initialize with memory and clustering service dependencies."""
         self.memory = memory_service
         self.clustering = clustering_service
 
-    async def run_cycle(self) -> Dict[str, Any]:
+    async def run_cycle(self) -> dict[str, Any]:
         """
         Executes a full maintenance cycle.
         1. Fetch all nodes.
@@ -30,7 +33,7 @@ class LibrarianAgent:
         4. Prune stale data.
         """
         logger.info("Starting Librarian Maintenance Cycle...")
-        report: Dict[str, Any] = {
+        report: dict[str, Any] = {
             "clusters_found": 0,
             "consolidations_created": 0,
             "deleted_stale": 0,
@@ -73,19 +76,19 @@ class LibrarianAgent:
                     report["consolidations_created"] += 1
             except Exception as e:
                 logger.error(f"Failed to consolidate cluster {cluster.id}: {e}")
-                report["errors"].append(f"Cluster {cluster.id}: {str(e)}")
+                report["errors"].append(f"Cluster {cluster.id}: {e!s}")
 
         # 4. Prune Stale
         try:
             prune_res = await self.memory.prune_stale(days=60)
             report["deleted_stale"] = prune_res.get("deleted_count", 0)
         except Exception as e:
-            report["errors"].append(f"Prune: {str(e)}")
+            report["errors"].append(f"Prune: {e!s}")
 
         logger.info("Librarian Cycle Complete.")
         return report
 
-    def _synthesize_summary(self, nodes: List[Dict[str, Any]]) -> str:
+    def _synthesize_summary(self, nodes: list[dict[str, Any]]) -> str:
         """
         Mock LLM Synthesis.
         In a real system, this would send node contents to Claude to generate a summary.
@@ -93,4 +96,4 @@ class LibrarianAgent:
         # Extract names/titles
         titles = [n.get("name", "Untitled") for n in nodes[:3]]
         topic = ", ".join(titles)
-        return f"Consolidated Architecture regarding: {topic} and {len(nodes)-3} others."
+        return f"Consolidated Architecture regarding: {topic} and {len(nodes) - 3} others."

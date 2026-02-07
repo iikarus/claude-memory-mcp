@@ -5,7 +5,7 @@ import sys
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from claude_memory.repository import MemoryRepository  # noqa: E402
+from claude_memory.repository import MemoryRepository
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

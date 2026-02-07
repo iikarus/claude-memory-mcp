@@ -1,5 +1,4 @@
 import asyncio
-from typing import List
 
 from claude_memory.interfaces import Embedder
 from claude_memory.tools import MemoryService
@@ -8,7 +7,7 @@ from claude_memory.vector_store import QdrantVectorStore
 
 # Mock Embedder (Must return same dim as index)
 class MockVerifyEmbedder(Embedder):  # type: ignore
-    def encode(self, text: str) -> List[float]:
+    def encode(self, text: str) -> list[float]:
         # FalkorDB index created with 1024 dims in repository.py
         # We need to return non-zero vector to ensure similarity works if using cosine
         return [0.1] * 1024

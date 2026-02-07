@@ -1,6 +1,8 @@
+"""Vector storage abstraction with Qdrant implementation for semantic search."""
+
 import logging
 import os
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http import models
@@ -11,13 +13,13 @@ logger = logging.getLogger(__name__)
 class VectorStore(Protocol):
     """Protocol for vector storage operations."""
 
-    async def upsert(self, id: str, vector: List[float], payload: Dict[str, Any]) -> None:
+    async def upsert(self, id: str, vector: list[float], payload: dict[str, Any]) -> None:
         """Insert or update a vector with payload."""
         ...
 
     async def search(
-        self, vector: List[float], limit: int = 5, filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        self, vector: list[float], limit: int = 5, filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """Search for nearest neighbors."""
         ...
 
@@ -31,13 +33,14 @@ class QdrantVectorStore:
 
     def __init__(
         self,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
+        host: str | None = None,
+        port: int | None = None,
         collection: str = "memory_embeddings",
         vector_size: int = 1024,
     ):
+        """Connect to Qdrant and configure the target collection."""
         self.host = host or os.getenv("QDRANT_HOST", "localhost")
-        self.port = port or int(os.getenv("QDRANT_PORT", 6333))
+        self.port = port or int(os.getenv("QDRANT_PORT", "6333"))
         self.client = AsyncQdrantClient(host=self.host, port=self.port)
         self.collection = collection
         self.vector_size = vector_size
@@ -68,16 +71,20 @@ class QdrantVectorStore:
             logger.error(f"Failed to initialize Qdrant collection: {e}")
             # Don't raise, might be connection error handled later
 
-    async def upsert(self, id: str, vector: List[float], payload: Dict[str, Any]) -> None:
+    async def upsert(self, id: str, vector: list[float], payload: dict[str, Any]) -> None:
+        """Insert or update a vector with its metadata payload."""
         await self._ensure_collection()
         point = models.PointStruct(
-            id=id, vector=vector, payload=payload  # Qdrant supports UUID strings
+            id=id,
+            vector=vector,
+            payload=payload,  # Qdrant supports UUID strings
         )
         await self.client.upsert(collection_name=self.collection, points=[point])
 
     async def search(
-        self, vector: List[float], limit: int = 5, filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        self, vector: list[float], limit: int = 5, filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
+        """Search for nearest neighbors by cosine similarity."""
         await self._ensure_collection()
 
         # Build Qdrant Filter
@@ -93,11 +100,11 @@ class QdrantVectorStore:
                 # Add other filter types here if needed (e.g. project_id)
                 elif isinstance(v, (str, int, float, bool)):
                     must_conditions.append(
-                        models.FieldCondition(key=k, match=models.MatchValue(value=v))
+                        models.FieldCondition(key=k, match=models.MatchValue(value=v))  # type: ignore
                     )
 
             if must_conditions:
-                q_filter = models.Filter(must=must_conditions)
+                q_filter = models.Filter(must=must_conditions)  # type: ignore
 
         # Search using query_points (search was removed/deprecated)
         # We need to map 'query_vector' to 'query'
@@ -122,6 +129,7 @@ class QdrantVectorStore:
         ]
 
     async def delete(self, id: str) -> None:
+        """Delete a vector by its ID."""
         await self._ensure_collection()
         await self.client.delete(
             collection_name=self.collection, points_selector=models.PointIdsList(points=[id])

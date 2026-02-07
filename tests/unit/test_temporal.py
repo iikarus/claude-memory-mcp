@@ -1,4 +1,5 @@
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,12 +11,11 @@ from claude_memory.tools import MemoryService
 def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, None]:
     with (
         patch("claude_memory.repository.FalkorDB"),
-        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
+        patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
-
         # Setup Embedder Mock
         mock_instance = MagicMock()
-        MockEmbedder.return_value = mock_instance
+        mock_embedder_cls.return_value = mock_instance
         # Default behavior
         mock_instance.encode.return_value = [0.1] * 1024
 

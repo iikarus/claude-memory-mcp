@@ -1,9 +1,13 @@
-from typing import Any, Generator
+import os
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
+from claude_memory.ontology import OntologyManager
 from claude_memory.schema import EntityCreateParams
+from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
@@ -22,9 +26,6 @@ def memory_service() -> None:
 
 @pytest.fixture
 def service_with_ontology() -> Generator[Any, None, None]:
-    from claude_memory.ontology import OntologyManager
-    from claude_memory.tools import MemoryService
-
     # Mock dependencies
     repo_mock = MagicMock()
     repo_mock.create_node.return_value = {"id": "123"}
@@ -48,9 +49,7 @@ def service_with_ontology() -> Generator[Any, None, None]:
     with patch("claude_memory.ontology.OntologyManager", return_value=real_ontology):
         service = MemoryService(embedding_service=embedder_mock, vector_store=vector_mock)
         service.repo = repo_mock
-        yield service
-
-    import os
+    yield service
 
     if os.path.exists("test_dynamic_ontology.json"):
         os.remove("test_dynamic_ontology.json")

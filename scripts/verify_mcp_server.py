@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -21,7 +21,7 @@ class MCPClientParams:
         # For simplicity and compatibility, we use 'subprocess.Popen[str]' in quotes or assume runtime ignores it.
         # Actually, simpler to just use subprocess.Popen and ignore arg match if mypy complains,
         # but mypy wants subprocess.Popen[str].
-        self.process: Optional["subprocess.Popen[str]"] = None
+        self.process: subprocess.Popen[str] | None = None
 
     async def run(self) -> None:
         logger.info(f"🚀 Launching Server: {' '.join(self.command)}")
@@ -109,7 +109,7 @@ class MCPClientParams:
                 self.process.terminate()
                 self.process.wait()
 
-    async def send_request(self, method: str, params: Dict[str, Any], msg_id: Any = 1) -> None:
+    async def send_request(self, method: str, params: dict[str, Any], msg_id: Any = 1) -> None:
         if not self.process or not self.process.stdin:
             raise RuntimeError("Process not running")
 
@@ -118,14 +118,14 @@ class MCPClientParams:
         self.process.stdin.write(json_str + "\n")
         self.process.stdin.flush()
 
-    def send_notification(self, method: str, params: Dict[str, Any]) -> None:
+    def send_notification(self, method: str, params: dict[str, Any]) -> None:
         if not self.process or not self.process.stdin:
             raise RuntimeError("Process not running")
         msg = {"jsonrpc": "2.0", "method": method, "params": params}
         self.process.stdin.write(json.dumps(msg) + "\n")
         self.process.stdin.flush()
 
-    async def read_response(self) -> Dict[str, Any]:
+    async def read_response(self) -> dict[str, Any]:
         if not self.process or not self.process.stdout:
             raise RuntimeError("Process not running")
 
@@ -134,9 +134,9 @@ class MCPClientParams:
         if not line:
             raise EOFError("Server closed connection")
 
-        return cast(Dict[str, Any], json.loads(line))
+        return cast(dict[str, Any], json.loads(line))
 
-    def verify_response(self, resp: Dict[str, Any], context: str, req_id: Any = 1) -> None:
+    def verify_response(self, resp: dict[str, Any], context: str, req_id: Any = 1) -> None:
         if "error" in resp:
             logger.error(f"❌ RPC Error in {context}: {json.dumps(resp, indent=2)}")
             raise AssertionError(f"RPC Error in {context}: {resp['error']}")

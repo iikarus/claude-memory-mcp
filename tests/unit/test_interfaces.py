@@ -7,9 +7,11 @@ from claude_memory.interfaces import Embedder
 def test_embedding_service_implementation() -> None:
     """Verify EmbeddingService implements Embedder protocol (via structural subtyping check)."""
     # Note: Because @runtime_checkable is used, isinstance check works for Protocols
-    # However, for pure structural typing without inheritance, Protocol checking at runtime inspects methods.
+    # However, for pure structural typing without inheritance,
+    # Protocol checking at runtime inspects methods.
 
-    # We construct it lazily/mocked to avoid full init if possible, but here we want to test the class structure.
+    # We construct it lazily/mocked to avoid full init if possible,
+    # but here we want to test the class structure.
     # Given torch loading is heavy, maybe just inspect the class methods?
     # Or rely on Mypy. But let's instantiate.
 

@@ -7,10 +7,8 @@ from claude_memory.embedding import EmbeddingService
 
 
 class TestEmbeddingClient:
-
     @patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-api"})
-    @patch("claude_memory.embedding.SentenceTransformer")
-    def test_init_remote(self, mock_transformer):
+    def test_init_remote(self):
         """Test that init doesn't load model if API URL is set"""
         service = EmbeddingService()
         # Should NOT load encoder yet
@@ -35,5 +33,5 @@ class TestEmbeddingClient:
 
         assert vec == [0.1, 0.2, 0.3]
         mock_client.post.assert_called_once()
-        args, kwargs = mock_client.post.call_args
+        _, kwargs = mock_client.post.call_args
         assert kwargs["json"]["texts"] == ["hello"]

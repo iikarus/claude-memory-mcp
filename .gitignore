@@ -105,3 +105,12 @@ cython_debug/
 .DS_Store
 Thumbs.db
 *.lnk
+
+# Debug/temp logs
+tox_*.txt
+mypy_*.txt
+pytest_*.txt
+ruff_check.txt
+precommit_output.txt
+hologram_log.txt
+.secrets.baseline

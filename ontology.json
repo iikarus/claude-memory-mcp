@@ -42,5 +42,9 @@
   "Issue": {
     "description": "A problem or bug report.",
     "required_properties": []
+  },
+  "Recipe": {
+    "description": "Cooking",
+    "required_properties": []
   }
 }

@@ -1,5 +1,5 @@
 import time
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,8 +10,8 @@ from claude_memory.tools import EntityCreateParams, EntityUpdateParams, MemorySe
 
 @pytest.fixture
 def mock_redis() -> Generator[MagicMock, None, None]:
-    with patch("claude_memory.lock_manager.redis.Redis") as MockRedis:
-        mock_client = MockRedis.return_value
+    with patch("claude_memory.lock_manager.redis.Redis") as mock_redis_cls:
+        mock_client = mock_redis_cls.return_value
         # Default behavior: Access granted
         mock_client.set.return_value = True
         yield mock_client
@@ -54,7 +54,6 @@ def mock_service_with_lock(mock_redis: MagicMock) -> Generator[MemoryService, No
         patch("claude_memory.repository.FalkorDB"),
         patch("claude_memory.tools.QdrantVectorStore"),
     ):
-
         service = MemoryService(embedding_service=MagicMock())
         # Make vector_store methods compatible with await
         service.vector_store.upsert = AsyncMock()

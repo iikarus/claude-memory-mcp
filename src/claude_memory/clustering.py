@@ -1,6 +1,8 @@
+"""Clustering service using DBSCAN to group related memory nodes by embedding similarity."""
+
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 from sklearn.cluster import DBSCAN
@@ -13,22 +15,26 @@ class Cluster:
     """Represents a discovered cluster of related memory nodes."""
 
     id: int  # Cluster ID from DBSCAN (-1 is noise)
-    nodes: List[Dict[str, Any]]
-    centroid: List[float]
+    nodes: list[dict[str, Any]]
+    centroid: list[float]
     cohesion_score: float  # Mean distance to centroid
 
 
 class ClusteringService:
+    """Groups memory nodes into clusters using DBSCAN on their embedding vectors."""
+
     def __init__(self, eps: float = 0.5, min_samples: int = 3):
         """
         Args:
-            eps: The maximum distance between two samples for one to be considered as in the neighborhood of the other.
-            min_samples: The number of samples (or total weight) in a neighborhood for a point to be considered as a core point.
+            eps: The maximum distance between two samples for one to be considered as in the
+                neighborhood of the other.
+            min_samples: The number of samples (or total weight) in a neighborhood for a point to be
+                considered as a core point.
         """
         self.eps = eps
         self.min_samples = min_samples
 
-    def cluster_nodes(self, nodes: List[Dict[str, Any]]) -> List[Cluster]:
+    def cluster_nodes(self, nodes: list[dict[str, Any]]) -> list[Cluster]:
         """
         Clusters a list of nodes based on their 'embedding' property.
         Any node with a missing or invalid embedding is ignored.
@@ -47,7 +53,7 @@ class ClusteringService:
             logger.warning("No valid nodes with embeddings found for clustering.")
             return []
 
-        X = np.array(embeddings)
+        X = np.array(embeddings)  # noqa: N806
 
         # 2. Run DBSCAN
         logger.info(
@@ -57,8 +63,8 @@ class ClusteringService:
         labels = db.labels_
 
         # 3. Group Results
-        clusters_map: Dict[int, List[Dict[str, Any]]] = {}
-        cluster_vectors: Dict[int, List[np.ndarray]] = {}
+        clusters_map: dict[int, list[dict[str, Any]]] = {}
+        cluster_vectors: dict[int, list[np.ndarray]] = {}
 
         for idx, label in enumerate(labels):
             if label == -1:
@@ -73,14 +79,15 @@ class ClusteringService:
             cluster_vectors[label].append(X[idx])
 
         # 4. Create Cluster Objects
-        results: List[Cluster] = []
+        results: list[Cluster] = []
         for label, cluster_nodes in clusters_map.items():
             vectors = np.array(cluster_vectors[label])
             centroid = np.mean(vectors, axis=0)
 
             # Calculate cohesion (average cosine distance to centroid)
             # Cosine distance = 1 - cosine_similarity
-            # For simplicity in this mock, we'll use Euclidean variance or similar if metric was euclidean.
+            # For simplicity in this mock, we'll use Euclidean variance or similar if
+            # metric was euclidean.
             # strict cosine distance is complex to compute efficiently without scipy per point.
             # Let's approximate cohesion as 1.0 / (variance + 1) or just meaningful density.
             # Actually, standard deviation of points from centroid is a good proxy for 'spread'.

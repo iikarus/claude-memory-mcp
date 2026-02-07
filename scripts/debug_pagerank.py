@@ -5,7 +5,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from claude_memory.tools import EntityCreateParams, MemoryService  # noqa: E402
+from claude_memory.tools import EntityCreateParams, MemoryService
 
 # Configure logging to see what's happening
 logging.basicConfig(level=logging.INFO)

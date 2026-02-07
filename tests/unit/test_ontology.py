@@ -1,5 +1,5 @@
 import os
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
@@ -52,7 +52,7 @@ def test_overwrite_warning(clean_ontology_file, caplog):
 
 def test_invalid_load_fallback():
     # Test with a file that exists but is corrupt
-    with patch("builtins.open", side_effect=IOError("Permission denied")):
+    with patch("builtins.open", side_effect=OSError("Permission denied")):
         manager = OntologyManager(config_path="readonly.json")
         # Should still have defaults
         assert manager.is_valid_type("Entity")

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 # Add scripts to path to import backup_restore
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../scripts"))
-import backup_restore  # noqa: E402
+import backup_restore
 
 
 class TestBackupRestore:

@@ -1,5 +1,4 @@
 import asyncio
-from typing import List
 
 from claude_memory.interfaces import Embedder
 from claude_memory.schema import EntityCreateParams
@@ -8,7 +7,7 @@ from claude_memory.tools import MemoryService
 
 # Mock Embedder
 class MockVerifyEmbedder(Embedder):  # type: ignore
-    def encode(self, text: str) -> List[float]:
+    def encode(self, text: str) -> list[float]:
         return [0.1] * 1024
 
 

@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from claude_memory.schema import EntityCreateParams, RelationshipCreateParams
 from claude_memory.tools import MemoryService
@@ -67,7 +67,7 @@ async def verify_phase4() -> None:
     print("\n--- 3. Testing get_stale_entities ---")
     # Manually insert a stale node via client
     # ACCESS via repo.client or repo.execute_cypher (cleaner)
-    old_date = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
+    old_date = (datetime.now(UTC) - timedelta(days=40)).isoformat()
     q = """
     CREATE (n:Entity {id: 'stale-1', name: 'Stale Node', updated_at: $old_date, status: 'active', project_id: 'test_phase4'})
     RETURN n

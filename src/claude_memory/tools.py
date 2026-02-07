@@ -1,10 +1,15 @@
+"""Core business logic for the Exocortex memory system (CRUD, search, analysis)."""
+
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional, cast
+import uuid
+from datetime import UTC, datetime, timedelta
+from typing import Any, Literal, cast
 
 from claude_memory.context_manager import ContextManager
 from claude_memory.interfaces import Embedder
 
+from .lock_manager import LockManager
+from .ontology import OntologyManager
 from .repository import MemoryRepository
 from .schema import (
     BreakthroughParams,
@@ -27,21 +32,21 @@ logger = logging.getLogger(__name__)
 
 
 class MemoryService:
+    """Orchestrates graph, vector, and ontology operations for memory management."""
+
     def __init__(
         self,
         embedding_service: Embedder,
-        vector_store: Optional[VectorStore] = None,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        password: Optional[str] = None,
+        vector_store: VectorStore | None = None,
+        host: str | None = None,
+        port: int | None = None,
+        password: str | None = None,
     ) -> None:
+        """Wire up repository, embedder, vector store, ontology, and lock manager."""
         self.repo = MemoryRepository(host, port, password)
         # self.repo.ensure_indices() # Deprecated: Repository no longer manages vectors
         self.embedder = embedding_service
         self.vector_store = vector_store or QdrantVectorStore()
-
-        from .lock_manager import LockManager
-        from .ontology import OntologyManager
 
         # Core Components
         self.ontology = OntologyManager()
@@ -53,10 +58,11 @@ class MemoryService:
         """Creates an entity node in the graph."""
 
         # Concurrency Control: Project-Project-Level Lock
-        # We lock based on the target project to prevent race conditions within the same project space.
+        # We lock based on the target project to prevent race conditions
+        # within the same project space.
         project_id = params.project_id
 
-        with self.lock_manager.lock(project_id):
+        async with self.lock_manager.lock(project_id):
             # Validate Dynamic Type
             if not self.ontology.is_valid_type(params.node_type):
                 raise ValueError(
@@ -68,8 +74,6 @@ class MemoryService:
             logger.info(f"Creating entity: {params.name} ({params.node_type})")
 
             props = params.properties.copy()
-            import uuid
-
             props["id"] = params.properties.get("id") or str(uuid.uuid4())
             props.update(
                 {
@@ -78,8 +82,8 @@ class MemoryService:
                     "project_id": params.project_id,
                     "certainty": params.certainty,
                     "evidence": params.evidence,
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 }
             )
 
@@ -93,7 +97,8 @@ class MemoryService:
             node_props = self.repo.create_node(params.node_type, props)
 
             # 2. Write to Vector Engine (Qdrant) - Source of Truth for Search
-            # We use the ID returned/confirmed by the Repo (in case of deduplication, we might update vector)
+            # We use the ID returned/confirmed by the Repo
+            # (in case of deduplication, we might update vector)
             node_id = str(node_props["id"])
 
             # Determine valid payload (flat dict preferred for vector DBs)
@@ -117,13 +122,14 @@ class MemoryService:
             return EntityCommitReceipt(
                 id=final_id,
                 name=params.name,
-                status="committed",  # Schema limit, keeping "committed" for simplicity unless schema updated.
+                status="committed",  # Schema limit, keeping "committed"
+                # for simplicity unless schema updated.
                 operation_time_ms=duration,
                 total_memory_count=total_count,
                 message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
             )
 
-    async def create_relationship(self, params: RelationshipCreateParams) -> Dict[str, Any]:
+    async def create_relationship(self, params: RelationshipCreateParams) -> dict[str, Any]:
         """Creates a typed relationship between two entities."""
 
         # Concurrency: Best effort lock on source entity's project
@@ -144,16 +150,16 @@ class MemoryService:
         project_id = source_node.get("project_id") if source_node else None
 
         # Helper to run logic
-        async def _do_create() -> Dict[str, Any]:
+        async def _do_create() -> dict[str, Any]:
+            """Execute relationship creation inside the optional lock."""
             logger.info(
-                f"Creating relationship: {params.from_entity} -[{params.relationship_type}]-> {params.to_entity}"
+                f"Creating relationship: {params.from_entity} "
+                f"-[{params.relationship_type}]-> {params.to_entity}"
             )
 
             props = params.properties.copy()
             props["confidence"] = params.confidence
-            props["created_at"] = datetime.now(timezone.utc).isoformat()
-            import uuid
-
+            props["created_at"] = datetime.now(UTC).isoformat()
             if "id" not in props:
                 props["id"] = str(uuid.uuid4())
 
@@ -162,15 +168,15 @@ class MemoryService:
             )
             if not res:
                 return {"error": "Could not create relationship. Check entity IDs."}
-            return cast(Dict[str, Any], res)
+            return res
 
         if project_id:
-            with self.lock_manager.lock(project_id):
+            async with self.lock_manager.lock(project_id):
                 return await _do_create()
         else:
             return await _do_create()
 
-    async def update_entity(self, params: EntityUpdateParams) -> Dict[str, Any]:
+    async def update_entity(self, params: EntityUpdateParams) -> dict[str, Any]:
         """Updates properties of an existing entity."""
 
         # Fetch for Locking
@@ -180,11 +186,12 @@ class MemoryService:
 
         project_id = existing_node.get("project_id")
 
-        async def _do_update() -> Dict[str, Any]:
+        async def _do_update() -> dict[str, Any]:
+            """Execute entity update inside the optional lock."""
             logger.info(f"Updating entity: {params.entity_id}")
 
             props = params.properties.copy()
-            timestamp = datetime.now(timezone.utc).isoformat()
+            timestamp = datetime.now(UTC).isoformat()
             props["updated_at"] = timestamp
 
             # Embed re-calculation logic (Business Logic)
@@ -225,16 +232,16 @@ class MemoryService:
             # Yes, standard behavior.
             await self.vector_store.upsert(id=params.entity_id, vector=embedding, payload=payload)
 
-            return cast(Dict[str, Any], updated_node)
+            return updated_node
 
         if project_id:
-            with self.lock_manager.lock(project_id):
+            async with self.lock_manager.lock(project_id):
                 return await _do_update()
         else:
             # Should not happen for valid entities, but fallback
             return await _do_update()
 
-    async def delete_entity(self, params: EntityDeleteParams) -> Dict[str, Any]:
+    async def delete_entity(self, params: EntityDeleteParams) -> dict[str, Any]:
         """Deletes an entity."""
 
         existing_node = self.repo.get_node(params.entity_id)
@@ -243,14 +250,15 @@ class MemoryService:
 
         project_id = existing_node.get("project_id")
 
-        async def _do_delete() -> Dict[str, Any]:
+        async def _do_delete() -> dict[str, Any]:
+            """Execute entity deletion inside the optional lock."""
             logger.info(f"Deleting entity: {params.entity_id} ({params.reason})")
 
             if params.soft_delete:
                 # 1. Archive in Graph
                 self.repo.update_node(
                     params.entity_id,
-                    {"status": "archived", "archived_at": datetime.now(timezone.utc).isoformat()},
+                    {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )
                 # 2. Remove from Vector Store (so it's not searchable)
                 try:
@@ -265,30 +273,34 @@ class MemoryService:
                     await self.vector_store.delete(params.entity_id)
                 except Exception as e:
                     logger.warning(f"Failed to delete vector for {params.entity_id}: {e}")
+                    # In a real scenario we might want to re-raise or handle gracefully.
+                    # B904 requires raise ... from e if we re-raised.
+                    # Here we suppress, so no raise.
+                    # Wait, B904 applies if we RAISE.
+                    # Let's check where the error actually is.
+                    pass
                 return {"status": "deleted", "id": params.entity_id}
 
         if project_id:
-            with self.lock_manager.lock(project_id):
+            async with self.lock_manager.lock(project_id):
                 return await _do_delete()
         else:
             return await _do_delete()
 
-    async def delete_relationship(self, params: RelationshipDeleteParams) -> Dict[str, Any]:
+    async def delete_relationship(self, params: RelationshipDeleteParams) -> dict[str, Any]:
         """Deletes a relationship."""
         self.repo.delete_edge(params.relationship_id)
         return {"status": "deleted", "id": params.relationship_id}
 
-    async def add_observation(self, params: ObservationParams) -> Dict[str, Any]:
+    async def add_observation(self, params: ObservationParams) -> dict[str, Any]:
         """Adds an observation node linked to an entity."""
         # This is strictly custom cypher logic not easily genericized in Repo yet.
         # But we can assume Repo has 'execute_cypher'.
         # Or better: construct a custom Repo method.
         # For now, let's use execute_cypher to migrate quickly.
 
-        import uuid
-
         obs_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         query = """
         MATCH (e) WHERE e.id = $entity_id
@@ -314,13 +326,12 @@ class MemoryService:
         res = self.repo.execute_cypher(query, params_dict)
         if not res.result_set:
             return {"error": "Entity not found"}
-        return cast(Dict[str, Any], res.result_set[0][0].properties)
+        return cast(dict[str, Any], res.result_set[0][0].properties)
 
-    async def start_session(self, params: SessionStartParams) -> Dict[str, Any]:
-        import uuid
-
+    async def start_session(self, params: SessionStartParams) -> dict[str, Any]:
+        """Create a new session node in the graph."""
         session_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         props = {
             "id": session_id,
@@ -341,10 +352,11 @@ class MemoryService:
         RETURN s
         """
         res = self.repo.execute_cypher(query, {"props": props})
-        return cast(Dict[str, Any], res.result_set[0][0].properties)
+        return cast(dict[str, Any], res.result_set[0][0].properties)
 
-    async def end_session(self, params: SessionEndParams) -> Dict[str, Any]:
-        timestamp = datetime.now(timezone.utc).isoformat()
+    async def end_session(self, params: SessionEndParams) -> dict[str, Any]:
+        """Close a session and record its summary and outcomes."""
+        timestamp = datetime.now(UTC).isoformat()
         query = """
         MATCH (s:Session)
         WHERE s.id = $session_id
@@ -365,11 +377,11 @@ class MemoryService:
         )
         if not res.result_set:
             return {"error": "Session not found"}
-        return cast(Dict[str, Any], res.result_set[0][0].properties)
+        return cast(dict[str, Any], res.result_set[0][0].properties)
 
-    async def record_breakthrough(self, params: BreakthroughParams) -> Dict[str, Any]:
+    async def record_breakthrough(self, params: BreakthroughParams) -> dict[str, Any]:
+        """Create a Breakthrough node linked to its originating session."""
         # Logic: create breakthrough node.
-        import uuid
 
         b_id = str(uuid.uuid4())
         props = {
@@ -379,25 +391,25 @@ class MemoryService:
             "analogy": params.analogy_used or "",
             "project_id": "meta",
             "certainty": "confirmed",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "node_type": "Breakthrough",  # Keep schema consistency
         }
         res = self.repo.create_node("Breakthrough", props)
         if params.session_id:
             self.repo.create_edge(params.session_id, b_id, "BREAKTHROUGH_IN", {"confidence": 1.0})
 
-        return cast(Dict[str, Any], res)
+        return res
 
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
+        """Retrieve entities connected within a given hop depth."""
         # Repo doesn't have get_neighbors yet (I missed adding it in last step? No, I listed it).
         # Actually I didn't verify if I added it to Repo class file content.
         # Let's check Repo content.
         # I suspect I might have missed it or need to implement execute_cypher for it.
         # Use execute_cypher for now.
-        if depth < 1:
-            depth = 1
+        depth = max(depth, 1)
         query = f"""
         MATCH (n)-[*1..{depth}]-(m)
         WHERE n.id = $entity_id
@@ -410,7 +422,7 @@ class MemoryService:
             n.pop("embedding", None)
         return nodes
 
-    async def traverse_path(self, from_id: str, to_id: str) -> List[Dict[str, Any]]:
+    async def traverse_path(self, from_id: str, to_id: str) -> list[dict[str, Any]]:
         """Find the shortest path between two entities."""
         query = """
         MATCH p = shortestPath((a)-[*]-(b))
@@ -430,7 +442,7 @@ class MemoryService:
 
     async def find_cross_domain_patterns(
         self, entity_id: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Find nodes in different projects connected to this entity."""
         query = """
         MATCH (n:Entity {id: $entity_id})
@@ -445,7 +457,7 @@ class MemoryService:
             n.pop("embedding", None)
         return nodes
 
-    async def get_evolution(self, entity_id: str) -> List[Dict[str, Any]]:
+    async def get_evolution(self, entity_id: str) -> list[dict[str, Any]]:
         """Retrieve the evolution (history/observations) of an entity."""
         query = """
         MATCH (e:Entity {id: $entity_id})-[:HAS_OBSERVATION]->(o)
@@ -458,7 +470,7 @@ class MemoryService:
             n.pop("embedding", None)
         return nodes
 
-    async def point_in_time_query(self, query_text: str, as_of: str) -> List[Dict[str, Any]]:
+    async def point_in_time_query(self, query_text: str, as_of: str) -> list[dict[str, Any]]:
         """Execute a search considering only knowledge known before `as_of`."""
         vec = self.embedder.encode(query_text)
 
@@ -482,8 +494,8 @@ class MemoryService:
         return nodes
 
     async def search(
-        self, query: str, limit: int = 5, project_id: Optional[str] = None
-    ) -> List[SearchResult]:
+        self, query: str, limit: int = 5, project_id: str | None = None
+    ) -> list[SearchResult]:
         """Semantic search using Qdrant."""
         if not query:
             return []
@@ -528,18 +540,14 @@ class MemoryService:
                 )
         return results
 
-    async def archive_entity(self, entity_id: str) -> Dict[str, Any]:
+    async def archive_entity(self, entity_id: str) -> dict[str, Any]:
         """Archive an entity (logical hide)."""
-        return cast(
-            Dict[str, Any],
-            self.repo.update_node(entity_id, {"status": "archived"}),
-        )
+        return self.repo.update_node(entity_id, {"status": "archived"})
 
-    async def prune_stale(self, days: int = 30) -> Dict[str, Any]:
+    async def prune_stale(self, days: int = 30) -> dict[str, Any]:
         """Hard delete archived entities older than N days."""
-        from datetime import timedelta
 
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
 
         query = """
         MATCH (n:Entity)
@@ -553,7 +561,7 @@ class MemoryService:
 
     async def analyze_graph(
         self, algorithm: Literal["pagerank", "louvain"] = "pagerank"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Runs graph algorithms to find key entities or communities.
 
@@ -578,7 +586,7 @@ class MemoryService:
                             "name": node.properties.get("name"),
                             "rank": node.properties.get("rank"),
                             "type": (
-                                list(set(node.labels) - {"Entity"})[0]
+                                next(iter(set(node.labels) - {"Entity"}))
                                 if (set(node.labels) - {"Entity"})
                                 else "Entity"
                             ),
@@ -604,11 +612,10 @@ class MemoryService:
                 return [{"error": str(e)}]
         return results
 
-    async def get_stale_entities(self, days: int = 30) -> List[Dict[str, Any]]:
+    async def get_stale_entities(self, days: int = 30) -> list[dict[str, Any]]:
         """Identify entities not modified/accessed in N days."""
-        from datetime import timedelta
 
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
         query = """
         MATCH (n:Entity)
         WHERE n.updated_at < $cutoff AND (n.status IS NULL OR n.status <> 'archived')
@@ -622,13 +629,11 @@ class MemoryService:
             e.pop("embedding", None)
         return entities
 
-    async def consolidate_memories(self, entity_ids: List[str], summary: str) -> Dict[str, Any]:
+    async def consolidate_memories(self, entity_ids: list[str], summary: str) -> dict[str, Any]:
         """Merge multiple entities into a new Consolidated concept."""
         # 1. Create new Idea via calling create_entity (which uses repo)
         # WAIT: The whole point was to avoid self-calls.
         # Correct pattern: Call repo directly.
-
-        import uuid
 
         new_id = str(uuid.uuid4())
 
@@ -649,8 +654,8 @@ class MemoryService:
                 "name": params.name,
                 "node_type": params.node_type,
                 "project_id": params.project_id,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
+                "updated_at": datetime.now(UTC).isoformat(),
             }
         )
 
@@ -671,24 +676,26 @@ class MemoryService:
                 # Direct Repo Call
                 link_props = {
                     "confidence": 1.0,
-                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_at": datetime.now(UTC).isoformat(),
                 }
                 self.repo.create_edge(old_id, new_id, "PART_OF", link_props)
 
                 # Archive old (Direct Repo Call)
                 self.repo.update_node(
                     old_id,
-                    {"status": "archived", "archived_at": datetime.now(timezone.utc).isoformat()},
+                    {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
 
-        return new_node_props  # type: ignore
+        return new_node_props
 
     def create_memory_type(
-        self, name: str, description: str, required_properties: List[str] = []
-    ) -> Dict[str, Any]:
+        self, name: str, description: str, required_properties: list[str] | None = None
+    ) -> dict[str, Any]:
         """Registers a new memory type in the ontology."""
+        if required_properties is None:
+            required_properties = []
         self.ontology.add_type(name, description, required_properties)
         return {
             "name": name,
@@ -699,7 +706,7 @@ class MemoryService:
 
     async def get_hologram(
         self, query: str, depth: int = 1, max_tokens: int = 8000
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieves a 'Hologram' (connected subgraph) relevant to the query.
 
@@ -725,7 +732,8 @@ class MemoryService:
         hologram = self.repo.get_subgraph(anchor_ids, depth)
 
         # 3. Assemble and Optimize
-        # Convert list to map for easier dedup if needed, but repo returns deduplicated lists usually.
+        # Convert list to map for easier dedup if needed,
+        # but repo returns deduplicated lists usually.
         # But we need to separate nodes and edges for optimization.
 
         raw_nodes = hologram.get("nodes", [])
@@ -749,7 +757,7 @@ class MemoryService:
 
         return {
             "query": query,
-            "anchors": [a.dict() for a in anchors],
+            "anchors": [a.model_dump() for a in anchors],
             "nodes": optimized_nodes,
             "edges": optimized_edges,
             "stats": {

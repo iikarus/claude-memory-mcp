@@ -10,12 +10,11 @@ from claude_memory.tools import MemoryService
 @pytest.fixture
 def mock_service(mock_vector_store: Any) -> Any:
     with (
-        patch("claude_memory.embedding.EmbeddingService") as MockEmbedder,
+        patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
         patch("claude_memory.repository.FalkorDB"),
     ):
-
         service = MemoryService(
-            embedding_service=MockEmbedder.return_value, vector_store=mock_vector_store
+            embedding_service=mock_embedder_cls.return_value, vector_store=mock_vector_store
         )
         # Mock the repository client interactions
         service.repo.client = MagicMock()
