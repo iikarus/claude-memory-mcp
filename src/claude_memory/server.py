@@ -187,9 +187,11 @@ async def record_breakthrough(
 
 
 @mcp.tool()
-async def get_neighbors(entity_id: str, depth: int = 1, limit: int = 20) -> list[dict[str, Any]]:
+async def get_neighbors(
+    entity_id: str, depth: int = 1, limit: int = 20, offset: int = 0
+) -> list[dict[str, Any]]:
     """Retrieve neighboring entities up to a certain depth."""
-    return await service.get_neighbors(entity_id, depth, limit)
+    return await service.get_neighbors(entity_id, depth, limit, offset)
 
 
 @mcp.tool()
@@ -230,10 +232,10 @@ async def prune_stale(days: int = 30) -> dict[str, Any]:
 
 @mcp.tool()
 async def search_memory(
-    query: str, project_id: str | None = None, limit: int = 10
+    query: str, project_id: str | None = None, limit: int = 10, offset: int = 0
 ) -> list[dict[str, Any]] | str:
-    """Search for entities using hybrid search."""
-    results = await service.search(query, limit, project_id)
+    """Search for entities using hybrid search. Use offset for pagination."""
+    results = await service.search(query, limit, project_id, offset)
     if not results:
         return "No results found."
     return [res.model_dump() for res in results]
