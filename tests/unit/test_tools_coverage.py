@@ -445,6 +445,35 @@ async def test_search_node_not_in_graph(service: MemoryService) -> None:
     assert result == []
 
 
+# ─── search with project_id filter ─────────────────────────────────
+
+
+async def test_search_with_project_id_filter(service: MemoryService) -> None:
+    """Search with project_id passes filter to vector store."""
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+                "description": "A language",
+            }
+        ],
+        "edges": [],
+    }
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT, project_id=PROJECT_ID)
+    assert len(result) == 1
+
+    # Verify filter was passed to vector_store.search
+    call_kwargs = service.vector_store.search.call_args[1]
+    assert call_kwargs["filter"] == {"project_id": PROJECT_ID}
+
+
 # ─── point_in_time_query Tests ─────────────────────────────────────
 
 
