@@ -111,4 +111,3 @@ services:
 volumes:
   falkordb_data:
   qdrant_data:
-

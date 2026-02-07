@@ -93,14 +93,15 @@ async def delete_entity(
 
 
 @mcp.tool()
-async def create_relationship(
+async def create_relationship(  # noqa: PLR0913
     from_entity: str,
     to_entity: str,
     relationship_type: EdgeType,
     properties: dict[str, Any] | None = None,
     confidence: float = 1.0,
+    weight: float = 1.0,
 ) -> dict[str, Any]:
-    """Create a relationship between two entities."""
+    """Create a relationship between two entities. Weight (0-1) indicates strength."""
     if properties is None:
         properties = {}
     params = RelationshipCreateParams(
@@ -109,6 +110,7 @@ async def create_relationship(
         relationship_type=relationship_type,
         properties=properties,
         confidence=confidence,
+        weight=weight,
     )
     return await service.create_relationship(params)
 

@@ -109,6 +109,7 @@ class RelationshipCreateParams(BaseModel):
     relationship_type: EdgeType
     properties: dict[str, Any] = Field(default_factory=dict)
     confidence: float = 1.0
+    weight: float = Field(default=1.0, ge=0.0, le=1.0, description="Relationship strength 0-1")
 
 
 class EntityUpdateParams(BaseModel):

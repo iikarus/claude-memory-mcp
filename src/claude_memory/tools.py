@@ -159,6 +159,7 @@ class MemoryService:
 
             props = params.properties.copy()
             props["confidence"] = params.confidence
+            props["weight"] = params.weight
             props["created_at"] = datetime.now(UTC).isoformat()
             if "id" not in props:
                 props["id"] = str(uuid.uuid4())
