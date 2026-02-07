@@ -232,7 +232,7 @@ class MemoryService:
             # Yes, standard behavior.
             await self.vector_store.upsert(id=params.entity_id, vector=embedding, payload=payload)
 
-            return updated_node
+            return updated_node  # type: ignore[no-any-return]
 
         if project_id:
             async with self.lock_manager.lock(project_id):
@@ -398,7 +398,7 @@ class MemoryService:
         if params.session_id:
             self.repo.create_edge(params.session_id, b_id, "BREAKTHROUGH_IN", {"confidence": 1.0})
 
-        return res
+        return res  # type: ignore[no-any-return]
 
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20
@@ -542,7 +542,7 @@ class MemoryService:
 
     async def archive_entity(self, entity_id: str) -> dict[str, Any]:
         """Archive an entity (logical hide)."""
-        return self.repo.update_node(entity_id, {"status": "archived"})
+        return self.repo.update_node(entity_id, {"status": "archived"})  # type: ignore[no-any-return]
 
     async def prune_stale(self, days: int = 30) -> dict[str, Any]:
         """Hard delete archived entities older than N days."""
@@ -688,7 +688,7 @@ class MemoryService:
             except Exception:  # noqa: S112
                 continue
 
-        return new_node_props
+        return new_node_props  # type: ignore[no-any-return]
 
     def create_memory_type(
         self, name: str, description: str, required_properties: list[str] | None = None

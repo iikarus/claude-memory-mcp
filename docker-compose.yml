@@ -7,6 +7,12 @@ services:
     volumes:
       - falkordb_data:/var/lib/falkordb/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -15,6 +21,12 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   dashboard:
     build: .
@@ -27,9 +39,12 @@ services:
       # So Dashboard ALSO needs to talk to Embedding Service.
       - EMBEDDING_API_URL=http://embeddings:8000
     depends_on:
-      - graphdb
-      - qdrant
-      - embeddings
+      graphdb:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      embeddings:
+        condition: service_healthy
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
@@ -54,6 +69,12 @@ services:
               count: 1
               capabilities: [gpu]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     command: python src/claude_memory/embedding_server.py
 
   server:
@@ -68,16 +89,26 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - graphdb
-      - qdrant
-      - embeddings
+      graphdb:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      embeddings:
+        condition: service_healthy
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     # Lightweight logic server
     command: python src/claude_memory/server.py
 
 volumes:
   falkordb_data:
   qdrant_data:
+

@@ -7,6 +7,8 @@ from typing import Any, Protocol
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http import models
 
+from claude_memory.retry import retry_on_transient
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,6 +48,7 @@ class QdrantVectorStore:
         self.vector_size = vector_size
         self._initialized = False
 
+    @retry_on_transient()
     async def _ensure_collection(self) -> None:
         """Create collection if not exists."""
         if self._initialized:
@@ -71,6 +74,7 @@ class QdrantVectorStore:
             logger.error(f"Failed to initialize Qdrant collection: {e}")
             # Don't raise, might be connection error handled later
 
+    @retry_on_transient()
     async def upsert(self, id: str, vector: list[float], payload: dict[str, Any]) -> None:
         """Insert or update a vector with its metadata payload."""
         await self._ensure_collection()
@@ -81,6 +85,7 @@ class QdrantVectorStore:
         )
         await self.client.upsert(collection_name=self.collection, points=[point])
 
+    @retry_on_transient()
     async def search(
         self, vector: list[float], limit: int = 5, filter: dict[str, Any] | None = None
     ) -> list[dict[str, Any]]:
@@ -128,6 +133,7 @@ class QdrantVectorStore:
             for point in results.points
         ]
 
+    @retry_on_transient()
     async def delete(self, id: str) -> None:
         """Delete a vector by its ID."""
         await self._ensure_collection()

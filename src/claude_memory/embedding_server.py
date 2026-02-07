@@ -9,9 +9,10 @@ from pydantic import BaseModel
 
 # Import the existing service logic so we reuse the model loading code
 from claude_memory.embedding import EmbeddingService
+from claude_memory.logging_config import configure_logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+configure_logging()
 logger = logging.getLogger("embedding-server")
 
 app = FastAPI(title="Embedding Service")

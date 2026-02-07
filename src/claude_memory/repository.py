@@ -6,6 +6,8 @@ from typing import Any
 
 from falkordb import FalkorDB
 
+from claude_memory.retry import retry_on_transient
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,6 +32,7 @@ class MemoryRepository:
         )
         self.graph_name = "claude_memory"
 
+    @retry_on_transient()
     def select_graph(self) -> Any:
         """Return the active FalkorDB graph handle."""
         return self.client.select_graph(self.graph_name)
@@ -40,6 +43,7 @@ class MemoryRepository:
         # Could add index on 'id' or 'name' for speed if not implicit in Node Key.
         pass
 
+    @retry_on_transient()
     def create_node(self, label: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Creates a node (embedding logic moved to VectorStore)."""
         graph = self.select_graph()
@@ -63,6 +67,7 @@ class MemoryRepository:
         result = graph.query(query, params)
         return result.result_set[0][0].properties  # type: ignore
 
+    @retry_on_transient()
     def get_node(self, node_id: str) -> dict[str, Any] | None:
         """Retrieves a node by its ID."""
         graph = self.select_graph()
@@ -74,6 +79,7 @@ class MemoryRepository:
 
         return result.result_set[0][0].properties  # type: ignore
 
+    @retry_on_transient()
     def update_node(self, node_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Updates a node's properties."""
         graph = self.select_graph()
@@ -135,11 +141,13 @@ class MemoryRepository:
         graph.query(query, {"id": edge_id})
         return True
 
+    @retry_on_transient()
     def execute_cypher(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Executes a raw Cypher query."""
         graph = self.select_graph()
         return graph.query(query, params or {})
 
+    @retry_on_transient()
     def get_subgraph(self, start_node_ids: list[str], depth: int = 1) -> dict[str, Any]:
         """Retrieves a subgraph of connected nodes up to 'depth' hops from start nodes."""
         if not start_node_ids:
