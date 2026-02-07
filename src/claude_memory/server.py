@@ -261,6 +261,13 @@ async def create_memory_type(
     return service.create_memory_type(name, description, required_properties)
 
 
+async def _health_check(_request: object) -> Any:
+    """Health check endpoint for Docker healthcheck probes."""
+    from starlette.responses import JSONResponse  # noqa: PLC0415
+
+    return JSONResponse({"status": "ok", "transport": "sse"})
+
+
 def _backup_on_shutdown(signum: int, _frame: object) -> None:
     """Handle SIGTERM by running backup before exit."""
     import subprocess  # noqa: PLC0415
@@ -292,7 +299,6 @@ def main() -> None:
     if transport == "sse":
         import signal  # noqa: PLC0415
 
-        from starlette.responses import JSONResponse  # noqa: PLC0415
         from starlette.routing import Route  # noqa: PLC0415
 
         # Register SIGTERM handler for graceful shutdown with backup
@@ -301,12 +307,7 @@ def main() -> None:
 
         # Mount /health on the SSE app
         app = mcp.sse_app
-
-        async def health_check(_request: object) -> JSONResponse:
-            """Health check endpoint for Docker healthcheck probes."""
-            return JSONResponse({"status": "ok", "transport": "sse"})
-
-        app.routes.insert(0, Route("/health", health_check))  # type: ignore[attr-defined]
+        app.routes.insert(0, Route("/health", _health_check))  # type: ignore[attr-defined]
 
         port = int(os.getenv("PORT", "8000"))
         logger.info("Starting MCP server (SSE) on port %d", port)

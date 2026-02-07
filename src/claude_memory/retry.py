@@ -24,7 +24,7 @@ try:
     from redis.exceptions import TimeoutError as RedisTimeoutError
 
     _TRANSIENT_EXCEPTIONS = (*_TRANSIENT_EXCEPTIONS, RedisConnectionError, RedisTimeoutError)
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 
@@ -50,12 +50,10 @@ def retry_on_transient(  # noqa: C901
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             """Async retry wrapper with exponential backoff."""
-            last_exception: BaseException | None = None
-            for attempt in range(max_retries + 1):
+            for attempt in range(max_retries + 1):  # pragma: no branch
                 try:
                     return await func(*args, **kwargs)
                 except retryable as exc:
-                    last_exception = exc
                     if attempt == max_retries:
                         logger.error(
                             "Failed after %d retries: %s — %s",
@@ -74,17 +72,14 @@ def retry_on_transient(  # noqa: C901
                         exc,
                     )
                     await asyncio.sleep(delay)
-            raise last_exception  # type: ignore[misc]
 
         @functools.wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             """Sync retry wrapper with exponential backoff."""
-            last_exception: BaseException | None = None
-            for attempt in range(max_retries + 1):
+            for attempt in range(max_retries + 1):  # pragma: no branch
                 try:
                     return func(*args, **kwargs)
                 except retryable as exc:
-                    last_exception = exc
                     if attempt == max_retries:
                         logger.error(
                             "Failed after %d retries: %s — %s",
@@ -103,7 +98,6 @@ def retry_on_transient(  # noqa: C901
                         exc,
                     )
                     time.sleep(delay)
-            raise last_exception  # type: ignore[misc]
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper

@@ -34,3 +34,16 @@ class TestBackupOnShutdown:
         ):
             mock_run.side_effect = RuntimeError("backup broken")
             _backup_on_shutdown(signal.SIGTERM, None)
+
+
+class TestHealthCheck:
+    """Test the SSE health check endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_health_check_returns_ok(self) -> None:
+        """Health check returns status ok with transport info."""
+        from claude_memory.server import _health_check
+
+        response = await _health_check(None)
+        assert response.status_code == 200
+        assert b'"ok"' in response.body
