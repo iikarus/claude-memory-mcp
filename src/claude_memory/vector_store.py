@@ -20,7 +20,11 @@ class VectorStore(Protocol):
         ...
 
     async def search(
-        self, vector: list[float], limit: int = 5, filter: dict[str, Any] | None = None
+        self,
+        vector: list[float],
+        limit: int = 5,
+        filter: dict[str, Any] | None = None,
+        offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Search for nearest neighbors."""
         ...
@@ -87,7 +91,11 @@ class QdrantVectorStore:
 
     @retry_on_transient()
     async def search(
-        self, vector: list[float], limit: int = 5, filter: dict[str, Any] | None = None
+        self,
+        vector: list[float],
+        limit: int = 5,
+        filter: dict[str, Any] | None = None,
+        offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Search for nearest neighbors by cosine similarity."""
         await self._ensure_collection()
@@ -117,6 +125,7 @@ class QdrantVectorStore:
             collection_name=self.collection,
             query=vector,
             limit=limit,
+            offset=offset,
             query_filter=q_filter,
             with_payload=True,
             with_vectors=False,

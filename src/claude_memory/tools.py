@@ -402,22 +402,20 @@ class MemoryService:
         return res  # type: ignore[no-any-return]
 
     async def get_neighbors(
-        self, entity_id: str, depth: int = 1, limit: int = 20
+        self, entity_id: str, depth: int = 1, limit: int = 20, offset: int = 0
     ) -> list[dict[str, Any]]:
         """Retrieve entities connected within a given hop depth."""
-        # Repo doesn't have get_neighbors yet (I missed adding it in last step? No, I listed it).
-        # Actually I didn't verify if I added it to Repo class file content.
-        # Let's check Repo content.
-        # I suspect I might have missed it or need to implement execute_cypher for it.
-        # Use execute_cypher for now.
         depth = max(depth, 1)
         query = f"""
         MATCH (n)-[*1..{depth}]-(m)
         WHERE n.id = $entity_id
         RETURN distinct m
+        SKIP $offset
         LIMIT $limit
         """
-        res = self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
+        res = self.repo.execute_cypher(
+            query, {"entity_id": entity_id, "limit": limit, "offset": offset}
+        )
         nodes = [row[0].properties for row in res.result_set if row]
         for n in nodes:
             n.pop("embedding", None)
@@ -495,7 +493,7 @@ class MemoryService:
         return nodes
 
     async def search(
-        self, query: str, limit: int = 5, project_id: str | None = None
+        self, query: str, limit: int = 5, project_id: str | None = None, offset: int = 0
     ) -> list[SearchResult]:
         """Semantic search using Qdrant."""
         if not query:
@@ -511,7 +509,7 @@ class MemoryService:
             search_filter = {"project_id": project_id}
 
         vector_results = await self.vector_store.search(
-            vector=vec, limit=limit, filter=search_filter
+            vector=vec, limit=limit, filter=search_filter, offset=offset
         )
 
         if not vector_results:

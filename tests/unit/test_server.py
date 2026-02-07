@@ -250,7 +250,7 @@ async def test_record_breakthrough_defaults() -> None:
 
 async def test_get_neighbors() -> None:
     result = await server.get_neighbors(entity_id=ENTITY_ID, depth=GRAPH_DEPTH, limit=GRAPH_LIMIT)
-    server.service.get_neighbors.assert_awaited_once_with(ENTITY_ID, GRAPH_DEPTH, GRAPH_LIMIT)
+    server.service.get_neighbors.assert_awaited_once_with(ENTITY_ID, GRAPH_DEPTH, GRAPH_LIMIT, 0)
     assert result == [{"id": ENTITY_ID}]
 
 
