@@ -2,6 +2,7 @@
 
 import logging
 import os
+from datetime import UTC, datetime
 from typing import Any
 
 from falkordb import FalkorDB
@@ -305,3 +306,125 @@ class MemoryRepository:
             }
             for row in result.result_set
         ]
+
+    @retry_on_transient()
+    def query_timeline(
+        self,
+        start: str,
+        end: str,
+        limit: int = 20,
+        project_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Fetch entities within a time window, ordered by occurred_at.
+
+        Falls back to created_at for entities without occurred_at.
+        """
+        graph = self.select_graph()
+        if project_id:
+            query = """
+            MATCH (n:Entity)
+            WHERE COALESCE(n.occurred_at, n.created_at) >= $start
+              AND COALESCE(n.occurred_at, n.created_at) <= $end
+              AND n.project_id = $project_id
+            RETURN n
+            ORDER BY COALESCE(n.occurred_at, n.created_at) ASC
+            LIMIT $limit
+            """
+            params = {
+                "start": start,
+                "end": end,
+                "project_id": project_id,
+                "limit": limit,
+            }
+        else:
+            query = """
+            MATCH (n:Entity)
+            WHERE COALESCE(n.occurred_at, n.created_at) >= $start
+              AND COALESCE(n.occurred_at, n.created_at) <= $end
+            RETURN n
+            ORDER BY COALESCE(n.occurred_at, n.created_at) ASC
+            LIMIT $limit
+            """
+            params = {"start": start, "end": end, "limit": limit}
+        result = graph.query(query, params)
+        return [row[0].properties for row in result.result_set if row]
+
+    @retry_on_transient()
+    def get_temporal_neighbors(
+        self,
+        entity_id: str,
+        direction: str = "both",
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Find entities connected by temporal edges.
+
+        Args:
+            entity_id: The anchor entity ID.
+            direction: 'before', 'after', or 'both'.
+            limit: Max results.
+        """
+        graph = self.select_graph()
+        temporal_types = "PRECEDED_BY|EVOLVED_FROM|SUPERSEDES|CONCURRENT_WITH"
+        if direction == "before":
+            query = f"""
+            MATCH (n:Entity {{id: $entity_id}})<-[r:{temporal_types}]-(m:Entity)
+            RETURN m
+            ORDER BY COALESCE(m.occurred_at, m.created_at) DESC
+            LIMIT $limit
+            """
+        elif direction == "after":
+            query = f"""
+            MATCH (n:Entity {{id: $entity_id}})-[r:{temporal_types}]->(m:Entity)
+            RETURN m
+            ORDER BY COALESCE(m.occurred_at, m.created_at) ASC
+            LIMIT $limit
+            """
+        else:
+            query = f"""
+            MATCH (n:Entity {{id: $entity_id}})-[r:{temporal_types}]-(m:Entity)
+            RETURN DISTINCT m
+            ORDER BY COALESCE(m.occurred_at, m.created_at) ASC
+            LIMIT $limit
+            """
+        result = graph.query(query, {"entity_id": entity_id, "limit": limit})
+        return [row[0].properties for row in result.result_set if row]
+
+    @retry_on_transient()
+    def create_temporal_edge(
+        self,
+        from_id: str,
+        to_id: str,
+        edge_type: str = "PRECEDED_BY",
+        properties: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Create a temporal relationship between two entities.
+
+        Args:
+            from_id: Source entity ID.
+            to_id: Target entity ID.
+            edge_type: One of the temporal EdgeType values.
+            properties: Optional edge properties.
+        """
+        graph = self.select_graph()
+        props = properties.copy() if properties else {}
+        if "created_at" not in props:
+            props["created_at"] = datetime.now(UTC).isoformat()
+
+        query = f"""
+        MATCH (a:Entity {{id: $from_id}}), (b:Entity {{id: $to_id}})
+        CREATE (a)-[r:{edge_type}]->(b)
+        SET r = $props
+        RETURN type(r) AS rel_type, a.id AS from_id, b.id AS to_id
+        """
+        result = graph.query(
+            query,
+            {"from_id": from_id, "to_id": to_id, "props": props},
+        )
+        if not result.result_set:
+            return {"error": "One or both entities not found"}
+        row = result.result_set[0]
+        return {
+            "rel_type": row[0],
+            "from_id": row[1],
+            "to_id": row[2],
+        }
