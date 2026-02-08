@@ -318,3 +318,112 @@ def test_get_total_node_count_empty(repo: Any, mock_graph: MagicMock) -> None:
 
     result = repo.get_total_node_count()
     assert result == 0
+
+
+# ─── query_timeline Tests ──────────────────────────────────────────
+
+
+def test_query_timeline_no_project(repo: Any, mock_graph: MagicMock) -> None:
+    """query_timeline returns entities without project filter."""
+    mock_node = _make_mock_node(
+        {"id": NODE_ID, "name": NODE_NAME, "occurred_at": "2026-01-15T12:00:00"}
+    )
+    mock_graph.query.return_value = _make_mock_result([[mock_node]])
+
+    result = repo.query_timeline(start="2026-01-01", end="2026-02-01")
+    assert len(result) == 1
+    assert result[0]["id"] == NODE_ID
+    # Verify no project_id in query params
+    call_args = mock_graph.query.call_args
+    assert "project_id" not in call_args[0][1]
+
+
+def test_query_timeline_with_project(repo: Any, mock_graph: MagicMock) -> None:
+    """query_timeline filters by project_id when provided."""
+    mock_node = _make_mock_node({"id": NODE_ID, "name": NODE_NAME, "project_id": PROJECT_ID})
+    mock_graph.query.return_value = _make_mock_result([[mock_node]])
+
+    result = repo.query_timeline(start="2026-01-01", end="2026-02-01", project_id=PROJECT_ID)
+    assert len(result) == 1
+    call_args = mock_graph.query.call_args
+    assert call_args[0][1]["project_id"] == PROJECT_ID
+
+
+def test_query_timeline_empty(repo: Any, mock_graph: MagicMock) -> None:
+    """query_timeline returns empty list when no matches."""
+    mock_graph.query.return_value = _make_mock_result([])
+
+    result = repo.query_timeline(start="2026-01-01", end="2026-02-01")
+    assert result == []
+
+
+# ─── get_temporal_neighbors Tests ──────────────────────────────────
+
+
+def test_get_temporal_neighbors_before(repo: Any, mock_graph: MagicMock) -> None:
+    """get_temporal_neighbors direction=before returns predecessors."""
+    mock_node = _make_mock_node({"id": "prev-1", "name": "Previous"})
+    mock_graph.query.return_value = _make_mock_result([[mock_node]])
+
+    result = repo.get_temporal_neighbors(NODE_ID, direction="before")
+    assert len(result) == 1
+    assert result[0]["id"] == "prev-1"
+    query_str = mock_graph.query.call_args[0][0]
+    assert "<-[r:" in query_str
+
+
+def test_get_temporal_neighbors_after(repo: Any, mock_graph: MagicMock) -> None:
+    """get_temporal_neighbors direction=after returns successors."""
+    mock_node = _make_mock_node({"id": "next-1", "name": "Next"})
+    mock_graph.query.return_value = _make_mock_result([[mock_node]])
+
+    result = repo.get_temporal_neighbors(NODE_ID, direction="after")
+    assert len(result) == 1
+    query_str = mock_graph.query.call_args[0][0]
+    assert "->(m:Entity)" in query_str
+
+
+def test_get_temporal_neighbors_both(repo: Any, mock_graph: MagicMock) -> None:
+    """get_temporal_neighbors default direction returns both."""
+    m1 = _make_mock_node({"id": "prev-1"})
+    m2 = _make_mock_node({"id": "next-1"})
+    mock_graph.query.return_value = _make_mock_result([[m1], [m2]])
+
+    result = repo.get_temporal_neighbors(NODE_ID)
+    assert len(result) == 2
+    query_str = mock_graph.query.call_args[0][0]
+    assert "DISTINCT m" in query_str
+
+
+# ─── create_temporal_edge Tests ────────────────────────────────────
+
+
+def test_create_temporal_edge_success(repo: Any, mock_graph: MagicMock) -> None:
+    """create_temporal_edge creates edge and returns metadata."""
+    mock_graph.query.return_value = _make_mock_result([["PRECEDED_BY", "entity-a", "entity-b"]])
+
+    result = repo.create_temporal_edge("entity-a", "entity-b")
+    assert result["rel_type"] == "PRECEDED_BY"
+    assert result["from_id"] == "entity-a"
+    assert result["to_id"] == "entity-b"
+
+
+def test_create_temporal_edge_not_found(repo: Any, mock_graph: MagicMock) -> None:
+    """create_temporal_edge returns error when entities not found."""
+    mock_graph.query.return_value = _make_mock_result([])
+
+    result = repo.create_temporal_edge("missing-a", "missing-b")
+    assert "error" in result
+
+
+def test_create_temporal_edge_with_properties(repo: Any, mock_graph: MagicMock) -> None:
+    """create_temporal_edge passes custom properties to the edge."""
+    mock_graph.query.return_value = _make_mock_result([["CONCURRENT_WITH", "a", "b"]])
+    custom_props = {"reason": "same session", "created_at": "2026-01-15"}
+
+    result = repo.create_temporal_edge(
+        "a", "b", edge_type="CONCURRENT_WITH", properties=custom_props
+    )
+    assert result["rel_type"] == "CONCURRENT_WITH"
+    # Verify the original props dict wasn't mutated
+    assert custom_props == {"reason": "same session", "created_at": "2026-01-15"}

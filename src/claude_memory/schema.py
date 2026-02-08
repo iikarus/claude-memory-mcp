@@ -20,6 +20,7 @@ EdgeType = Literal[
     "EVOLVED_FROM",
     "SUPERSEDES",
     "PRECEDED_BY",
+    "CONCURRENT_WITH",
     # Epistemic
     "CONTRADICTS",
     "SUPPORTS",
@@ -60,6 +61,9 @@ class BaseNode(BaseModel):
     # Temporal
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    occurred_at: datetime | None = Field(
+        default=None, description="When the event actually happened"
+    )
 
     # Epistemic
     certainty: CertaintyLevel = "confirmed"
@@ -161,6 +165,15 @@ class SessionEndParams(BaseModel):
     session_id: str
     summary: str
     outcomes: list[str] = Field(default_factory=list)
+
+
+class TemporalQueryParams(BaseModel):
+    """Parameters for querying entities within a time window."""
+
+    start: datetime
+    end: datetime
+    limit: int = Field(default=20, ge=1, le=100)
+    project_id: str | None = None
 
 
 class SearchResult(BaseModel):
