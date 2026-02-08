@@ -427,3 +427,27 @@ def test_create_temporal_edge_with_properties(repo: Any, mock_graph: MagicMock) 
     assert result["rel_type"] == "CONCURRENT_WITH"
     # Verify the original props dict wasn't mutated
     assert custom_props == {"reason": "same session", "created_at": "2026-01-15"}
+
+
+# ─── Salience / increment_salience Tests ────────────────────────────
+
+
+def test_increment_salience_empty_ids(repo: Any, mock_graph: MagicMock) -> None:
+    """increment_salience returns [] immediately for empty list."""
+    result = repo.increment_salience([])
+    assert result == []
+    mock_graph.query.assert_not_called()
+
+
+def test_increment_salience_returns_updated_scores(repo: Any, mock_graph: MagicMock) -> None:
+    """increment_salience queries Cypher and maps rows to dicts."""
+    mock_graph.query.return_value = _make_mock_result(
+        [["entity-1", 2.0, 2], ["entity-2", 1.585, 1]]
+    )
+    result = repo.increment_salience(["entity-1", "entity-2"])
+    assert len(result) == 2
+    assert result[0] == {"id": "entity-1", "salience_score": 2.0, "retrieval_count": 2}
+    assert result[1]["id"] == "entity-2"
+    # Verify query was called with the node IDs
+    call_params = mock_graph.query.call_args[0][1]
+    assert call_params["ids"] == ["entity-1", "entity-2"]

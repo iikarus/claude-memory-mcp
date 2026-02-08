@@ -99,6 +99,8 @@ def _mock_service(monkeypatch: pytest.MonkeyPatch) -> None:
     mock_svc.prune_stale = AsyncMock(return_value={"pruned": PRUNE_DAYS})
     mock_svc.search = AsyncMock(return_value=[])
     mock_svc.create_memory_type = MagicMock(return_value={"name": MEMORY_TYPE_NAME})
+    mock_svc.query_timeline = AsyncMock(return_value=[{"id": ENTITY_ID}])
+    mock_svc.get_temporal_neighbors = AsyncMock(return_value=[{"id": ENTITY_ID}])
     monkeypatch.setattr(server, "service", mock_svc)
 
 
@@ -346,3 +348,32 @@ def test_main_stdio_transport() -> None:
     with patch.object(server, "mcp") as mock_mcp:
         server.main()
         mock_mcp.run.assert_called_once()
+
+
+# ─── Temporal Graph Layer Tool Tests ────────────────────────────────
+
+
+async def test_query_timeline_mcp_tool() -> None:
+    result = await server.query_timeline(
+        start="2026-01-01T00:00:00+00:00",
+        end="2026-02-01T00:00:00+00:00",
+        limit=10,
+    )
+    server.service.query_timeline.assert_awaited_once()
+    assert result == [{"id": ENTITY_ID}]
+
+
+async def test_query_timeline_with_project() -> None:
+    await server.query_timeline(
+        start="2026-01-01T00:00:00+00:00",
+        end="2026-02-01T00:00:00+00:00",
+        project_id=PROJECT_ID,
+    )
+    params = server.service.query_timeline.call_args[0][0]
+    assert params.project_id == PROJECT_ID
+
+
+async def test_get_temporal_neighbors_mcp_tool() -> None:
+    result = await server.get_temporal_neighbors(entity_id=ENTITY_ID, direction="after", limit=5)
+    server.service.get_temporal_neighbors.assert_awaited_once_with(ENTITY_ID, "after", 5)
+    assert result == [{"id": ENTITY_ID}]
