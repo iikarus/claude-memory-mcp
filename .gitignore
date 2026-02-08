@@ -111,6 +111,10 @@ tox_*.txt
 mypy_*.txt
 pytest_*.txt
 ruff_check.txt
+ruff_remaining.txt
 precommit_output.txt
 hologram_log.txt
+debug_output.txt
+test_output.txt
+failure.log
 .secrets.baseline

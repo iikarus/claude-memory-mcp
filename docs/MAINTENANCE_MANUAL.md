@@ -1,6 +1,6 @@
 # Maintenance Manual
 
-Guidelines for keeping the Exocortex healthy and performant.
+Guidelines for keeping the Exocortex healthy and performant. Last updated: February 2026.
 
 ## 🧹 The Librarian Agent
 
@@ -10,38 +10,58 @@ The Librarian (`src/claude_memory/librarian.py`) is an autonomous agent that run
 
 Tune `src/claude_memory/clustering.py` parameters if clustering is too aggressive or too loose:
 
-- `eps` (default 0.5): Distance threshold. Lower = Strieter clusters.
+- `eps` (default 0.5): Distance threshold. Lower = Stricter clusters.
 - `min_samples` (default 3): Minimum nodes to form a cluster.
 
 ### Triggering
 
 Currently triggered manually via `run_librarian_cycle`.
-**Future**: Set up a CRON job to hit the tool endpoint nightly.
+**Future**: Set up a CRON job or Task Scheduler entry to trigger nightly.
 
 ## 💾 Backup & Restore
 
-Data is stored in the `falkordb` docker volume.
+### Automated Daily Backup (Active)
 
-### Quick Backup (Snapshot)
+A Windows Task Scheduler task (`ExocortexDailyBackup`) runs daily at 3:00 AM:
 
-**Preferred Method**: Use the **"Safe Shutdown"** button in the Streamlit Dashboard (`localhost:8501`). It creates a backup automatically before stopping services.
+1. Creates a local snapshot in `backups/daily_YYYY_MM_DD/`
+2. Syncs to **Google Drive** (`G:\My Drive\exocortex_backups\`)
+3. Deletes both local and cloud backups older than 7 days
 
-**Manual Method**:
-To create a "Git-style" save point via CLI:
+**Script**: `scripts/scheduled_backup.py`
+
+**Manual commands**:
 
 ```powershell
-python scripts/backup_restore.py save --tag "my_backup_name"
+# Run backup now
+python scripts/scheduled_backup.py
+
+# Preview what would happen
+python scripts/scheduled_backup.py --dry-run
+
+# Check scheduler status
+schtasks /query /tn "ExocortexDailyBackup"
 ```
 
-Snapshots are saved in `backups/`.
+### Manual Backup (On-Demand)
+
+For named snapshots before risky operations:
+
+```powershell
+python scripts/backup_restore.py save --tag "before_migration"
+```
+
+Snapshots are saved in `backups/<tag>/` containing `falkor_data.tar.gz` + `qdrant_data.tar.gz`.
 
 ### Restore (Load)
 
-To verify or roll back to a previous state:
+To roll back to a previous state:
 
 ```powershell
-python scripts/backup_restore.py load "my_backup_name"
+python scripts/backup_restore.py load "before_migration"
 ```
+
+> **Warning**: This requires restarting Docker containers (`docker compose down && docker compose up -d`) to pick up the restored volume data.
 
 ## ☢️ Reset (Nuke)
 
@@ -51,7 +71,7 @@ To completely wipe all data (Graph + Vectors) and start fresh:
 python scripts/nuke_data.py
 ```
 
-_Use with caution._
+_Use with caution. Create a backup first._
 
 ## 🗑️ Pruning
 
@@ -62,9 +82,7 @@ Run `prune_stale(days=60)` to permanently delete archived items older than 60 da
 
 ### Red Team Operations (Stress Test)
 
-Run the Chaos Engineering script to verify system stability against Fuzzing, Concurrency, and Graph Cycles.
-
-```bash
+```powershell
 python scripts/red_team.py
 ```
 
@@ -72,7 +90,7 @@ python scripts/red_team.py
 
 Verify the full stack (Graph + Vector) connectivity on live infrastructure.
 
-```bash
+```powershell
 python scripts/e2e_test.py
 ```
 
@@ -83,15 +101,24 @@ python scripts/e2e_test.py
 The system uses Redis-based locking (or File-based fallback).
 
 - **Cause**: High concurrency or a lingering lock from a crashed process.
-- **Fix**: Locks expire automatically (TTL 5-10s). Wait and retry. If persistent, check `scripts/debug_concurrency.py`.
+- **Fix**: Locks expire automatically (TTL 5-10s). Wait and retry.
 
 ### "Qdrant Connection Failed"
 
 - Ensure `qdrant` container is running (Port 6333).
-- **Env Var**: `QDRANT_HOST` defaults to `localhost` for local scripts, but `qdrant` for Docker services.
+- **Env Var**: `QDRANT_HOST` must be set to `qdrant` inside Docker. Defaults to `localhost` for local scripts.
 - **Check**: Run `python scripts/e2e_test.py` to diagnose connectivity.
 
-### "Mypy Error" in Pre-commit
+### "Build Takes 3 Hours"
 
-If you encounter `unused "type: ignore"`, it means the typing environment has improved or changed.
-**Fix**: Remove the unused `# type: ignore` comment.
+- **Cause**: Missing `.dockerignore` — entire project context sent to Docker daemon.
+- **Fix**: Ensure `.dockerignore` exists and excludes `.tox/`, `backups/`, `.mypy_cache/`, `.git/`.
+
+### Container Healthcheck Failures
+
+| Container  | Check                  | Common Issue                                          |
+| ---------- | ---------------------- | ----------------------------------------------------- |
+| graphdb    | `redis-cli ping`       | FalkorDB not started yet (increase `start_period`)    |
+| qdrant     | `bash /dev/tcp`        | Don't use curl/wget — Qdrant image lacks them         |
+| embeddings | `curl /health`         | Model download not complete (increase `start_period`) |
+| dashboard  | `curl /_stcore/health` | Streamlit startup delay                               |
