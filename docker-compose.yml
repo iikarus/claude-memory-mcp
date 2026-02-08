@@ -76,37 +76,6 @@ services:
       start_period: 30s
     command: python src/claude_memory/embedding_server.py
 
-  server:
-    build: .
-    environment:
-      - FALKORDB_HOST=graphdb
-      - FALKORDB_PORT=6379
-      - QDRANT_HOST=qdrant
-      - MCP_TRANSPORT=sse
-      - PORT=8000
-      - EMBEDDING_API_URL=http://embeddings:8000
-    ports:
-      - "127.0.0.1:8000:8000"
-    depends_on:
-      graphdb:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
-      embeddings:
-        condition: service_healthy
-    volumes:
-      - ./src:/app/src
-      - ./scripts:/app/scripts
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-    # Lightweight logic server
-    command: python src/claude_memory/server.py
-
 volumes:
   falkordb_data:
   qdrant_data:
