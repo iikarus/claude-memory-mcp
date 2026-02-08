@@ -48,12 +48,18 @@ def setup_logging() -> logging.Logger:
 def create_backup(tag: str, logger: logging.Logger) -> Path | None:
     """Run backup_restore.py save and return the backup directory."""
     backup_path = BACKUP_DIR / tag
-    cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "backup_restore.py"), "save", "--tag", tag]
+    cmd = [
+        sys.executable,
+        str(PROJECT_ROOT / "scripts" / "backup_restore.py"),
+        "save",
+        "--tag",
+        tag,
+    ]
 
     logger.info("Creating backup with tag: %s", tag)
     env = {**__import__("os").environ, "PYTHONUTF8": "1"}
     try:
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(
             cmd,
             timeout=120,
             check=True,
@@ -149,9 +155,8 @@ def main() -> None:
     # Step 2: Sync to Google Drive
     if args.dry_run:
         logger.info("[DRY RUN] Would sync to %s", GDRIVE_BACKUP_DIR / tag)
-    else:
-        if not sync_to_gdrive(backup_path, tag, logger):
-            logger.warning("Google Drive sync failed — local backup still exists")
+    elif not sync_to_gdrive(backup_path, tag, logger):
+        logger.warning("Google Drive sync failed — local backup still exists")
 
     # Step 3: Cleanup old backups (local + Drive)
     local_deleted = cleanup_old_backups(BACKUP_DIR, "local", args.dry_run, logger)

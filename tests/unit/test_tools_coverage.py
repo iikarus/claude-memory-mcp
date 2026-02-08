@@ -728,3 +728,145 @@ async def test_get_hologram_with_non_dict_nodes(service: MemoryService) -> None:
     assert len(result["nodes"]) == 1
     # Embedding should have been stripped from the dict node
     assert "embedding" not in result["nodes"][0]
+
+
+# ─── Salience Scoring Tests ────────────────────────────────────────
+
+
+SALIENCE_DEFAULT = 1.0
+RETRIEVAL_COUNT_DEFAULT = 0
+SALIENCE_AFTER_ONE_RETRIEVAL = 2.0  # 1.0 + log2(1 + 1) = 1.0 + 1.0
+
+
+async def test_create_entity_initializes_salience(service: MemoryService) -> None:
+    """create_entity sets salience_score=1.0 and retrieval_count=0 on the node."""
+    from claude_memory.schema import EntityCreateParams
+
+    service.repo.create_node.return_value = {
+        "id": ENTITY_ID,
+        "name": ENTITY_NAME,
+        "salience_score": SALIENCE_DEFAULT,
+        "retrieval_count": RETRIEVAL_COUNT_DEFAULT,
+    }
+    service.repo.get_total_node_count.return_value = 1
+    service.ontology = MagicMock()
+    service.ontology.is_valid_type.return_value = True
+
+    params = EntityCreateParams(
+        name=ENTITY_NAME,
+        node_type=ENTITY_TYPE,
+        project_id=PROJECT_ID,
+    )
+    result = await service.create_entity(params)
+    assert result.id == ENTITY_ID
+
+    # Verify salience fields were passed to create_node
+    call_args = service.repo.create_node.call_args
+    props = call_args[0][1]
+    assert props["salience_score"] == SALIENCE_DEFAULT
+    assert props["retrieval_count"] == RETRIEVAL_COUNT_DEFAULT
+
+
+async def test_search_increments_salience(service: MemoryService) -> None:
+    """search() calls increment_salience and maps updated score to results."""
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+                "description": "A language",
+                "salience_score": SALIENCE_DEFAULT,
+            }
+        ],
+        "edges": [],
+    }
+    service.repo.increment_salience.return_value = [
+        {
+            "id": ENTITY_ID,
+            "salience_score": SALIENCE_AFTER_ONE_RETRIEVAL,
+            "retrieval_count": 1,
+        }
+    ]
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert len(result) == 1
+    assert result[0].salience_score == SALIENCE_AFTER_ONE_RETRIEVAL
+    service.repo.increment_salience.assert_called_once_with([ENTITY_ID])
+
+
+async def test_search_salience_increment_failure_fallback(service: MemoryService) -> None:
+    """When increment_salience fails, search still returns results with graph salience."""
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+                "description": "A language",
+                "salience_score": 3.5,
+            }
+        ],
+        "edges": [],
+    }
+    service.repo.increment_salience.side_effect = ConnectionError("FalkorDB down")
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert len(result) == 1
+    # Falls back to graph node's salience_score
+    assert result[0].salience_score == 3.5
+
+
+async def test_search_salience_fallback_default(service: MemoryService) -> None:
+    """When no salience_score in graph node, default to 0.0."""
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+            }
+        ],
+        "edges": [],
+    }
+    service.repo.increment_salience.return_value = []  # No updates returned
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert len(result) == 1
+    assert result[0].salience_score == 0.0
+
+
+def test_base_node_salience_defaults() -> None:
+    """BaseNode schema defaults salience_score=1.0 and retrieval_count=0."""
+    from claude_memory.schema import BaseNode
+
+    node = BaseNode(name="test", node_type="Concept", project_id="test-proj")
+    assert node.salience_score == SALIENCE_DEFAULT
+    assert node.retrieval_count == RETRIEVAL_COUNT_DEFAULT
+
+
+def test_search_result_salience_default() -> None:
+    """SearchResult defaults salience_score=0.0."""
+    from claude_memory.schema import SearchResult
+
+    result = SearchResult(
+        id="test-id",
+        name="test",
+        node_type="Concept",
+        project_id="test-proj",
+        score=0.9,
+        distance=0.1,
+    )
+    assert result.salience_score == 0.0

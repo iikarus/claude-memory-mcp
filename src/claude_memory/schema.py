@@ -65,6 +65,10 @@ class BaseNode(BaseModel):
     certainty: CertaintyLevel = "confirmed"
     evidence: list[str] = Field(default_factory=list)
 
+    # Salience
+    salience_score: float = Field(default=1.0, description="Retrieval-based salience")
+    retrieval_count: int = Field(default=0, description="Total times retrieved via search")
+
     # Search
     embedding: list[float] | None = None
 
@@ -169,3 +173,4 @@ class SearchResult(BaseModel):
     content: str | None = None  # For Observations
     score: float
     distance: float
+    salience_score: float = Field(default=0.0, description="Entity salience at retrieval time")

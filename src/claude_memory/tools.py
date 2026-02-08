@@ -82,6 +82,8 @@ class MemoryService:
                     "project_id": params.project_id,
                     "certainty": params.certainty,
                     "evidence": params.evidence,
+                    "salience_score": 1.0,
+                    "retrieval_count": 0,
                     "created_at": datetime.now(UTC).isoformat(),
                     "updated_at": datetime.now(UTC).isoformat(),
                 }
@@ -535,6 +537,14 @@ class MemoryService:
         graph_data = self.repo.get_subgraph(ids, depth=0)
         nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
+        # 4. Increment salience for all retrieved entities
+        salience_map: dict[str, float] = {}
+        try:
+            salience_updates = self.repo.increment_salience(ids)
+            salience_map = {s["id"]: s["salience_score"] for s in salience_updates}
+        except Exception:
+            logger.warning("Salience increment failed — returning results without update")
+
         results = []
         for v_res in vector_results:
             node_id = v_res["_id"]
@@ -549,6 +559,9 @@ class MemoryService:
                         content=node_props.get("description", ""),
                         score=v_res["_score"],
                         distance=1.0 - v_res["_score"],  # Approximation for Cosine
+                        salience_score=salience_map.get(
+                            node_id, node_props.get("salience_score", 0.0)
+                        ),
                     )
                 )
         return results

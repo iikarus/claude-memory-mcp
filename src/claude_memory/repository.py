@@ -278,3 +278,30 @@ class MemoryRepository:
         if not result.result_set:
             return 0
         return int(result.result_set[0][0])
+
+    @retry_on_transient()
+    def increment_salience(self, node_ids: list[str]) -> list[dict[str, Any]]:
+        """Atomically increment retrieval_count and recalculate salience_score for nodes.
+
+        Formula: salience_score = 1.0 + log2(1 + retrieval_count)
+        This gives diminishing returns — early retrievals boost salience fast.
+        """
+        if not node_ids:
+            return []
+        graph = self.select_graph()
+        query = """
+        MATCH (n:Entity)
+        WHERE n.id IN $ids
+        SET n.retrieval_count = COALESCE(n.retrieval_count, 0) + 1,
+            n.salience_score = 1.0 + log2(1 + COALESCE(n.retrieval_count, 0) + 1)
+        RETURN n.id AS id, n.salience_score AS salience_score, n.retrieval_count AS retrieval_count
+        """
+        result = graph.query(query, {"ids": node_ids})
+        return [
+            {
+                "id": row[0],
+                "salience_score": row[1],
+                "retrieval_count": row[2],
+            }
+            for row in result.result_set
+        ]
