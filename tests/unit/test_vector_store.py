@@ -144,9 +144,10 @@ async def test_ensure_collection_skips_if_initialized(
 async def test_ensure_collection_handles_error(
     store: QdrantVectorStore, mock_qdrant_client: AsyncMock
 ) -> None:
-    """Connection errors are logged but don't crash."""
+    """Connection errors are logged and re-raised."""
     mock_qdrant_client.get_collections.side_effect = ConnectionError("no connection")
-    await store._ensure_collection()
+    with pytest.raises(ConnectionError, match="no connection"):
+        await store._ensure_collection()
     assert store._initialized is False  # Still not initialized
 
 

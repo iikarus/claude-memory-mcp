@@ -76,7 +76,7 @@ class QdrantVectorStore:
             self._initialized = True
         except Exception as e:
             logger.error(f"Failed to initialize Qdrant collection: {e}")
-            # Don't raise, might be connection error handled later
+            raise
 
     @retry_on_transient()
     async def upsert(self, id: str, vector: list[float], payload: dict[str, Any]) -> None:
