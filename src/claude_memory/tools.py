@@ -23,6 +23,7 @@ from .schema import (
     SearchResult,
     SessionEndParams,
     SessionStartParams,
+    TemporalQueryParams,
 )
 from .vector_store import QdrantVectorStore, VectorStore
 
@@ -84,6 +85,9 @@ class MemoryService:
                     "evidence": params.evidence,
                     "salience_score": 1.0,
                     "retrieval_count": 0,
+                    "occurred_at": params.properties.get(
+                        "occurred_at", datetime.now(UTC).isoformat()
+                    ),
                     "created_at": datetime.now(UTC).isoformat(),
                     "updated_at": datetime.now(UTC).isoformat(),
                 }
@@ -565,6 +569,31 @@ class MemoryService:
                     )
                 )
         return results
+
+    async def query_timeline(
+        self,
+        params: TemporalQueryParams,
+    ) -> list[dict[str, Any]]:
+        """Fetch entities within a time window, ordered by occurred_at."""
+        return self.repo.query_timeline(  # type: ignore[no-any-return]
+            start=params.start.isoformat(),
+            end=params.end.isoformat(),
+            limit=params.limit,
+            project_id=params.project_id,
+        )
+
+    async def get_temporal_neighbors(
+        self,
+        entity_id: str,
+        direction: str = "both",
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Find entities connected by temporal edges."""
+        return self.repo.get_temporal_neighbors(  # type: ignore[no-any-return]
+            entity_id=entity_id,
+            direction=direction,
+            limit=limit,
+        )
 
     async def archive_entity(self, entity_id: str) -> dict[str, Any]:
         """Archive an entity (logical hide)."""

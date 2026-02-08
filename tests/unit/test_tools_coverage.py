@@ -1003,3 +1003,113 @@ def test_create_temporal_edge_not_found(service: MemoryService) -> None:
     service.repo.create_temporal_edge.return_value = {"error": "One or both entities not found"}
     result = service.repo.create_temporal_edge("missing-a", "missing-b")
     assert "error" in result
+
+
+# ─── Service-Level Temporal Tests ──────────────────────────────────
+
+
+@pytest.mark.asyncio()
+async def test_create_entity_initializes_occurred_at(
+    service: MemoryService,
+) -> None:
+    """create_entity sets occurred_at in properties."""
+    from claude_memory.schema import EntityCreateParams
+
+    service.ontology.is_valid_type = MagicMock(return_value=True)
+    service.repo.create_node.return_value = {
+        "id": "new-id",
+        "name": ENTITY_NAME,
+        "node_type": "Concept",
+    }
+    service.embedder.encode.return_value = [0.1] * 384
+    service.vector_store.upsert = AsyncMock()
+    service.repo.get_total_node_count.return_value = 1
+
+    await service.create_entity(
+        EntityCreateParams(
+            name=ENTITY_NAME,
+            node_type="Concept",
+            project_id=PROJECT_ID,
+        )
+    )
+    create_call_props = service.repo.create_node.call_args[0][1]
+    assert "occurred_at" in create_call_props
+
+
+@pytest.mark.asyncio()
+async def test_create_entity_respects_user_occurred_at(
+    service: MemoryService,
+) -> None:
+    """create_entity uses user-provided occurred_at value."""
+    from claude_memory.schema import EntityCreateParams
+
+    service.ontology.is_valid_type = MagicMock(return_value=True)
+    service.repo.create_node.return_value = {
+        "id": "new-id",
+        "name": ENTITY_NAME,
+    }
+    service.embedder.encode.return_value = [0.1] * 384
+    service.vector_store.upsert = AsyncMock()
+    service.repo.get_total_node_count.return_value = 1
+
+    custom_ts = "2026-01-15T12:00:00+00:00"
+    await service.create_entity(
+        EntityCreateParams(
+            name=ENTITY_NAME,
+            node_type="Concept",
+            project_id=PROJECT_ID,
+            properties={"occurred_at": custom_ts},
+        )
+    )
+    create_call_props = service.repo.create_node.call_args[0][1]
+    assert create_call_props["occurred_at"] == custom_ts
+
+
+@pytest.mark.asyncio()
+async def test_service_query_timeline(service: MemoryService) -> None:
+    """MemoryService.query_timeline delegates to repo."""
+    from datetime import UTC, datetime
+
+    from claude_memory.schema import TemporalQueryParams
+
+    service.repo.query_timeline.return_value = [{"id": ENTITY_ID, "name": ENTITY_NAME}]
+    params = TemporalQueryParams(
+        start=datetime(2026, 1, 1, tzinfo=UTC),
+        end=datetime(2026, 2, 1, tzinfo=UTC),
+    )
+    result = await service.query_timeline(params)
+    assert len(result) == 1
+    service.repo.query_timeline.assert_called_once()
+
+
+@pytest.mark.asyncio()
+async def test_service_query_timeline_with_project(
+    service: MemoryService,
+) -> None:
+    """MemoryService.query_timeline passes project_id to repo."""
+    from datetime import UTC, datetime
+
+    from claude_memory.schema import TemporalQueryParams
+
+    service.repo.query_timeline.return_value = []
+    params = TemporalQueryParams(
+        start=datetime(2026, 1, 1, tzinfo=UTC),
+        end=datetime(2026, 2, 1, tzinfo=UTC),
+        project_id=PROJECT_ID,
+    )
+    await service.query_timeline(params)
+    call_kwargs = service.repo.query_timeline.call_args[1]
+    assert call_kwargs["project_id"] == PROJECT_ID
+
+
+@pytest.mark.asyncio()
+async def test_service_get_temporal_neighbors(
+    service: MemoryService,
+) -> None:
+    """MemoryService.get_temporal_neighbors delegates to repo."""
+    service.repo.get_temporal_neighbors.return_value = [{"id": "neighbor-1"}]
+    result = await service.get_temporal_neighbors(ENTITY_ID, direction="after", limit=5)
+    assert len(result) == 1
+    service.repo.get_temporal_neighbors.assert_called_once_with(
+        entity_id=ENTITY_ID, direction="after", limit=5
+    )

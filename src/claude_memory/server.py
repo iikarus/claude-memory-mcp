@@ -21,6 +21,7 @@ from claude_memory.schema import (
     RelationshipDeleteParams,
     SessionEndParams,
     SessionStartParams,
+    TemporalQueryParams,
 )
 from claude_memory.tools import MemoryService
 
@@ -263,6 +264,35 @@ async def create_memory_type(
     if required_properties is None:
         required_properties = []
     return service.create_memory_type(name, description, required_properties)
+
+
+@mcp.tool()
+async def query_timeline(
+    start: str,
+    end: str,
+    limit: int = 20,
+    project_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """Query entities within a time window, ordered chronologically."""
+    from datetime import datetime  # noqa: PLC0415
+
+    params = TemporalQueryParams(
+        start=datetime.fromisoformat(start),
+        end=datetime.fromisoformat(end),
+        limit=limit,
+        project_id=project_id,
+    )
+    return await service.query_timeline(params)
+
+
+@mcp.tool()
+async def get_temporal_neighbors(
+    entity_id: str,
+    direction: str = "both",
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Find entities connected by temporal edges (before/after/both)."""
+    return await service.get_temporal_neighbors(entity_id, direction, limit)
 
 
 def main() -> None:
