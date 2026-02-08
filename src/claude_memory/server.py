@@ -1,7 +1,6 @@
 """MCP server exposing Exocortex memory tools via stdio transport."""
 
 import logging
-import os
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP

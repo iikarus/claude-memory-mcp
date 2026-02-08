@@ -344,15 +344,5 @@ async def test_create_memory_type_defaults() -> None:
 
 def test_main_stdio_transport() -> None:
     with patch.object(server, "mcp") as mock_mcp:
-        with patch.dict(os.environ, {"MCP_TRANSPORT": TRANSPORT_STDIO}):
-            server.main()
-            mock_mcp.run.assert_called_once()
-
-
-def test_main_sse_transport() -> None:
-    with patch.object(server, "mcp"):
-        with patch("uvicorn.run") as mock_uvicorn:
-            with patch.dict(os.environ, {"MCP_TRANSPORT": TRANSPORT_SSE, "PORT": SSE_PORT_STR}):
-                server.main()
-                mock_uvicorn.assert_called_once()
-                assert mock_uvicorn.call_args[1]["port"] == SSE_PORT
+        server.main()
+        mock_mcp.run.assert_called_once()
