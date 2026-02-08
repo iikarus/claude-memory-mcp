@@ -1,0 +1,38 @@
+# Dev/test artifacts
+.tox/
+.pytest_cache/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.egg-info/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Backups (don't bake into image)
+backups/
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# Scripts not needed in container (except backup_restore)
+scripts/clean_tox.py
+
+# Build artifacts
+dist/
+build/
+
+# Misc
+tox_*.txt
+.env
+.dockerignore
