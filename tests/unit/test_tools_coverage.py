@@ -474,6 +474,31 @@ async def test_search_with_project_id_filter(service: MemoryService) -> None:
     assert call_kwargs["filter"] == {"project_id": PROJECT_ID}
 
 
+async def test_search_with_mmr_flag(service: MemoryService) -> None:
+    """When mmr=True, search delegates to vector_store.search_mmr."""
+    service.vector_store.search_mmr.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+                "description": "A language",
+            }
+        ],
+        "edges": [],
+    }
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT, mmr=True)
+    assert len(result) == 1
+    # Verify search_mmr was called instead of search
+    service.vector_store.search_mmr.assert_awaited_once()
+    service.vector_store.search.assert_not_awaited()
+
+
 # ─── point_in_time_query Tests ─────────────────────────────────────
 
 

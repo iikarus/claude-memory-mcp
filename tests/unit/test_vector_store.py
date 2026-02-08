@@ -265,3 +265,161 @@ async def test_search_with_all_unsupported_filters(
     # Verify query_filter was None (no valid conditions)
     call_kwargs = mock_qdrant_client.query_points.call_args.kwargs
     assert call_kwargs.get("query_filter") is None
+
+
+# ─── MMR Search Tests ───────────────────────────────────────────────
+
+
+def _make_scored_points(scores: list[float]) -> list[MagicMock]:
+    """Helper to create scored point mocks with distinct vectors."""
+    points = []
+    for i, score in enumerate(scores):
+        pt = MagicMock()
+        pt.id = f"point-{i:03d}"
+        pt.score = score
+        pt.payload = {"name": f"entity-{i}", "project_id": "project-alpha"}
+        # Distinct vector per point (for MMR diversity calc)
+        pt.vector = [float(i) / 10.0] * 3
+        points.append(pt)
+    return points
+
+
+async def test_search_mmr_returns_diverse_results(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """MMR search re-ranks for diversity — top result is the same, rest may differ."""
+    # 6 points with decreasing similarity
+    points = _make_scored_points([0.99, 0.98, 0.97, 0.80, 0.75, 0.70])
+    query_response = MagicMock()
+    query_response.points = points
+    mock_qdrant_client.query_points.return_value = query_response
+
+    results = await store.search_mmr(vector=POINT_VECTOR, limit=3, mmr_lambda=0.5)
+
+    # Should return exactly `limit` results
+    assert len(results) == 3
+    # Each result has expected keys
+    for r in results:
+        assert "_id" in r
+        assert "_score" in r
+        assert "payload" in r
+
+
+async def test_search_mmr_empty_results(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """MMR search with no results returns empty list."""
+    query_response = MagicMock()
+    query_response.points = []
+    mock_qdrant_client.query_points.return_value = query_response
+
+    results = await store.search_mmr(vector=POINT_VECTOR, limit=3)
+    assert results == []
+
+
+async def test_search_mmr_fewer_than_limit(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """MMR search with fewer candidates than limit returns all of them."""
+    points = _make_scored_points([0.95, 0.85])
+    query_response = MagicMock()
+    query_response.points = points
+    mock_qdrant_client.query_points.return_value = query_response
+
+    results = await store.search_mmr(vector=POINT_VECTOR, limit=10)
+    assert len(results) == 2
+
+
+async def test_search_mmr_lambda_one_equals_similarity(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """With mmr_lambda=1.0, MMR degenerates to pure similarity ranking."""
+    points = _make_scored_points([0.99, 0.90, 0.80])
+    query_response = MagicMock()
+    query_response.points = points
+    mock_qdrant_client.query_points.return_value = query_response
+
+    results = await store.search_mmr(vector=POINT_VECTOR, limit=3, mmr_lambda=1.0)
+    # Pure similarity → same order as original
+    assert results[0]["_id"] == "point-000"
+    assert results[1]["_id"] == "point-001"
+    assert results[2]["_id"] == "point-002"
+
+
+async def test_search_mmr_with_filter(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """MMR search passes filter through to query_points."""
+    points = _make_scored_points([0.95])
+    query_response = MagicMock()
+    query_response.points = points
+    mock_qdrant_client.query_points.return_value = query_response
+
+    filter_dict = {FILTER_PROJECT_ID_KEY: FILTER_PROJECT_ID_VALUE}
+    results = await store.search_mmr(vector=POINT_VECTOR, limit=5, filter=filter_dict)
+    assert len(results) == 1
+    call_kwargs = mock_qdrant_client.query_points.call_args[1]
+    assert call_kwargs["query_filter"] is not None
+
+
+async def test_search_mmr_single_result(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """MMR with a single candidate just returns it directly."""
+    points = _make_scored_points([0.95])
+    query_response = MagicMock()
+    query_response.points = points
+    mock_qdrant_client.query_points.return_value = query_response
+
+    results = await store.search_mmr(vector=POINT_VECTOR, limit=5)
+    assert len(results) == 1
+    assert results[0]["_id"] == "point-000"
+
+
+# ─── HNSW Indexing Threshold Tests ──────────────────────────────────
+
+
+async def test_ensure_collection_creates_with_hnsw_config(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """New collection should be created with custom HNSW config (low threshold)."""
+    mock_qdrant_client.get_collections.return_value.collections = []
+    await store._ensure_collection()
+    call_kwargs = mock_qdrant_client.create_collection.call_args[1]
+    # Should have hnsw_config with our custom indexing_threshold
+    assert "hnsw_config" in call_kwargs
+    assert call_kwargs["hnsw_config"].full_scan_threshold == 500
+
+
+# ─── Full-Text Payload Index Tests ──────────────────────────────────
+
+
+async def test_ensure_collection_creates_payload_index(
+    store: QdrantVectorStore,
+    mock_qdrant_client: AsyncMock,
+) -> None:
+    """Collection init should create a payload index on 'name' field."""
+    mock_qdrant_client.get_collections.return_value.collections = []
+    await store._ensure_collection()
+    mock_qdrant_client.create_payload_index.assert_awaited()
+    # Verify it's for the 'name' field
+    call_kwargs = mock_qdrant_client.create_payload_index.call_args[1]
+    assert call_kwargs["field_name"] == "name"
+
+
+# ─── _cosine_similarity Tests ───────────────────────────────────────
+
+
+def test_cosine_similarity_non_list_input() -> None:
+    """Non-list inputs return 0.0 (guard clause coverage)."""
+    result = QdrantVectorStore._cosine_similarity("not a list", [1.0, 2.0])
+    assert result == 0.0
+    result2 = QdrantVectorStore._cosine_similarity([1.0, 2.0], None)
+    assert result2 == 0.0

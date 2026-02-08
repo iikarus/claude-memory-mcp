@@ -493,7 +493,12 @@ class MemoryService:
         return nodes
 
     async def search(
-        self, query: str, limit: int = 5, project_id: str | None = None, offset: int = 0
+        self,
+        query: str,
+        limit: int = 5,
+        project_id: str | None = None,
+        offset: int = 0,
+        mmr: bool = False,
     ) -> list[SearchResult]:
         """Semantic search using Qdrant."""
         if not query:
@@ -508,9 +513,16 @@ class MemoryService:
         if project_id:
             search_filter = {"project_id": project_id}
 
-        vector_results = await self.vector_store.search(
-            vector=vec, limit=limit, filter=search_filter, offset=offset
-        )
+        if mmr:
+            vector_results = await self.vector_store.search_mmr(
+                vector=vec,
+                limit=limit,
+                filter=search_filter,
+            )
+        else:
+            vector_results = await self.vector_store.search(
+                vector=vec, limit=limit, filter=search_filter, offset=offset
+            )
 
         if not vector_results:
             return []
