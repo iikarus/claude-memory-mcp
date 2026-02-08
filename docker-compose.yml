@@ -35,8 +35,8 @@ services:
     environment:
       - FALKORDB_HOST=graphdb
       - FALKORDB_PORT=6379
-      # Dashboard needs to talk to logic layer? No, logic layer is library code imported by dashboard.
-      # So Dashboard ALSO needs to talk to Embedding Service.
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
       - EMBEDDING_API_URL=http://embeddings:8000
     depends_on:
       graphdb:
@@ -52,6 +52,12 @@ services:
       - falkordb_data:/mnt/falkor_data:ro
       - qdrant_data:/mnt/qdrant_data:ro
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     command: streamlit run src/dashboard/app.py
 
   embeddings:
