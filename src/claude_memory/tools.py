@@ -8,6 +8,7 @@ from typing import Any, Literal, cast
 from claude_memory.activation import ActivationEngine
 from claude_memory.context_manager import ContextManager
 from claude_memory.interfaces import Embedder
+from claude_memory.router import QueryIntent, QueryRouter
 
 from .lock_manager import LockManager
 from .ontology import OntologyManager
@@ -515,17 +516,51 @@ class MemoryService:
             n.pop("embedding", None)
         return nodes
 
-    async def search(
+    async def search(  # noqa: PLR0913
         self,
         query: str,
         limit: int = 5,
         project_id: str | None = None,
         offset: int = 0,
         mmr: bool = False,
+        strategy: str | None = None,
     ) -> list[SearchResult]:
-        """Semantic search using Qdrant."""
+        """Search for entities, optionally routing via QueryRouter.
+
+        When ``strategy`` is provided, dispatches via :class:`QueryRouter`:
+        - ``'auto'`` — auto-classify intent from the query text
+        - ``'semantic'`` / ``'associative'`` / ``'temporal'`` / ``'relational'``
+        When ``strategy`` is None, uses direct vector search (default).
+        """
         if not query:
             return []
+
+        # Route through QueryRouter if strategy is specified
+        if strategy is not None:
+            router = QueryRouter()
+            intent = None if strategy == "auto" else QueryIntent(strategy)
+            results = await router.route(
+                query,
+                self,
+                intent=intent,
+                limit=limit,
+                project_id=project_id,
+            )
+            # router.route may return dicts (temporal/relational) or SearchResults
+            if results and isinstance(results[0], dict):
+                return [
+                    SearchResult(
+                        id=r.get("id", ""),
+                        name=r.get("name", "Unknown"),
+                        node_type=r.get("node_type", "Entity"),
+                        project_id=r.get("project_id", "unknown"),
+                        content=r.get("description", ""),
+                        score=0.0,
+                        distance=0.0,
+                    )
+                    for r in results
+                ]
+            return results
 
         # 1. Embed Query
         vec = self.embedder.encode(query)
