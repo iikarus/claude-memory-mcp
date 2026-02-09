@@ -210,3 +210,46 @@ def test_recency_score_no_timestamp() -> None:
 def test_recency_score_invalid_timestamp() -> None:
     score = ActivationEngine._recency_score({"occurred_at": "not-a-date"})
     assert score == 0.0
+
+
+def test_recency_score_naive_datetime() -> None:
+    """Naive datetime (no timezone) still produces a valid score."""
+    naive = datetime.now().isoformat()  # no UTC
+    score = ActivationEngine._recency_score({"occurred_at": naive})
+    assert score > 0.99
+
+
+# ── spread() edge cases ─────────────────────────────────────────────
+
+
+def test_spread_reverse_direction_flow() -> None:
+    """Energy flows from target to source (reverse direction) when target is seed."""
+    # Edge defined as b -> a, but seed is 'a' (the target).
+    # Reverse flow: a is target, so energy flows from a to b.
+    subgraph = {
+        "nodes": [{"id": "a"}, {"id": "b"}],
+        "edges": [{"source": "b", "target": "a"}],
+    }
+    engine = _make_engine(subgraph)
+    seeds = {"a": 1.0}
+    result = engine.spread(seeds, decay=0.5, max_hops=1)
+    # 'a' is target in the edge, so reverse flow sends energy to 'b'
+    assert result["a"] == 1.0
+    assert result["b"] == 0.5
+
+
+def test_spread_edge_with_none_fields() -> None:
+    """Edges with missing source or target are skipped."""
+    subgraph = {
+        "nodes": [{"id": "a"}],
+        "edges": [
+            {"source": "a", "target": None},
+            {"source": None, "target": "a"},
+            {"target": "x"},  # missing source key
+        ],
+    }
+    engine = _make_engine(subgraph)
+    seeds = {"a": 1.0}
+    result = engine.spread(seeds, decay=0.6, max_hops=1)
+    # No energy should spread because all edges are invalid
+    assert result == {"a": 1.0}

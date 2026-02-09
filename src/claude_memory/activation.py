@@ -11,7 +11,7 @@ import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from claude_memory.repository import MemoryRepository
 
 logger = logging.getLogger(__name__)
