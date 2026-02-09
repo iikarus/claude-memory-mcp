@@ -65,6 +65,7 @@ class MemoryService:
         """Fire-and-forget salience increment so search returns immediately."""
 
         async def _do_update() -> None:
+            """Execute the salience increment in the background."""
             try:
                 self.repo.increment_salience(ids)
             except Exception:
