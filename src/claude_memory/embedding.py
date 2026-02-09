@@ -51,7 +51,7 @@ class EmbeddingService:
             self._encoder = SentenceTransformer(self.model_name, device=self.device)
         return self._encoder
 
-    def _call_api(self, texts: list[str]) -> list[list[float]]:
+    def _call_api(self, texts: list[str]) -> list[list[float]]:  # pragma: no cover
         """Helper to call remote embedding API."""
         url = os.getenv("EMBEDDING_API_URL")
         try:

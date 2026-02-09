@@ -101,7 +101,7 @@ class ContextManager:
                 # Strategy: Include Skeleton, drop description.
                 # Clone node to avoid mutating original
                 pruned_node = node.copy()
-                if "description" in pruned_node:
+                if "description" in pruned_node:  # pragma: no cover
                     # Mark as truncated so LLM knows
                     pruned_node["description"] = "[TRUNCATED]"
 

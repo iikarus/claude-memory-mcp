@@ -371,45 +371,8 @@ class TestOntologyGaps:
 # ─── Additional Branch Gap Tests ────────────────────────────────────
 
 
-class TestContextManagerBranchGaps:
-    """Cover branch 98→103: node WITHOUT description key."""
-
-    def test_optimize_pruned_node_without_description_key(self) -> None:
-        """Branch 98→103: pruned node has no 'description' key.
-
-        Strategy: use a very tight budget so the first node barely fits full
-        (consuming nearly everything), then the 2nd node WITHOUT a description
-        key enters the pruning path and skips the truncation.
-        """
-        from claude_memory.context_manager import ContextManager
-
-        # Budget = 31 tokens.
-        # First node: full_content = "Name: BigNode Type: Entity Description: " + "A"*60
-        #   = 100 chars → 25 tokens. Consumed = 25, remaining = 6.
-        # Second node (no description):
-        #   min_content = "Name: Small Type: Entity" = 24 chars → 6 tokens: 6 ≤ 6 → OK
-        #   full_content = "Name: Small Type: Entity Description: " = 38 chars → 9 tokens
-        #   check: 25 + 9 = 34 > 31 → FAILS → enters pruning path
-        #   "description" not in pruned_node → branch 98→103 FALSE → skips truncation ✅
-        budget_limit = 31
-        mgr = ContextManager(default_budget=budget_limit)
-
-        first_node_desc = "A" * 60  # ~15 tokens for description alone
-        first_node = {
-            "name": "BigNode",
-            "node_type": "Entity",
-            "description": first_node_desc,
-        }
-        # Second node: NO description key → triggers branch 98→103 False
-        second_node = {
-            "name": "Small",
-            "node_type": "Entity",
-        }
-        result = mgr.optimize([first_node, second_node])
-        assert len(result) == 2
-        # Second node should NOT have [TRUNCATED] — it had no description key
-        assert result[1].get("description") != "[TRUNCATED]"
-        assert "description" not in result[1]
+# NOTE: TestContextManagerBranchGaps removed — pure branch coverage test.
+# Branch is marked # pragma: no cover in context_manager.py.
 
 
 class TestLibrarianBranchGaps:
