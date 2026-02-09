@@ -10,6 +10,7 @@ get_stale_entities, consolidate_memories (with/without edge creation errors),
 create_memory_type.
 """
 
+import asyncio
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -758,8 +759,8 @@ async def test_create_entity_initializes_salience(service: MemoryService) -> Non
     assert props["retrieval_count"] == RETRIEVAL_COUNT_DEFAULT
 
 
-async def test_search_increments_salience(service: MemoryService) -> None:
-    """search() calls increment_salience and maps updated score to results."""
+async def test_search_fires_salience_async(service: MemoryService) -> None:
+    """search() fires salience update as background task — returns pre-update score."""
     service.vector_store.search.return_value = [
         {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
     ]
@@ -786,12 +787,17 @@ async def test_search_increments_salience(service: MemoryService) -> None:
 
     result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert len(result) == 1
-    assert result[0].salience_score == SALIENCE_AFTER_ONE_RETRIEVAL
+    # Returns PRE-update salience from graph data (fire-and-forget)
+    assert result[0].salience_score == SALIENCE_DEFAULT
+
+    # Let background task complete
+    await asyncio.sleep(0)
+    # Verify salience was still fired in background
     service.repo.increment_salience.assert_called_once_with([ENTITY_ID])
 
 
-async def test_search_salience_increment_failure_fallback(service: MemoryService) -> None:
-    """When increment_salience fails, search still returns results with graph salience."""
+async def test_search_salience_background_error_silent(service: MemoryService) -> None:
+    """When background increment_salience fails, search still returns correctly."""
     service.vector_store.search.return_value = [
         {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
     ]
@@ -812,8 +818,11 @@ async def test_search_salience_increment_failure_fallback(service: MemoryService
 
     result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert len(result) == 1
-    # Falls back to graph node's salience_score
+    # Uses graph node's salience_score (background error is silent)
     assert result[0].salience_score == 3.5
+
+    # Let background task complete (should not raise)
+    await asyncio.sleep(0)
 
 
 async def test_search_salience_fallback_default(service: MemoryService) -> None:

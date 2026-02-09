@@ -1,5 +1,6 @@
 """Core business logic for the Exocortex memory system (CRUD, search, analysis)."""
 
+import asyncio
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -56,6 +57,22 @@ class MemoryService:
         self.context_manager = ContextManager()
         # Share connection config
         self.lock_manager = LockManager(host, port)
+        # Background tasks for fire-and-forget operations
+        self._background_tasks: set[asyncio.Task[None]] = set()
+
+    def _fire_salience_update(self, ids: list[str]) -> None:
+        """Fire-and-forget salience increment so search returns immediately."""
+
+        async def _do_update() -> None:
+            try:
+                self.repo.increment_salience(ids)
+            except Exception:
+                logger.warning("Background salience update failed — will retry next search")
+
+        task = asyncio.create_task(_do_update())
+        # Hold a reference so it isn't garbage-collected mid-flight
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
 
     async def create_entity(self, params: EntityCreateParams) -> EntityCommitReceipt:
         """Creates an entity node in the graph."""
@@ -593,13 +610,9 @@ class MemoryService:
         graph_data = self.repo.get_subgraph(ids, depth=0)
         nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
-        # 4. Increment salience for all retrieved entities
-        salience_map: dict[str, float] = {}
-        try:
-            salience_updates = self.repo.increment_salience(ids)
-            salience_map = {s["id"]: s["salience_score"] for s in salience_updates}
-        except Exception:
-            logger.warning("Salience increment failed — returning results without update")
+        # 4. Fire-and-forget salience update (non-blocking)
+        self._fire_salience_update(ids)
+        salience_map = {nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()}
 
         results = []
         for v_res in vector_results:
@@ -670,7 +683,11 @@ class MemoryService:
         graph_data = self.repo.get_subgraph(all_ids, depth=0)
         nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
-        # Build salience map from graph properties
+        # Fire-and-forget salience update for associative search too
+        result_ids = list(nodes_map.keys())
+        self._fire_salience_update(result_ids)
+
+        # Build salience map from graph properties (pre-update values)
         salience_map = {nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()}
 
         # 4. Composite ranking
