@@ -336,7 +336,11 @@ class MemoryService:
         return cast(dict[str, Any], res.result_set[0][0].properties)
 
     async def start_session(self, params: SessionStartParams) -> dict[str, Any]:
-        """Create a new session node in the graph."""
+        """Create a new session node in the graph.
+
+        Sessions act as temporal anchors: each session gets an occurred_at
+        timestamp and is linked to the previous session via PRECEDED_BY.
+        """
         session_id = str(uuid.uuid4())
         timestamp = datetime.now(UTC).isoformat()
 
@@ -346,19 +350,31 @@ class MemoryService:
             "focus": params.focus,
             "status": "active",
             "created_at": timestamp,
+            "occurred_at": timestamp,
             "node_type": "Session",
         }
-        # Use generic create_node? Label 'Session'
-        # Session isn't :Entity in implicit schema?
-        # create_node adds :Entity label.
-        # Custom cypher is safer for specific labels.
 
+        # Create session and link to previous session in one atomic query.
+        # The OPTIONAL MATCH ensures this works even if no previous session exists.
         query = """
+        OPTIONAL MATCH (prev:Session {project_id: $project_id, status: 'closed'})
+        WITH prev ORDER BY prev.occurred_at DESC LIMIT 1
         CREATE (s:Session)
         SET s = $props
+        WITH s, prev
+        FOREACH (_ IN CASE WHEN prev IS NOT NULL THEN [1] ELSE [] END |
+            CREATE (prev)-[:PRECEDED_BY {created_at: $timestamp}]->(s)
+        )
         RETURN s
         """
-        res = self.repo.execute_cypher(query, {"props": props})
+        res = self.repo.execute_cypher(
+            query,
+            {
+                "props": props,
+                "project_id": params.project_id,
+                "timestamp": timestamp,
+            },
+        )
         return cast(dict[str, Any], res.result_set[0][0].properties)
 
     async def end_session(self, params: SessionEndParams) -> dict[str, Any]:
