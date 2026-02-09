@@ -230,15 +230,19 @@ async def prune_stale(days: int = 30) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def search_memory(
+async def search_memory(  # noqa: PLR0913
     query: str,
     project_id: str | None = None,
     limit: int = 10,
     offset: int = 0,
     mmr: bool = False,
+    strategy: str | None = None,
 ) -> list[dict[str, Any]] | str:
-    """Search for entities. mmr=True for diverse results."""
-    results = await service.search(query, limit, project_id, offset, mmr=mmr)
+    """Search for entities. mmr=True for diverse results.
+
+    strategy: 'auto', 'semantic', 'associative', 'temporal', 'relational', or None.
+    """
+    results = await service.search(query, limit, project_id, offset, mmr=mmr, strategy=strategy)
     if not results:
         return "No results found."
     return [res.model_dump() for res in results]
