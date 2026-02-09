@@ -30,6 +30,7 @@ class ActivationEngine:
     """
 
     def __init__(self, repo: MemoryRepository) -> None:
+        """Initialise with a graph repository for subgraph queries."""
         self.repo = repo
 
     # ------------------------------------------------------------------
