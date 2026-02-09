@@ -1099,3 +1099,84 @@ async def test_service_get_temporal_neighbors(
     service.repo.get_temporal_neighbors.assert_called_once_with(
         entity_id=ENTITY_ID, direction="after", limit=5
     )
+
+
+# ─── R2: Scoped PRECEDED_BY Tests ──────────────────────────────────
+
+
+async def test_create_entity_links_preceded_by(service: MemoryService) -> None:
+    """create_entity links new entity to most recent in same project via PRECEDED_BY."""
+    service.repo.create_node.return_value = {
+        "id": "new-entity-id",
+        "name": "New Entity",
+    }
+    service.repo.get_most_recent_entity.return_value = {
+        "id": "prev-entity-id",
+        "name": "Previous Entity",
+    }
+    service.repo.create_edge.return_value = {"id": "edge-id"}
+    service.repo.get_total_node_count.return_value = 10
+
+    from claude_memory.schema import EntityCreateParams
+
+    params = EntityCreateParams(
+        name="New Entity",
+        node_type="Concept",
+        project_id=PROJECT_ID,
+    )
+    receipt = await service.create_entity(params)
+    assert receipt.id == "new-entity-id"
+
+    # Verify PRECEDED_BY edge was created from prev → new
+    found_preceded = False
+    for call in service.repo.create_edge.call_args_list:
+        if call[0][2] == "PRECEDED_BY":
+            assert call[0][0] == "prev-entity-id"
+            assert call[0][1] == "new-entity-id"
+            found_preceded = True
+    assert found_preceded
+
+
+async def test_create_entity_no_preceded_by_when_first(service: MemoryService) -> None:
+    """create_entity skips PRECEDED_BY when no previous entity exists in project."""
+    service.repo.create_node.return_value = {
+        "id": "first-entity-id",
+        "name": "First Entity",
+    }
+    service.repo.get_most_recent_entity.return_value = None
+    service.repo.get_total_node_count.return_value = 1
+
+    from claude_memory.schema import EntityCreateParams
+
+    params = EntityCreateParams(
+        name="First Entity",
+        node_type="Concept",
+        project_id=PROJECT_ID,
+    )
+    receipt = await service.create_entity(params)
+    assert receipt.id == "first-entity-id"
+
+    # create_edge should NOT have been called with PRECEDED_BY
+    for call in service.repo.create_edge.call_args_list:
+        assert call[0][2] != "PRECEDED_BY"
+
+
+async def test_create_entity_preceded_by_error_silent(service: MemoryService) -> None:
+    """PRECEDED_BY link failure doesn't block entity creation."""
+    service.repo.create_node.return_value = {
+        "id": "new-id",
+        "name": "Entity",
+    }
+    service.repo.get_most_recent_entity.side_effect = ConnectionError("FalkorDB down")
+    service.repo.get_total_node_count.return_value = 5
+
+    from claude_memory.schema import EntityCreateParams
+
+    params = EntityCreateParams(
+        name="Entity",
+        node_type="Concept",
+        project_id=PROJECT_ID,
+    )
+    # Should not raise despite PRECEDED_BY failure
+    receipt = await service.create_entity(params)
+    assert receipt.id == "new-id"

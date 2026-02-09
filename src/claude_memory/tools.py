@@ -134,6 +134,19 @@ class MemoryService:
             }
             await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
 
+            # 3. Link to most recent entity in same project via PRECEDED_BY
+            try:
+                prev = self.repo.get_most_recent_entity(project_id)
+                if prev and prev.get("id") != node_id:
+                    self.repo.create_edge(
+                        prev["id"],
+                        node_id,
+                        "PRECEDED_BY",
+                        {"created_at": datetime.now(UTC).isoformat()},
+                    )
+            except Exception:
+                logger.warning("PRECEDED_BY link failed — entity created without temporal link")
+
             # Execute creation (Redundant variable assignment removed from logic flow above)
             result = node_props
 

@@ -308,6 +308,22 @@ class MemoryRepository:
         ]
 
     @retry_on_transient()
+    def get_most_recent_entity(self, project_id: str) -> dict[str, Any] | None:
+        """Return the most recently created entity in a project (for PRECEDED_BY linking)."""
+        graph = self.select_graph()
+        query = """
+        MATCH (n:Entity {project_id: $pid})
+        RETURN n
+        ORDER BY COALESCE(n.occurred_at, n.created_at) DESC
+        LIMIT 1
+        """
+        result = graph.query(query, {"pid": project_id})
+        if not result.result_set:
+            return None
+        node = result.result_set[0][0]
+        return dict(node.properties) if hasattr(node, "properties") else None
+
+    @retry_on_transient()
     def query_timeline(
         self,
         start: str,

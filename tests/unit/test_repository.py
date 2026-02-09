@@ -451,3 +451,26 @@ def test_increment_salience_returns_updated_scores(repo: Any, mock_graph: MagicM
     # Verify query was called with the node IDs
     call_params = mock_graph.query.call_args[0][1]
     assert call_params["ids"] == ["entity-1", "entity-2"]
+
+
+# ─── get_most_recent_entity Tests ───────────────────────────────────
+
+
+def test_get_most_recent_entity_found(repo: Any, mock_graph: MagicMock) -> None:
+    """Returns the most recent entity dict when found."""
+    node_props = {"id": "entity-1", "name": "Recent", "project_id": "proj-1"}
+    mock_node = _make_mock_node(node_props)
+    mock_graph.query.return_value = _make_mock_result([[mock_node]])
+
+    result = repo.get_most_recent_entity("proj-1")
+    assert result == node_props
+    call_params = mock_graph.query.call_args[0][1]
+    assert call_params["pid"] == "proj-1"
+
+
+def test_get_most_recent_entity_not_found(repo: Any, mock_graph: MagicMock) -> None:
+    """Returns None when no entities exist in project."""
+    mock_graph.query.return_value = _make_mock_result([])
+
+    result = repo.get_most_recent_entity("empty-project")
+    assert result is None
