@@ -926,22 +926,8 @@ def test_temporal_query_params_with_project() -> None:
     assert p.project_id == "my-project"
 
 
-def test_query_timeline_no_project(service: MemoryService) -> None:
-    """query_timeline returns entities within time window."""
-    mock_node = MagicMock()
-    mock_node.properties = {
-        "id": ENTITY_ID,
-        "name": ENTITY_NAME,
-        "occurred_at": "2026-01-15T00:00:00",
-    }
-    mock_result = MagicMock()
-    mock_result.result_set = [[mock_node]]
-    service.repo.select_graph.return_value.query.return_value = mock_result
-
-    service.repo.query_timeline(start="2026-01-01T00:00:00", end="2026-02-01T00:00:00")
-    # Since repo is a MagicMock, the actual method won't run.
-    # We test the method exists and is callable.
-    assert service.repo.query_timeline.called
+# NOTE: test_query_timeline_no_project removed — used 3-layer deep FalkorDB mock chain
+# (select_graph.return_value.query.return_value) and only tested mock calls.
 
 
 def test_query_timeline_with_project(service: MemoryService) -> None:
