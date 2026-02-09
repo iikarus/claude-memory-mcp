@@ -444,3 +444,41 @@ class MemoryRepository:
             "from_id": row[1],
             "to_id": row[2],
         }
+
+    @retry_on_transient()
+    def get_bottles(
+        self,
+        limit: int = 10,
+        search_text: str | None = None,
+        before_date: str | None = None,
+        after_date: str | None = None,
+        project_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Query 'Bottle' entities with optional text/date/project filters."""
+        graph = self.select_graph()
+        conditions = ["n.node_type = 'Bottle'"]
+        params: dict[str, Any] = {"limit": limit}
+
+        if search_text:
+            conditions.append("n.name CONTAINS $text OR n.description CONTAINS $text")
+            params["text"] = search_text
+        if before_date:
+            conditions.append("COALESCE(n.occurred_at, n.created_at) <= $before")
+            params["before"] = before_date
+        if after_date:
+            conditions.append("COALESCE(n.occurred_at, n.created_at) >= $after")
+            params["after"] = after_date
+        if project_id:
+            conditions.append("n.project_id = $pid")
+            params["pid"] = project_id
+
+        where = " AND ".join(conditions)
+        query = f"""
+        MATCH (n:Entity)
+        WHERE {where}
+        RETURN n
+        ORDER BY COALESCE(n.occurred_at, n.created_at) DESC
+        LIMIT $limit
+        """
+        result = graph.query(query, params)
+        return [row[0].properties for row in result.result_set if row]

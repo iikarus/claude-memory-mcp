@@ -1180,3 +1180,42 @@ async def test_create_entity_preceded_by_error_silent(service: MemoryService) ->
     # Should not raise despite PRECEDED_BY failure
     receipt = await service.create_entity(params)
     assert receipt.id == "new-id"
+
+
+# ─── Phase 11D: Message in a Bottle Tests ──────────────────────────
+
+
+async def test_get_bottles_basic(service: MemoryService) -> None:
+    """get_bottles delegates to repo with correct params."""
+    from datetime import UTC, datetime
+
+    from claude_memory.schema import BottleQueryParams
+
+    service.repo.get_bottles.return_value = [
+        {"id": "bottle-1", "name": "Remember this", "node_type": "Bottle"}
+    ]
+    params = BottleQueryParams(
+        limit=5,
+        search_text="remember",
+        after_date=datetime(2026, 1, 1, tzinfo=UTC),
+    )
+    result = await service.get_bottles(params)
+    assert len(result) == 1
+    assert result[0]["id"] == "bottle-1"
+    service.repo.get_bottles.assert_called_once_with(
+        limit=5,
+        search_text="remember",
+        before_date=None,
+        after_date="2026-01-01T00:00:00+00:00",
+        project_id=None,
+    )
+
+
+async def test_get_bottles_empty(service: MemoryService) -> None:
+    """get_bottles returns empty list when no bottles found."""
+    from claude_memory.schema import BottleQueryParams
+
+    service.repo.get_bottles.return_value = []
+    params = BottleQueryParams()
+    result = await service.get_bottles(params)
+    assert result == []

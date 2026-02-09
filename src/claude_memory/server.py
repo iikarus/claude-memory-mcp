@@ -333,6 +333,29 @@ async def get_temporal_neighbors(
     return await service.get_temporal_neighbors(entity_id, direction, limit)
 
 
+@mcp.tool()
+async def get_bottles(
+    limit: int = 10,
+    search_text: str | None = None,
+    before_date: str | None = None,
+    after_date: str | None = None,
+    project_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """Query 'Message in a Bottle' entities — timestamped notes to your future self."""
+    from datetime import datetime as dt  # noqa: PLC0415
+
+    from claude_memory.schema import BottleQueryParams  # noqa: PLC0415
+
+    params = BottleQueryParams(
+        limit=limit,
+        search_text=search_text,
+        before_date=dt.fromisoformat(before_date) if before_date else None,
+        after_date=dt.fromisoformat(after_date) if after_date else None,
+        project_id=project_id,
+    )
+    return await service.get_bottles(params)
+
+
 def main() -> None:
     """Launch the MCP server via stdio transport."""
     from claude_memory.logging_config import configure_logging  # noqa: PLC0415

@@ -35,6 +35,10 @@ DEFAULT_ONTOLOGY = {
     },
     "Tool": {"description": "A software tool or utility.", "required_properties": []},
     "Issue": {"description": "A problem or bug report.", "required_properties": []},
+    "Bottle": {
+        "description": "A timestamped note to your future self (Message in a Bottle).",
+        "required_properties": [],
+    },
 }
 
 

@@ -474,3 +474,39 @@ def test_get_most_recent_entity_not_found(repo: Any, mock_graph: MagicMock) -> N
 
     result = repo.get_most_recent_entity("empty-project")
     assert result is None
+
+
+# ─── get_bottles Tests ──────────────────────────────────────────────
+
+
+def test_get_bottles_basic(repo: Any, mock_graph: MagicMock) -> None:
+    """get_bottles returns Bottle entities ordered by date DESC."""
+    node_props = {"id": "bottle-1", "name": "Remember this", "node_type": "Bottle"}
+    mock_node = _make_mock_node(node_props)
+    mock_graph.query.return_value = _make_mock_result([[mock_node]])
+
+    result = repo.get_bottles(limit=5)
+    assert len(result) == 1
+    assert result[0]["id"] == "bottle-1"
+    # Verify query used correct params
+    call_params = mock_graph.query.call_args[0][1]
+    assert call_params["limit"] == 5
+
+
+def test_get_bottles_with_text_filter(repo: Any, mock_graph: MagicMock) -> None:
+    """get_bottles adds CONTAINS filter when search_text provided."""
+    mock_graph.query.return_value = _make_mock_result([])
+
+    repo.get_bottles(search_text="important")
+    call_query = mock_graph.query.call_args[0][0]
+    assert "CONTAINS" in call_query
+    call_params = mock_graph.query.call_args[0][1]
+    assert call_params["text"] == "important"
+
+
+def test_get_bottles_empty(repo: Any, mock_graph: MagicMock) -> None:
+    """get_bottles returns empty list when no bottles exist."""
+    mock_graph.query.return_value = _make_mock_result([])
+
+    result = repo.get_bottles()
+    assert result == []

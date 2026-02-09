@@ -187,3 +187,13 @@ class SearchResult(BaseModel):
     score: float
     distance: float
     salience_score: float = Field(default=0.0, description="Entity salience at retrieval time")
+
+
+class BottleQueryParams(BaseModel):
+    """Parameters for querying 'Message in a Bottle' entities."""
+
+    limit: int = Field(default=10, ge=1, le=100)
+    search_text: str | None = None
+    before_date: datetime | None = None
+    after_date: datetime | None = None
+    project_id: str | None = None

@@ -15,6 +15,7 @@ from .lock_manager import LockManager
 from .ontology import OntologyManager
 from .repository import MemoryRepository
 from .schema import (
+    BottleQueryParams,
     BreakthroughParams,
     EntityCommitReceipt,
     EntityCreateParams,
@@ -757,6 +758,19 @@ class MemoryService:
             entity_id=entity_id,
             direction=direction,
             limit=limit,
+        )
+
+    async def get_bottles(
+        self,
+        params: BottleQueryParams,
+    ) -> list[dict[str, Any]]:
+        """Query 'Bottle' entities (messages to future self)."""
+        return self.repo.get_bottles(  # type: ignore[no-any-return]
+            limit=params.limit,
+            search_text=params.search_text,
+            before_date=params.before_date.isoformat() if params.before_date else None,
+            after_date=params.after_date.isoformat() if params.after_date else None,
+            project_id=params.project_id,
         )
 
     async def archive_entity(self, entity_id: str) -> dict[str, Any]:
