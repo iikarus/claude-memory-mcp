@@ -118,3 +118,7 @@ debug_output.txt
 test_output.txt
 failure.log
 .secrets.baseline
+
+# Embedding eval outputs (Phase 14)
+scripts/eval_dataset.json
+scripts/eval_results.json
