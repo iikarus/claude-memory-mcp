@@ -5,6 +5,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal, cast
 
+from claude_memory.activation import ActivationEngine
 from claude_memory.context_manager import ContextManager
 from claude_memory.interfaces import Embedder
 
@@ -584,6 +585,88 @@ class MemoryService:
                         ),
                     )
                 )
+        return results
+
+    async def search_associative(  # noqa: PLR0913
+        self,
+        query: str,
+        limit: int = 10,
+        project_id: str | None = None,
+        *,
+        decay: float = 0.6,
+        max_hops: int = 3,
+        w_sim: float | None = None,
+        w_act: float | None = None,
+        w_sal: float | None = None,
+        w_rec: float | None = None,
+    ) -> list[SearchResult]:
+        """Spreading-activation search: vector → graph spread → composite rank.
+
+        1. Vector search to find initial seed nodes.
+        2. Activate seeds and spread energy through the graph.
+        3. Hydrate candidate entities from graph.
+        4. Composite rank with configurable weights (env var / per-query).
+        """
+        if not query:
+            return []
+
+        # 1. Vector search for seed nodes
+        vec = self.embedder.encode(query)
+        search_filter: dict[str, Any] | None = None
+        if project_id:
+            search_filter = {"project_id": project_id}
+
+        vector_results = await self.vector_store.search(
+            vector=vec, limit=limit, filter=search_filter
+        )
+        if not vector_results:
+            return []
+
+        seed_ids = [item["_id"] for item in vector_results]
+        vector_scores = {item["_id"]: item["_score"] for item in vector_results}
+
+        # 2. Spreading activation
+        engine = ActivationEngine(repo=self.repo)
+        activation_map = engine.activate(seed_ids)
+        activation_map = engine.spread(activation_map, decay=decay, max_hops=max_hops)
+
+        # 3. Gather all candidate IDs (seeds + spread targets)
+        all_ids = list(set(seed_ids) | set(activation_map.keys()))
+        graph_data = self.repo.get_subgraph(all_ids, depth=0)
+        nodes_map = {n["id"]: n for n in graph_data["nodes"]}
+
+        # Build salience map from graph properties
+        salience_map = {nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()}
+
+        # 4. Composite ranking
+        candidates = list(nodes_map.values())
+        ranked = engine.rank(
+            candidates,
+            vector_scores,
+            activation_map,
+            salience_map,
+            w_sim=w_sim,
+            w_act=w_act,
+            w_sal=w_sal,
+            w_rec=w_rec,
+        )
+
+        # 5. Convert to SearchResult
+        results = []
+        for entity in ranked[:limit]:
+            eid = entity.get("id", "")
+            results.append(
+                SearchResult(
+                    id=eid,
+                    name=entity.get("name", "Unknown"),
+                    node_type=entity.get("node_type", "Entity"),
+                    project_id=entity.get("project_id", "unknown"),
+                    content=entity.get("description", ""),
+                    score=entity.get("composite_score", 0.0),
+                    distance=1.0 - vector_scores.get(eid, 0.0),
+                    salience_score=salience_map.get(eid, 0.0),
+                )
+            )
         return results
 
     async def query_timeline(

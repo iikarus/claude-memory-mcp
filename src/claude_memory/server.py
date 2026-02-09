@@ -245,6 +245,40 @@ async def search_memory(
 
 
 @mcp.tool()
+async def search_associative(  # noqa: PLR0913
+    query: str,
+    limit: int = 10,
+    project_id: str | None = None,
+    decay: float = 0.6,
+    max_hops: int = 3,
+    w_sim: float | None = None,
+    w_act: float | None = None,
+    w_sal: float | None = None,
+    w_rec: float | None = None,
+) -> list[dict[str, Any]] | str:
+    """Associative search using spreading activation through the knowledge graph.
+
+    Combines vector similarity with graph-based energy propagation for
+    richer, context-aware retrieval.  Score weights default to env vars
+    (SCORE_WEIGHT_SIMILARITY, etc.) or can be overridden per-query.
+    """
+    results = await service.search_associative(
+        query,
+        limit,
+        project_id,
+        decay=decay,
+        max_hops=max_hops,
+        w_sim=w_sim,
+        w_act=w_act,
+        w_sal=w_sal,
+        w_rec=w_rec,
+    )
+    if not results:
+        return "No results found."
+    return [res.model_dump() for res in results]
+
+
+@mcp.tool()
 async def run_librarian_cycle() -> dict[str, Any]:
     """Triggers the Librarian Agent to cluster and consolidate memories."""
     return await librarian.run_cycle()

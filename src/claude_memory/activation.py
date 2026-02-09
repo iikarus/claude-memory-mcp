@@ -8,6 +8,7 @@ lateral inhibition to keep only the top-K activated nodes per wave.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -157,14 +158,15 @@ class ActivationEngine:
         activation_scores: dict[str, float],
         salience_scores: dict[str, float],
         *,
-        w_sim: float = 0.4,
-        w_act: float = 0.3,
-        w_sal: float = 0.2,
-        w_rec: float = 0.1,
+        w_sim: float | None = None,
+        w_act: float | None = None,
+        w_sal: float | None = None,
+        w_rec: float | None = None,
     ) -> list[dict[str, Any]]:
         """Merge scores into a composite rank and return sorted candidates.
 
-        Formula::
+        Weights default to ``SCORE_WEIGHT_*`` env vars, then to
+        ``0.4 / 0.3 / 0.2 / 0.1``.  Per-query overrides take precedence.
 
             composite = similarity*w_sim + activation*w_act
                       + salience*w_sal + recency*w_rec
@@ -185,6 +187,12 @@ class ActivationEngine:
         """
         if not candidates:
             return []
+
+        # Resolve weights: per-query > env var > hardcoded default
+        w_sim = w_sim if w_sim is not None else float(os.getenv("SCORE_WEIGHT_SIMILARITY", "0.4"))
+        w_act = w_act if w_act is not None else float(os.getenv("SCORE_WEIGHT_ACTIVATION", "0.3"))
+        w_sal = w_sal if w_sal is not None else float(os.getenv("SCORE_WEIGHT_SALIENCE", "0.2"))
+        w_rec = w_rec if w_rec is not None else float(os.getenv("SCORE_WEIGHT_RECENCY", "0.1"))
 
         # Normalize activation scores to 0-1 range
         max_act = max(activation_scores.values()) if activation_scores else 1.0
