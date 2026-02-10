@@ -136,6 +136,18 @@ The system at Phase 3 completion had:
 
 ---
 
+## Hotfix: Logging to stderr (`1f36e09`)
+
+**What changed:**
+
+| Before                            | After                                                  |
+| --------------------------------- | ------------------------------------------------------ |
+| Logging handler used `sys.stdout` | **`sys.stderr`** — stdout is reserved for MCP JSON-RPC |
+
+**Impact**: All MCP clients (Desktop, CLI, VS Code, Antigravity) failed with "Unexpected non-whitespace character after JSON" because log messages corrupted the stdio transport.
+
+---
+
 ## Cumulative Summary
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |

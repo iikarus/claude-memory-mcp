@@ -77,3 +77,9 @@
 - **Gotcha**: The Librarian stores `GapReport` entities in FalkorDB during each cycle.
 - **Risk**: Over time, stale GapReports accumulate. They have `detected_at` timestamps but no automatic cleanup.
 - **Fix**: Use `prune_stale(days=30)` or manually archive old GapReports.
+
+## 14. Logging MUST Use stderr (Not stdout)
+
+- **Gotcha**: MCP stdio transport owns `stdout` for JSON-RPC. Any non-JSON output on stdout breaks the protocol.
+- **Risk**: If `logging_config.py` uses `StreamHandler(sys.stdout)`, Claude Desktop / VS Code / CLI all fail with `"Unexpected non-whitespace character after JSON"`.
+- **Fix**: `logging_config.py` uses `StreamHandler(sys.stderr)`. **Never add `print()` statements or stdout handlers to server code.** (Fixed in commit `1f36e09`.)
