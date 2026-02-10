@@ -197,3 +197,15 @@ class BottleQueryParams(BaseModel):
     before_date: datetime | None = None
     after_date: datetime | None = None
     project_id: str | None = None
+
+
+class GapDetectionParams(BaseModel):
+    """Parameters for structural gap detection between knowledge clusters."""
+
+    min_similarity: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="Minimum centroid similarity threshold"
+    )
+    max_edges: int = Field(
+        default=2, ge=0, description="Maximum cross-cluster edges to qualify as a gap"
+    )
+    limit: int = Field(default=10, ge=1, le=50, description="Max gaps to return")

@@ -21,6 +21,7 @@ from .schema import (
     EntityCreateParams,
     EntityDeleteParams,
     EntityUpdateParams,
+    GapDetectionParams,
     ObservationParams,
     RelationshipCreateParams,
     RelationshipDeleteParams,
@@ -797,6 +798,64 @@ class MemoryService:
 
         health["community_count"] = community_count
         return health  # type: ignore[no-any-return]
+
+    async def detect_structural_gaps(self, params: GapDetectionParams) -> list[dict[str, Any]]:
+        """Detect structural gaps between knowledge clusters.
+
+        Runs clustering, computes cross-cluster connectivity vs similarity,
+        and generates research prompts for each identified gap.
+        """
+        from .clustering import ClusteringService, detect_gaps  # noqa: PLC0415
+
+        # 1. Cluster all nodes
+        nodes = self.repo.get_all_nodes(limit=2000)
+        cs = ClusteringService()
+        clusters = cs.cluster_nodes(nodes)
+
+        if len(clusters) < 2:  # noqa: PLR2004
+            return []
+
+        # 2. Get all edges for cross-cluster connectivity
+        edges = self.repo.get_all_edges()
+
+        # 3. Detect gaps
+        gaps = detect_gaps(
+            clusters,
+            edges,
+            min_similarity=params.min_similarity,
+            max_edges=params.max_edges,
+        )
+
+        # 4. Build results with research prompts
+        results: list[dict[str, Any]] = []
+        for gap in gaps[: params.limit]:
+            # Find cluster names for context
+            ca = next((c for c in clusters if c.id == gap.cluster_a_id), None)
+            cb = next((c for c in clusters if c.id == gap.cluster_b_id), None)
+            a_names = [n.get("name", "?") for n in (ca.nodes[:3] if ca else [])]
+            b_names = [n.get("name", "?") for n in (cb.nodes[:3] if cb else [])]
+
+            prompt = (
+                f"These knowledge areas seem related (similarity: {gap.similarity:.0%}) "
+                f"but are poorly connected ({gap.edge_count} edges).\n"
+                f"Cluster A: {', '.join(a_names)}\n"
+                f"Cluster B: {', '.join(b_names)}\n"
+                f"Consider: What connections exist between these topics? "
+                f"Are there shared concepts, dependencies, or patterns?"
+            )
+
+            results.append(
+                {
+                    "cluster_a_id": gap.cluster_a_id,
+                    "cluster_b_id": gap.cluster_b_id,
+                    "similarity": gap.similarity,
+                    "edge_count": gap.edge_count,
+                    "suggested_bridges": gap.suggested_bridges,
+                    "research_prompt": prompt,
+                }
+            )
+
+        return results
 
     async def archive_entity(self, entity_id: str) -> dict[str, Any]:
         """Archive an entity (logical hide)."""

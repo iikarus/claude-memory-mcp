@@ -1256,3 +1256,60 @@ async def test_get_graph_health_few_nodes(service: MemoryService) -> None:
     assert result["community_count"] == 0
     # Should not call get_all_nodes since total_nodes < 3
     service.repo.get_all_nodes.assert_not_called()
+
+
+# ─── Phase 15C: Structural Gap Detection Service Tests ──────────────
+
+
+async def test_detect_structural_gaps_no_clusters(service: MemoryService) -> None:
+    """detect_structural_gaps returns empty when too few nodes for clustering."""
+    service.repo.get_all_nodes.return_value = [{"id": "a1", "embedding": [1.0]}]
+
+    from claude_memory.schema import GapDetectionParams
+
+    params = GapDetectionParams()
+    result = await service.detect_structural_gaps(params)
+    assert result == []
+
+
+async def test_detect_structural_gaps_with_gaps(service: MemoryService) -> None:
+    """detect_structural_gaps finds gaps and generates research prompts."""
+    from unittest.mock import patch as mock_patch
+
+    from claude_memory.clustering import Cluster, StructuralGap
+    from claude_memory.schema import GapDetectionParams
+
+    # Mock nodes — enough for clustering
+    nodes = [{"id": f"n{i}", "name": f"Node{i}", "embedding": [float(i)]} for i in range(6)]
+    service.repo.get_all_nodes.return_value = nodes
+    service.repo.get_all_edges.return_value = []
+
+    # Mock clustering to return 2 clusters
+    mock_clusters = [
+        Cluster(id=0, nodes=nodes[:3], centroid=[1.0], cohesion_score=0.1),
+        Cluster(id=1, nodes=nodes[3:], centroid=[4.0], cohesion_score=0.1),
+    ]
+
+    # Mock detect_gaps to return a gap
+    mock_gap = StructuralGap(
+        cluster_a_id=0,
+        cluster_b_id=1,
+        similarity=0.85,
+        edge_count=0,
+        suggested_bridges=[{"from_id": "n0", "to_id": "n3", "similarity": 0.9}],
+    )
+
+    with (
+        mock_patch("claude_memory.clustering.ClusteringService") as mock_cs_cls,
+        mock_patch("claude_memory.clustering.detect_gaps", return_value=[mock_gap]) as mock_dg,
+    ):
+        mock_cs_cls.return_value.cluster_nodes.return_value = mock_clusters
+
+        params = GapDetectionParams(min_similarity=0.7, max_edges=2, limit=10)
+        result = await service.detect_structural_gaps(params)
+
+    assert len(result) == 1
+    assert result[0]["similarity"] == 0.85
+    assert "research_prompt" in result[0]
+    assert "related" in result[0]["research_prompt"].lower()
+    mock_dg.assert_called_once()

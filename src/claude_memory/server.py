@@ -16,6 +16,7 @@ from claude_memory.schema import (
     EntityCreateParams,
     EntityDeleteParams,
     EntityUpdateParams,
+    GapDetectionParams,
     ObservationParams,
     RelationshipCreateParams,
     RelationshipDeleteParams,
@@ -360,6 +361,21 @@ async def get_bottles(
 async def graph_health() -> dict[str, Any]:
     """Get graph health metrics: nodes, edges, density, orphans, communities, avg degree."""
     return await service.get_graph_health()
+
+
+@mcp.tool()
+async def find_knowledge_gaps(
+    min_similarity: float = 0.7,
+    max_edges: int = 2,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Find structural gaps: clusters that are semantically similar but poorly connected."""
+    params = GapDetectionParams(
+        min_similarity=min_similarity,
+        max_edges=max_edges,
+        limit=limit,
+    )
+    return await service.detect_structural_gaps(params)
 
 
 def main() -> None:
