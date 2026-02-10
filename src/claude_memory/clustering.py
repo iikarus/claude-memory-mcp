@@ -109,3 +109,137 @@ class ClusteringService:
 
         logger.info(f"Found {len(results)} clusters.")
         return results
+
+
+# ─── Structural Gap Detection ───────────────────────────────────────
+
+
+@dataclass
+class StructuralGap:
+    """A pair of clusters that are semantically similar but poorly connected."""
+
+    cluster_a_id: int
+    cluster_b_id: int
+    similarity: float
+    edge_count: int
+    suggested_bridges: list[dict[str, Any]]
+
+
+def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
+    """Compute cosine similarity between two vectors."""
+    dot = float(np.dot(a, b))
+    norm_a = float(np.linalg.norm(a))
+    norm_b = float(np.linalg.norm(b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
+def _build_cross_edge_counts(
+    clusters: list[Cluster], edges: list[dict[str, Any]]
+) -> dict[tuple[int, int], int]:
+    """Count edges crossing between each pair of clusters."""
+    node_to_cluster: dict[str, int] = {}
+    for cluster in clusters:
+        for node in cluster.nodes:
+            node_id = node.get("id", "")
+            if node_id:
+                node_to_cluster[node_id] = cluster.id
+
+    cross_edges: dict[tuple[int, int], int] = {}
+    for edge in edges:
+        src_cluster = node_to_cluster.get(edge.get("source", ""))
+        tgt_cluster = node_to_cluster.get(edge.get("target", ""))
+        if src_cluster is not None and tgt_cluster is not None and src_cluster != tgt_cluster:
+            pair = (min(src_cluster, tgt_cluster), max(src_cluster, tgt_cluster))
+            cross_edges[pair] = cross_edges.get(pair, 0) + 1
+
+    return cross_edges
+
+
+def detect_gaps(
+    clusters: list[Cluster],
+    edges: list[dict[str, Any]],
+    min_similarity: float = 0.7,
+    max_edges: int = 2,
+) -> list[StructuralGap]:
+    """Detect structural gaps between clusters.
+
+    A gap exists when two clusters are semantically similar (centroid cosine
+    similarity >= min_similarity) but have few cross-cluster edges (<= max_edges).
+
+    Args:
+        clusters: Clusters from ClusteringService.cluster_nodes().
+        edges: Edge list from repository.get_all_edges() [{source, target}].
+        min_similarity: Minimum centroid similarity to consider a gap.
+        max_edges: Maximum cross-cluster edges to qualify as a gap.
+
+    Returns:
+        List of StructuralGap objects, sorted by similarity descending.
+    """
+    if len(clusters) < 2:  # noqa: PLR2004
+        return []
+
+    cross_edges = _build_cross_edge_counts(clusters, edges)
+
+    gaps: list[StructuralGap] = []
+    for i, ca in enumerate(clusters):
+        for cb in clusters[i + 1 :]:
+            sim = _cosine_sim(np.array(ca.centroid), np.array(cb.centroid))
+            if sim < min_similarity:
+                continue
+
+            pair_key = (min(ca.id, cb.id), max(ca.id, cb.id))
+            edge_count = cross_edges.get(pair_key, 0)
+            if edge_count > max_edges:
+                continue
+
+            bridges = _find_bridge_candidates(ca, cb, top_n=2)
+            gaps.append(
+                StructuralGap(
+                    cluster_a_id=ca.id,
+                    cluster_b_id=cb.id,
+                    similarity=round(sim, 4),
+                    edge_count=edge_count,
+                    suggested_bridges=bridges,
+                )
+            )
+
+    gaps.sort(key=lambda g: g.similarity, reverse=True)
+    return gaps
+
+
+def _find_bridge_candidates(ca: Cluster, cb: Cluster, top_n: int = 2) -> list[dict[str, Any]]:
+    """Find the closest node pairs between two clusters as bridge candidates."""
+    if not ca.nodes or not cb.nodes:
+        return []
+
+    # Get embeddings for nodes in both clusters
+    a_nodes = [(n, n.get("embedding")) for n in ca.nodes if n.get("embedding")]
+    b_nodes = [(n, n.get("embedding")) for n in cb.nodes if n.get("embedding")]
+
+    if not a_nodes or not b_nodes:
+        return []
+
+    bridges: list[dict[str, Any]] = []
+    scored: list[tuple[float, dict[str, Any], dict[str, Any]]] = []
+
+    for a_node, a_emb in a_nodes:
+        for b_node, b_emb in b_nodes:
+            sim = _cosine_sim(np.array(a_emb), np.array(b_emb))
+            scored.append((sim, a_node, b_node))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    for sim, a_node, b_node in scored[:top_n]:
+        bridges.append(
+            {
+                "from_id": a_node.get("id", ""),
+                "from_name": a_node.get("name", ""),
+                "to_id": b_node.get("id", ""),
+                "to_name": b_node.get("name", ""),
+                "similarity": round(sim, 4),
+            }
+        )
+
+    return bridges
