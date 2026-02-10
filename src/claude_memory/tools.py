@@ -33,7 +33,6 @@ from .schema import (
 from .vector_store import QdrantVectorStore, VectorStore
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
