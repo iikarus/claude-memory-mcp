@@ -58,6 +58,9 @@ class MemoryService:
         self.context_manager = ContextManager()
         # Share connection config
         self.lock_manager = LockManager(host, port)
+        # Strategy objects (stateless — cached, not per-call)
+        self.router = QueryRouter()
+        self.activation_engine = ActivationEngine(repo=self.repo)
         # Background tasks for fire-and-forget operations
         self._background_tasks: set[asyncio.Task[None]] = set()
 
@@ -569,9 +572,8 @@ class MemoryService:
 
         # Route through QueryRouter if strategy is specified
         if strategy is not None:
-            router = QueryRouter()
             intent = None if strategy == "auto" else QueryIntent(strategy)
-            results = await router.route(
+            results = await self.router.route(
                 query,
                 self,
                 intent=intent,
@@ -689,9 +691,8 @@ class MemoryService:
         vector_scores = {item["_id"]: item["_score"] for item in vector_results}
 
         # 2. Spreading activation
-        engine = ActivationEngine(repo=self.repo)
-        activation_map = engine.activate(seed_ids)
-        activation_map = engine.spread(activation_map, decay=decay, max_hops=max_hops)
+        activation_map = self.activation_engine.activate(seed_ids)
+        activation_map = self.activation_engine.spread(activation_map, decay=decay, max_hops=max_hops)
 
         # 3. Gather all candidate IDs (seeds + spread targets)
         all_ids = list(set(seed_ids) | set(activation_map.keys()))
@@ -707,7 +708,7 @@ class MemoryService:
 
         # 4. Composite ranking
         candidates = list(nodes_map.values())
-        ranked = engine.rank(
+        ranked = self.activation_engine.rank(
             candidates,
             vector_scores,
             activation_map,
