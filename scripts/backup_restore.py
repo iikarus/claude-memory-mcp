@@ -3,6 +3,9 @@ import datetime
 import os
 import subprocess
 
+# Safety net: ensure UTF-8 mode on Windows where the default codepage may be cp1252
+os.environ.setdefault("PYTHONUTF8", "1")
+
 BACKUP_DIR = "backups"
 
 
@@ -14,7 +17,7 @@ def backup(tag: str | None = None) -> None:
     target_dir = os.path.join(BACKUP_DIR, tag)
     os.makedirs(target_dir, exist_ok=True)
 
-    print(f"💾 Creating Save Point: {tag}")
+    print(f"[SAVE] Creating Save Point: {tag}")
 
     # 0. Sync to Disk
     _trigger_persistence()
@@ -59,9 +62,9 @@ def backup(tag: str | None = None) -> None:
 
     res = subprocess.run(cmd_falkor, capture_output=True, check=False)
     if res.returncode == 0:
-        print("✅")
+        print("[OK]")
     else:
-        print("❌")
+        print("[FAIL]")
         print(res.stderr.decode("utf-8"))
 
     # 2. Backup Qdrant
@@ -96,12 +99,12 @@ def backup(tag: str | None = None) -> None:
 
     res = subprocess.run(cmd_qdrant, capture_output=True, check=False)
     if res.returncode == 0:
-        print("✅")
+        print("[OK]")
     else:
-        print("❌")
+        print("[FAIL]")
         print(res.stderr.decode("utf-8"))
 
-    print(f"✨ Save Point Created in {target_dir}")
+    print(f"[DONE] Save Point Created in {target_dir}")
     _verify_backup(target_dir)
 
 
@@ -115,9 +118,9 @@ def _trigger_persistence() -> None:
 
         r = redis.Redis(host=host, port=port)
         r.save()  # Synchronous save
-        print("💾 FalkorDB Saved to Disk.")
+        print("[SAVE] FalkorDB Saved to Disk.")
     except Exception:
-        print("⚠️ Could not trigger FalkorDB SAVE. Proceeding anyway.")
+        print("[WARN] Could not trigger FalkorDB SAVE. Proceeding anyway.")
 
 
 def _verify_backup(target_dir: str) -> None:
@@ -127,28 +130,28 @@ def _verify_backup(target_dir: str) -> None:
     for filename in ["falkor_data.tar.gz", "qdrant_data.tar.gz"]:
         path = os.path.join(target_dir, filename)
         if not os.path.exists(path):
-            print(f"❌ ERROR: Missing backup file {filename}")
+            print(f"[FAIL] ERROR: Missing backup file {filename}")
             continue
 
         size = os.path.getsize(path)
         if size < min_size:
             print(
-                f"⚠️  WARNING: {filename} is suspiciously small"
+                f"[WARN] WARNING: {filename} is suspiciously small"
                 f" ({size} bytes). Backup might be empty."
             )
         else:
-            print(f"✅ Verified {filename} ({size / 1024:.2f} KB)")
+            print(f"[OK] Verified {filename} ({size / 1024:.2f} KB)")
 
 
 def restore(tag: str, force: bool = False) -> None:
     """Restore a previously saved snapshot, overwriting current database state."""
     target_dir = os.path.join(BACKUP_DIR, tag)
     if not os.path.exists(target_dir):
-        print(f"❌ Backup '{tag}' not found in {BACKUP_DIR}")
+        print(f"[FAIL] Backup '{tag}' not found in {BACKUP_DIR}")
         return
 
-    print(f"♻️  Restoring Save Point: {tag}")
-    print("⚠️  WARNING: This will overwrite current database state.")
+    print(f"[RESTORE] Restoring Save Point: {tag}")
+    print("[WARN] WARNING: This will overwrite current database state.")
 
     if not force:
         confirm = input("Type 'RESTORE' to confirm: ")
@@ -185,7 +188,7 @@ def restore(tag: str, force: bool = False) -> None:
         "rm -rf /data/* && tar xzf /backup/falkor_data.tar.gz -C /data",
     ]
     subprocess.run(cmd_falkor, check=False)
-    print("✅")
+    print("[OK]")
 
     # Restore Qdrant
     print("Restoring Qdrant...", end=" ")
@@ -203,14 +206,14 @@ def restore(tag: str, force: bool = False) -> None:
         "rm -rf /qdrant/storage/* && tar xzf /backup/qdrant_data.tar.gz -C /qdrant/storage",
     ]
     subprocess.run(cmd_qdrant, check=False)
-    print("✅")
+    print("[OK]")
 
     print("Restarting containers...")
     subprocess.run(
         ["docker-compose", "up", "-d"],  # noqa: S607
         check=False,
     )
-    print("✨ System Restored.")
+    print("[DONE] System Restored.")
 
 
 if __name__ == "__main__":

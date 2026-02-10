@@ -99,13 +99,19 @@ class CrudMixin:
 
             # 2. Write to Vector Engine (Qdrant) - Source of Truth for Search
             node_id = str(node_props["id"])
+            warnings: list[str] = []
 
             payload = {
                 "name": params.name,
                 "node_type": params.node_type,
                 "project_id": params.project_id,
             }
-            await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
+            try:
+                await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
+            except Exception as e:
+                msg = f"vector_upsert_failed: {e}"
+                logger.error(msg)
+                warnings.append(msg)
 
             # 3. Link to most recent entity in same project via PRECEDED_BY
             try:
@@ -136,6 +142,7 @@ class CrudMixin:
                 operation_time_ms=duration,
                 total_memory_count=total_count,
                 message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
+                warnings=warnings,
             )
 
     async def create_relationship(self, params: "RelationshipCreateParams") -> dict[str, Any]:
@@ -212,7 +219,16 @@ class CrudMixin:
                 "node_type": node_type,
                 "project_id": project_id,
             }
-            await self.vector_store.upsert(id=params.entity_id, vector=embedding, payload=payload)
+            try:
+                await self.vector_store.upsert(
+                    id=params.entity_id,
+                    vector=embedding,
+                    payload=payload,
+                )
+            except Exception as e:
+                msg = f"vector_upsert_failed: {e}"
+                logger.error(msg)
+                updated_node["warnings"] = [msg]
 
             return updated_node  # type: ignore[no-any-return]
 
@@ -240,19 +256,31 @@ class CrudMixin:
                     params.entity_id,
                     {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )
+                soft_warnings: list[str] = []
                 try:
                     await self.vector_store.delete(params.entity_id)
                 except Exception as e:
-                    logger.warning(f"Failed to delete vector for {params.entity_id}: {e}")
-                return {"status": "archived", "id": params.entity_id}
+                    logger.error(f"vector_delete_failed: {params.entity_id}: {e}")
+                    soft_warnings.append(f"vector_delete_failed: {e}")
+                result_dict: dict[str, Any] = {
+                    "status": "archived",
+                    "id": params.entity_id,
+                }
+                if soft_warnings:
+                    result_dict["warnings"] = soft_warnings
+                return result_dict
             else:
                 self.repo.delete_node(params.entity_id)
+                warnings: list[str] = []
                 try:
                     await self.vector_store.delete(params.entity_id)
                 except Exception as e:
-                    logger.warning(f"Failed to delete vector for {params.entity_id}: {e}")
-                    pass
-                return {"status": "deleted", "id": params.entity_id}
+                    logger.error(f"vector_delete_failed: {params.entity_id}: {e}")
+                    warnings.append(f"vector_delete_failed: {e}")
+                result: dict[str, Any] = {"status": "deleted", "id": params.entity_id}
+                if warnings:
+                    result["warnings"] = warnings
+                return result
 
         if project_id:
             async with self.lock_manager.lock(project_id):

@@ -35,20 +35,21 @@ async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
         # Focused Query (Neighborhood)
         # Try to find node by ID or Name
         # We use OPTIONAL MATCH to get connections
-        q = f"""
+        q = """
         MATCH (n:Entity)
-        WHERE n.id = '{focus}' OR n.name CONTAINS '{focus}'
+        WHERE n.id = $focus OR n.name CONTAINS $focus
         OPTIONAL MATCH (n)-[r]-(m:Entity)
-        RETURN n, r, m LIMIT {limit}
+        RETURN n, r, m LIMIT $limit
         """
+        return service.repo.execute_cypher(q, {"focus": focus, "limit": limit})
     else:
         # Global Query
-        q = f"""
+        q = """
         MATCH (n:Entity)
         OPTIONAL MATCH (n)-[r]->(m:Entity)
-        RETURN n, r, m LIMIT {limit}
+        RETURN n, r, m LIMIT $limit
         """
-    return service.repo.execute_cypher(q)
+        return service.repo.execute_cypher(q, {"limit": limit})
 
 
 async def get_stats() -> tuple[int, int]:

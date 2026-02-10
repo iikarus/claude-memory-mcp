@@ -63,5 +63,7 @@ async def test_get_graph_data(mock_service: Any) -> None:
     # Check if cypher query was correct
     args = mock_service.repo.execute_cypher.call_args
     query = args[0][0]
+    params = args[0][1]
     assert "OPTIONAL MATCH (n)-[r]->(m:Entity)" in query
-    assert "LIMIT 50" in query
+    assert "LIMIT $limit" in query
+    assert params["limit"] == 50

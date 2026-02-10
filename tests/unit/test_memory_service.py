@@ -1313,3 +1313,88 @@ async def test_detect_structural_gaps_with_gaps(service: MemoryService) -> None:
     assert "research_prompt" in result[0]
     assert "related" in result[0]["research_prompt"].lower()
     mock_dg.assert_called_once()
+
+
+# ─── Phase 1B: Vector Failure Warning Tests ─────────────────────────
+
+
+async def test_create_entity_vector_failure_surfaces_warning(
+    service: MemoryService,
+) -> None:
+    """When vector upsert fails during create, receipt must contain a warning."""
+    from claude_memory.schema import EntityCreateParams
+
+    service.repo.create_node.return_value = MOCK_NODE_PROPS
+    service.repo.get_most_recent_entity.return_value = None
+    service.repo.get_total_node_count.return_value = 42
+    service.ontology = MagicMock()
+    service.ontology.is_valid_type.return_value = True
+    service.vector_store.upsert.side_effect = RuntimeError("Qdrant down")
+
+    params = EntityCreateParams(
+        name=ENTITY_NAME,
+        node_type=ENTITY_TYPE,
+        project_id=PROJECT_ID,
+    )
+    receipt = await service.create_entity(params)
+
+    assert receipt.status == "committed"
+    assert len(receipt.warnings) == 1
+    assert "vector_upsert_failed" in receipt.warnings[0]
+    assert "Qdrant down" in receipt.warnings[0]
+
+
+async def test_update_entity_vector_failure_surfaces_warning(
+    service: MemoryService,
+) -> None:
+    """When vector upsert fails during update, result dict must contain warnings."""
+    service.repo.get_node.return_value = MOCK_NODE_PROPS.copy()
+    service.repo.update_node.return_value = MOCK_NODE_PROPS.copy()
+    service.vector_store.upsert.side_effect = RuntimeError("Qdrant timeout")
+
+    params = EntityUpdateParams(
+        entity_id=ENTITY_ID,
+        properties={"description": "updated"},
+    )
+    result = await service.update_entity(params)
+
+    assert "warnings" in result
+    assert "vector_upsert_failed" in result["warnings"][0]
+
+
+async def test_delete_entity_soft_vector_failure_surfaces_warning(
+    service: MemoryService,
+) -> None:
+    """When vector delete fails during soft delete, result must contain warnings."""
+    service.repo.get_node.return_value = MOCK_NODE_PROPS.copy()
+    service.vector_store.delete.side_effect = RuntimeError("Qdrant unreachable")
+
+    params = EntityDeleteParams(
+        entity_id=ENTITY_ID,
+        reason="test",
+        soft_delete=True,
+    )
+    result = await service.delete_entity(params)
+
+    assert result["status"] == "archived"
+    assert "warnings" in result
+    assert "vector_delete_failed" in result["warnings"][0]
+
+
+async def test_delete_entity_hard_vector_failure_surfaces_warning(
+    service: MemoryService,
+) -> None:
+    """When vector delete fails during hard delete, result must contain warnings."""
+    service.repo.get_node.return_value = MOCK_NODE_PROPS.copy()
+    service.vector_store.delete.side_effect = RuntimeError("Qdrant gone")
+
+    params = EntityDeleteParams(
+        entity_id=ENTITY_ID,
+        reason="test",
+        soft_delete=False,
+    )
+    result = await service.delete_entity(params)
+
+    assert result["status"] == "deleted"
+    assert "warnings" in result
+    assert "vector_delete_failed" in result["warnings"][0]
