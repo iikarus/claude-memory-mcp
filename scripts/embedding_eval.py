@@ -291,8 +291,10 @@ def benchmark_model(
 
     # Load model
     load_start = time.perf_counter()
+    print(f"\n⏳ Loading model '{alias}' ({hf_id})... this may download on first run")
     model = SentenceTransformer(hf_id)
     load_time = time.perf_counter() - load_start
+    print(f"✅ Model loaded in {load_time:.1f}s")
     logger.info("Model loaded in %.1fs", load_time)
 
     mem_after_load = _get_memory_mb()
@@ -310,9 +312,11 @@ def benchmark_model(
     # Encode queries
     query_texts = [q.text for q in dataset.queries]
 
+    print(f"⏳ Encoding {len(query_texts)} queries...")
     query_start = time.perf_counter()
-    query_vecs = model.encode(query_texts, show_progress_bar=False, batch_size=32)
+    query_vecs = model.encode(query_texts, show_progress_bar=True, batch_size=32)
     query_encode_time = time.perf_counter() - query_start
+    print(f"✅ Queries encoded in {query_encode_time:.1f}s")
 
     mean_latency_ms = (query_encode_time / len(query_texts)) * 1000 if query_texts else 0
 
@@ -514,15 +518,20 @@ def main() -> None:
     model_aliases = args.models or list(MODEL_REGISTRY.keys())
     results: list[ModelResult] = []
 
-    for alias in model_aliases:
+    for i, alias in enumerate(model_aliases, 1):
         if alias not in MODEL_REGISTRY:
             logger.warning("Unknown model alias: %s — skipping", alias)
             continue
+        print(f"\n{'='*60}")
+        print(f"📊 Model {i}/{len(model_aliases)}: {alias}")
+        print(f"{'='*60}")
         try:
             result = benchmark_model(alias, MODEL_REGISTRY[alias], dataset)
             results.append(result)
+            print(f"✅ {alias} complete — p@10={result.precision_at_k:.4f}")
         except Exception:
             logger.exception("Failed to benchmark %s", alias)
+            print(f"❌ {alias} FAILED")
 
     if not results:
         logger.error("No models benchmarked successfully")
