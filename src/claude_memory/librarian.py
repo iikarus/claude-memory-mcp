@@ -1,9 +1,10 @@
 """Autonomous librarian agent — clusters, consolidates, and prunes memory nodes."""
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
-from .clustering import ClusteringService
+from .clustering import ClusteringService, detect_gaps
 from .tools import MemoryService
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,8 @@ class LibrarianAgent:
             "clusters_found": 0,
             "consolidations_created": 0,
             "deleted_stale": 0,
+            "gaps_detected": 0,
+            "gap_reports_stored": 0,
             "errors": [],
         }
 
@@ -78,7 +81,49 @@ class LibrarianAgent:
                 logger.error(f"Failed to consolidate cluster {cluster.id}: {e}")
                 report["errors"].append(f"Cluster {cluster.id}: {e!s}")
 
-        # 4. Prune Stale
+        # 4. Gap Detection
+        edges = self.memory.repo.get_all_edges()
+        gaps = detect_gaps(clusters, edges)
+        report["gaps_detected"] = len(gaps)
+
+        # Store top 3 as GapReport entities
+        gap_limit = 3
+        for gap in gaps[:gap_limit]:
+            try:
+                ca_nodes = [c for c in clusters if c.id == gap.cluster_a_id]
+                cb_nodes = [c for c in clusters if c.id == gap.cluster_b_id]
+                a_names = ", ".join(
+                    n.get("name", "?") for n in (ca_nodes[0].nodes[:3] if ca_nodes else [])
+                )
+                b_names = ", ".join(
+                    n.get("name", "?") for n in (cb_nodes[0].nodes[:3] if cb_nodes else [])
+                )
+
+                gap_name = f"GAP: [{a_names}] ↔ [{b_names}]"
+                gap_content = (
+                    f"Similarity: {gap.similarity:.0%}, "
+                    f"Cross-edges: {gap.edge_count}, "
+                    f"Bridges: {len(gap.suggested_bridges)}"
+                )
+
+                self.memory.repo.create_node(
+                    name=gap_name,
+                    entity_type="GapReport",
+                    content=gap_content,
+                    project_id="librarian",
+                    metadata={
+                        "detected_at": datetime.now(UTC).isoformat(),
+                        "cluster_a_id": gap.cluster_a_id,
+                        "cluster_b_id": gap.cluster_b_id,
+                        "similarity": gap.similarity,
+                        "edge_count": gap.edge_count,
+                    },
+                )
+                report["gap_reports_stored"] += 1
+            except Exception as e:
+                report["errors"].append(f"GapReport: {e!s}")
+
+        # 5. Prune Stale
         try:
             prune_res = await self.memory.prune_stale(days=60)
             report["deleted_stale"] = prune_res.get("deleted_count", 0)
