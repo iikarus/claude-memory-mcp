@@ -1,6 +1,6 @@
 """Pydantic schemas for memory entities, relationships, sessions, and search results."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -59,8 +59,8 @@ class BaseNode(BaseModel):
     project_id: str = Field(description="Namespace/Project ID")
 
     # Temporal
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     occurred_at: datetime | None = Field(
         default=None, description="When the event actually happened"
     )

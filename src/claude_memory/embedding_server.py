@@ -2,6 +2,8 @@
 
 import logging
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -14,8 +16,6 @@ from claude_memory.logging_config import configure_logging
 # Configure logging
 configure_logging()
 logger = logging.getLogger("embedding-server")
-
-app = FastAPI(title="Embedding Service")
 
 # Global instance
 service: EmbeddingService | None = None
@@ -33,16 +33,19 @@ class EmbedResponse(BaseModel):
     embeddings: list[list[float]]
 
 
-@app.on_event("startup")  # type: ignore[misc, unused-ignore]
-async def startup_event() -> None:
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Initialize the global EmbeddingService and pre-load the model."""
     global service  # noqa: PLW0603
     logger.info("Initializing Embedding Service...")
-    # Force GPU usage if available by initializing explicitly
     service = EmbeddingService()
     # Trigger model load
     _ = service.encoder
     logger.info(f"Model loaded on {service.device}")
+    yield
+
+
+app = FastAPI(title="Embedding Service", lifespan=lifespan)
 
 
 @app.post("/embed", response_model=EmbedResponse)  # type: ignore[misc, unused-ignore]
