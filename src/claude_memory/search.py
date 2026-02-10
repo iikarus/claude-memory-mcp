@@ -34,7 +34,9 @@ class SearchMixin(SearchAdvancedMixin):
     context_manager: "ContextManager"
 
     # Provided by CrudMixin (also mixed into MemoryService)
-    def _fire_salience_update(self, ids: list[str]) -> None: ...
+    def _fire_salience_update(self, ids: list[str]) -> None:
+        """Trigger salience score recalculation for the given entity IDs."""
+        ...
 
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20, offset: int = 0

@@ -5,7 +5,9 @@ Functions are defined at module level so they can be imported by tests.
 inject service references before any tool is invoked.
 """
 
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from claude_memory.schema import (
     BottleQueryParams,
@@ -13,12 +15,18 @@ from claude_memory.schema import (
     TemporalQueryParams,
 )
 
+if TYPE_CHECKING:  # pragma: no cover
+    from mcp.server.fastmcp import FastMCP
+
+    from claude_memory.librarian import LibrarianAgent
+    from claude_memory.tools import MemoryService
+
 # Late-bound references, set by configure()
-_service: Any = None
-_librarian: Any = None
+_service: MemoryService | None = None
+_librarian: LibrarianAgent | None = None
 
 
-def configure(mcp, service, librarian) -> None:
+def configure(mcp: FastMCP, service: MemoryService, librarian: LibrarianAgent) -> None:
     """Bind service dependencies and register handlers on the MCP app.
 
     Must be called once from ``server.py`` before any tool is invoked.
@@ -54,7 +62,7 @@ async def search_associative(  # noqa: PLR0913
     richer, context-aware retrieval.  Score weights default to env vars
     ``W_SIMILARITY``, ``W_ACTIVATION``, ``W_SALIENCE``, ``W_RECENCY``.
     """
-    results = await _service.search_associative(
+    results = await _service.search_associative(  # type: ignore[union-attr]
         query,
         limit=limit,
         project_id=project_id,
@@ -72,7 +80,7 @@ async def search_associative(  # noqa: PLR0913
 
 async def run_librarian_cycle() -> dict[str, Any]:
     """Triggers the Librarian Agent to cluster and consolidate memories."""
-    return await _librarian.run_cycle()
+    return await _librarian.run_cycle()  # type: ignore[union-attr]
 
 
 async def create_memory_type(
@@ -87,7 +95,7 @@ async def create_memory_type(
     """
     if required_properties is None:
         required_properties = []
-    return _service.create_memory_type(name, description, required_properties)
+    return _service.create_memory_type(name, description, required_properties)  # type: ignore[union-attr]
 
 
 async def query_timeline(
@@ -105,7 +113,7 @@ async def query_timeline(
         limit=limit,
         project_id=project_id,
     )
-    return await _service.query_timeline(params)
+    return await _service.query_timeline(params)  # type: ignore[union-attr]
 
 
 async def get_temporal_neighbors(
@@ -114,7 +122,7 @@ async def get_temporal_neighbors(
     limit: int = 10,
 ) -> list[dict[str, Any]]:
     """Find entities connected by temporal edges (before/after/both)."""
-    return await _service.get_temporal_neighbors(entity_id, direction, limit)
+    return await _service.get_temporal_neighbors(entity_id, direction, limit)  # type: ignore[union-attr]
 
 
 async def get_bottles(
@@ -134,12 +142,12 @@ async def get_bottles(
         after_date=dt.fromisoformat(after_date) if after_date else None,
         project_id=project_id,
     )
-    return await _service.get_bottles(params)
+    return await _service.get_bottles(params)  # type: ignore[union-attr]
 
 
 async def graph_health() -> dict[str, Any]:
     """Get graph health metrics: nodes, edges, density, orphans, communities, avg degree."""
-    return await _service.get_graph_health()
+    return await _service.get_graph_health()  # type: ignore[union-attr]
 
 
 async def find_knowledge_gaps(
@@ -153,4 +161,4 @@ async def find_knowledge_gaps(
         max_edges=max_edges,
         limit=limit,
     )
-    return await _service.detect_structural_gaps(params)
+    return await _service.detect_structural_gaps(params)  # type: ignore[union-attr]

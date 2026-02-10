@@ -42,6 +42,11 @@ mock_network = MagicMock()
 @pytest.fixture(autouse=True)
 def _patch_dashboard_deps(monkeypatch: pytest.MonkeyPatch) -> None:
     """Patch all heavy dashboard dependencies before test execution."""
+    # Reset module-level mocks to prevent side_effect leakage between tests
+    mock_st.reset_mock()
+    mock_st.sidebar.button.side_effect = None
+    mock_st.sidebar.button.return_value = False
+
     monkeypatch.setitem(sys.modules, "streamlit", mock_st)
     monkeypatch.setitem(sys.modules, "streamlit.components", MagicMock())
     monkeypatch.setitem(sys.modules, "streamlit.components.v1", mock_components)

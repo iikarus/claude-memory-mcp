@@ -75,14 +75,15 @@ def test_embed_response_model() -> None:
 
 
 async def test_startup_event() -> None:
-    """Test that startup initializes EmbeddingService and loads model."""
+    """Test that lifespan initializes EmbeddingService and loads model."""
     with patch("claude_memory.embedding_server.EmbeddingService") as mock_cls:
         mock_instance = MagicMock()
         mock_instance.device = MOCK_DEVICE
         mock_instance.encoder = MagicMock()
         mock_cls.return_value = mock_instance
 
-        await emb_server_module.startup_event()
+        async with emb_server_module.lifespan(app):
+            pass
 
         mock_cls.assert_called_once()
         # Accessing .encoder triggers the lazy load

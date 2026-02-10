@@ -101,6 +101,9 @@ def _mock_service(monkeypatch: pytest.MonkeyPatch) -> None:
     mock_svc.create_memory_type = MagicMock(return_value={"name": MEMORY_TYPE_NAME})
     mock_svc.query_timeline = AsyncMock(return_value=[{"id": ENTITY_ID}])
     mock_svc.get_temporal_neighbors = AsyncMock(return_value=[{"id": ENTITY_ID}])
+    mock_svc.get_bottles = AsyncMock(return_value=[{"id": "bottle-1", "content": "note"}])
+    mock_svc.get_graph_health = AsyncMock(return_value={"nodes": 10, "edges": 15, "density": 0.3})
+    mock_svc.detect_structural_gaps = AsyncMock(return_value=[{"gap": "cluster-1"}])
     monkeypatch.setattr(server, "service", mock_svc)
     monkeypatch.setattr(tools_extra, "_service", mock_svc)
 
@@ -379,3 +382,21 @@ async def test_get_temporal_neighbors_mcp_tool() -> None:
     result = await server.get_temporal_neighbors(entity_id=ENTITY_ID, direction="after", limit=5)
     server.service.get_temporal_neighbors.assert_awaited_once_with(ENTITY_ID, "after", 5)
     assert result == [{"id": ENTITY_ID}]
+
+
+async def test_get_bottles_mcp_tool() -> None:
+    """get_bottles MCP wrapper delegates to _service.get_bottles."""
+    result = await tools_extra.get_bottles(limit=5)
+    assert result == [{"id": "bottle-1", "content": "note"}]
+
+
+async def test_graph_health_mcp_tool() -> None:
+    """graph_health MCP wrapper delegates to _service.get_graph_health."""
+    result = await tools_extra.graph_health()
+    assert result == {"nodes": 10, "edges": 15, "density": 0.3}
+
+
+async def test_find_knowledge_gaps_mcp_tool() -> None:
+    """find_knowledge_gaps MCP wrapper delegates to _service.detect_structural_gaps."""
+    result = await tools_extra.find_knowledge_gaps(min_similarity=0.8, max_edges=3, limit=5)
+    assert result == [{"gap": "cluster-1"}]
