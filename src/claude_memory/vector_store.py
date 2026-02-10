@@ -2,46 +2,18 @@
 
 import logging
 import os
-from typing import Any, Protocol
+from typing import Any
 
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http import models
 
+from claude_memory.interfaces import VectorStore
 from claude_memory.retry import retry_on_transient
 
 logger = logging.getLogger(__name__)
 
-
-class VectorStore(Protocol):
-    """Protocol for vector storage operations."""
-
-    async def upsert(self, id: str, vector: list[float], payload: dict[str, Any]) -> None:
-        """Insert or update a vector with payload."""
-        ...
-
-    async def search(
-        self,
-        vector: list[float],
-        limit: int = 5,
-        filter: dict[str, Any] | None = None,
-        offset: int = 0,
-    ) -> list[dict[str, Any]]:
-        """Search for nearest neighbors."""
-        ...
-
-    async def search_mmr(
-        self,
-        vector: list[float],
-        limit: int = 5,
-        filter: dict[str, Any] | None = None,
-        mmr_lambda: float = 0.5,
-    ) -> list[dict[str, Any]]:
-        """Search with Maximal Marginal Relevance for diversity."""
-        ...
-
-    async def delete(self, id: str) -> None:
-        """Delete a vector by ID."""
-        ...
+# Re-export for backward compatibility
+__all__ = ["VectorStore", "QdrantVectorStore"]
 
 
 # HNSW indexing threshold: build index at 500 points instead of the default 10K.

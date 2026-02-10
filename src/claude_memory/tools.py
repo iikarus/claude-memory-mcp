@@ -8,7 +8,7 @@ from typing import Any, Literal, cast
 
 from claude_memory.activation import ActivationEngine
 from claude_memory.context_manager import ContextManager
-from claude_memory.interfaces import Embedder
+from claude_memory.interfaces import Embedder, VectorStore
 from claude_memory.router import QueryIntent, QueryRouter
 
 from .lock_manager import LockManager
@@ -30,7 +30,7 @@ from .schema import (
     SessionStartParams,
     TemporalQueryParams,
 )
-from .vector_store import QdrantVectorStore, VectorStore
+from .vector_store import QdrantVectorStore
 
 # Configure logging
 logger = logging.getLogger(__name__)
