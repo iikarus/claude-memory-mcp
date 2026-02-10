@@ -240,13 +240,13 @@ def test_rank_default_weights_no_env() -> None:
 async def test_mcp_search_associative_no_results() -> None:
     """MCP wrapper returns 'No results found.' when empty."""
     with (
-        patch("claude_memory.server.service") as mock_svc,
+        patch("claude_memory.tools_extra._service") as mock_svc,
     ):
         mock_svc.search_associative = AsyncMock(return_value=[])
         from claude_memory.server import search_associative as mcp_search
 
         result = await mcp_search("hello")
-        assert result == "No results found."
+        assert result == [{"message": "No results found."}]
 
 
 @pytest.mark.asyncio()
@@ -263,7 +263,7 @@ async def test_mcp_search_associative_with_results() -> None:
         distance=0.1,
     )
 
-    with patch("claude_memory.server.service") as mock_svc:
+    with patch("claude_memory.tools_extra._service") as mock_svc:
         mock_svc.search_associative = AsyncMock(return_value=[mock_result])
         from claude_memory.server import search_associative as mcp_search
 

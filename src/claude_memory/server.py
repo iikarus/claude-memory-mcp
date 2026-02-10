@@ -16,15 +16,16 @@ from claude_memory.schema import (
     EntityCreateParams,
     EntityDeleteParams,
     EntityUpdateParams,
-    GapDetectionParams,
     ObservationParams,
     RelationshipCreateParams,
     RelationshipDeleteParams,
     SessionEndParams,
     SessionStartParams,
-    TemporalQueryParams,
 )
 from claude_memory.tools import MemoryService
+from claude_memory.tools_extra import (
+    configure as _configure_extra_tools,
+)
 
 # Initialize MCP Server
 mcp = FastMCP("claude-memory")
@@ -35,6 +36,9 @@ embedder = EmbeddingService()
 service = MemoryService(embedding_service=embedder)
 clustering = ClusteringService()
 librarian = LibrarianAgent(service, clustering)
+
+# Register extra tool handlers (temporal, search variants, health, librarian)
+_configure_extra_tools(mcp, service, librarian)
 
 
 @mcp.tool()
@@ -247,135 +251,6 @@ async def search_memory(  # noqa: PLR0913
     if not results:
         return "No results found."
     return [res.model_dump() for res in results]
-
-
-@mcp.tool()
-async def search_associative(  # noqa: PLR0913
-    query: str,
-    limit: int = 10,
-    project_id: str | None = None,
-    decay: float = 0.6,
-    max_hops: int = 3,
-    w_sim: float | None = None,
-    w_act: float | None = None,
-    w_sal: float | None = None,
-    w_rec: float | None = None,
-) -> list[dict[str, Any]] | str:
-    """Associative search using spreading activation through the knowledge graph.
-
-    Combines vector similarity with graph-based energy propagation for
-    richer, context-aware retrieval.  Score weights default to env vars
-    (SCORE_WEIGHT_SIMILARITY, etc.) or can be overridden per-query.
-    """
-    results = await service.search_associative(
-        query,
-        limit,
-        project_id,
-        decay=decay,
-        max_hops=max_hops,
-        w_sim=w_sim,
-        w_act=w_act,
-        w_sal=w_sal,
-        w_rec=w_rec,
-    )
-    if not results:
-        return "No results found."
-    return [res.model_dump() for res in results]
-
-
-@mcp.tool()
-async def run_librarian_cycle() -> dict[str, Any]:
-    """Triggers the Librarian Agent to cluster and consolidate memories."""
-    return await librarian.run_cycle()
-
-
-@mcp.tool()
-async def create_memory_type(
-    name: str, description: str, required_properties: list[str] | None = None
-) -> dict[str, Any]:
-    """Registers a new memory type in the ontology.
-
-    Args:
-        name: Name of the new type (e.g. "Recipe")
-        description: Description of what this type represents
-        required_properties: List of property names that should always be present
-    """
-    if required_properties is None:
-        required_properties = []
-    return service.create_memory_type(name, description, required_properties)
-
-
-@mcp.tool()
-async def query_timeline(
-    start: str,
-    end: str,
-    limit: int = 20,
-    project_id: str | None = None,
-) -> list[dict[str, Any]]:
-    """Query entities within a time window, ordered chronologically."""
-    from datetime import datetime  # noqa: PLC0415
-
-    params = TemporalQueryParams(
-        start=datetime.fromisoformat(start),
-        end=datetime.fromisoformat(end),
-        limit=limit,
-        project_id=project_id,
-    )
-    return await service.query_timeline(params)
-
-
-@mcp.tool()
-async def get_temporal_neighbors(
-    entity_id: str,
-    direction: str = "both",
-    limit: int = 10,
-) -> list[dict[str, Any]]:
-    """Find entities connected by temporal edges (before/after/both)."""
-    return await service.get_temporal_neighbors(entity_id, direction, limit)
-
-
-@mcp.tool()
-async def get_bottles(
-    limit: int = 10,
-    search_text: str | None = None,
-    before_date: str | None = None,
-    after_date: str | None = None,
-    project_id: str | None = None,
-) -> list[dict[str, Any]]:
-    """Query 'Message in a Bottle' entities — timestamped notes to your future self."""
-    from datetime import datetime as dt  # noqa: PLC0415
-
-    from claude_memory.schema import BottleQueryParams  # noqa: PLC0415
-
-    params = BottleQueryParams(
-        limit=limit,
-        search_text=search_text,
-        before_date=dt.fromisoformat(before_date) if before_date else None,
-        after_date=dt.fromisoformat(after_date) if after_date else None,
-        project_id=project_id,
-    )
-    return await service.get_bottles(params)
-
-
-@mcp.tool()
-async def graph_health() -> dict[str, Any]:
-    """Get graph health metrics: nodes, edges, density, orphans, communities, avg degree."""
-    return await service.get_graph_health()
-
-
-@mcp.tool()
-async def find_knowledge_gaps(
-    min_similarity: float = 0.7,
-    max_edges: int = 2,
-    limit: int = 10,
-) -> list[dict[str, Any]]:
-    """Find structural gaps: clusters that are semantically similar but poorly connected."""
-    params = GapDetectionParams(
-        min_similarity=min_similarity,
-        max_edges=max_edges,
-        limit=limit,
-    )
-    return await service.detect_structural_gaps(params)
 
 
 def main() -> None:

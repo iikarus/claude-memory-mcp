@@ -71,7 +71,7 @@ with patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-embedding-api"}):
     with patch("claude_memory.embedding.EmbeddingService"):
         with patch("claude_memory.repository.FalkorDB"):
             with patch("claude_memory.lock_manager.redis.Redis"):
-                from claude_memory import server
+                from claude_memory import server, tools_extra
 
 
 # ─── Fixtures ───────────────────────────────────────────────────────
@@ -102,6 +102,7 @@ def _mock_service(monkeypatch: pytest.MonkeyPatch) -> None:
     mock_svc.query_timeline = AsyncMock(return_value=[{"id": ENTITY_ID}])
     mock_svc.get_temporal_neighbors = AsyncMock(return_value=[{"id": ENTITY_ID}])
     monkeypatch.setattr(server, "service", mock_svc)
+    monkeypatch.setattr(tools_extra, "_service", mock_svc)
 
 
 @pytest.fixture()
@@ -109,6 +110,7 @@ def _mock_librarian(monkeypatch: pytest.MonkeyPatch) -> None:
     mock_lib = AsyncMock()
     mock_lib.run_cycle = AsyncMock(return_value={"clusters_found": 3})
     monkeypatch.setattr(server, "librarian", mock_lib)
+    monkeypatch.setattr(tools_extra, "_librarian", mock_lib)
 
 
 # ─── Entity Tool Tests ──────────────────────────────────────────────
