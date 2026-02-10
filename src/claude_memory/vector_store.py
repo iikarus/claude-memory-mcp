@@ -13,7 +13,7 @@ from claude_memory.retry import retry_on_transient
 logger = logging.getLogger(__name__)
 
 # Re-export for backward compatibility
-__all__ = ["VectorStore", "QdrantVectorStore"]
+__all__ = ["QdrantVectorStore", "VectorStore"]
 
 
 # HNSW indexing threshold: build index at 500 points instead of the default 10K.

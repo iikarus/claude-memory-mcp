@@ -47,4 +47,3 @@ class VectorStore(Protocol):
     async def delete(self, id: str) -> None:
         """Delete a vector by ID."""
         ...
-

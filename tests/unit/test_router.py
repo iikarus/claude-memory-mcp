@@ -229,22 +229,16 @@ class TestSearchStrategy:
             distance=0.1,
         )
 
-        with (
-            patch(f"{_TOOLS_MODULE}.QueryRouter") as mock_router_cls,
-        ):
-            mock_router = mock_router_cls.return_value
-            mock_router.route = AsyncMock(return_value=[mock_result])
+        # Build a minimal service stub with router as AsyncMock
+        svc = MagicMock()
+        svc.router = MagicMock()
+        svc.router.route = AsyncMock(return_value=[mock_result])
 
-            # Build a minimal service stub
-            svc = MagicMock()
-            svc.search = MagicMock()
+        from claude_memory.tools import MemoryService
 
-            # Import and call the real search method with strategy
-            from claude_memory.tools import MemoryService
-
-            result = await MemoryService.search(svc, "plain query", strategy="auto")
-            mock_router.route.assert_called_once()
-            assert result == [mock_result]
+        result = await MemoryService.search(svc, "plain query", strategy="auto")
+        svc.router.route.assert_called_once()
+        assert result == [mock_result]
 
     @pytest.mark.asyncio()
     async def test_search_strategy_explicit_semantic(self) -> None:
@@ -261,17 +255,16 @@ class TestSearchStrategy:
             distance=0.2,
         )
 
-        with patch(f"{_TOOLS_MODULE}.QueryRouter") as mock_router_cls:
-            mock_router = mock_router_cls.return_value
-            mock_router.route = AsyncMock(return_value=[mock_result])
+        svc = MagicMock()
+        svc.router = MagicMock()
+        svc.router.route = AsyncMock(return_value=[mock_result])
 
-            svc = MagicMock()
-            from claude_memory.tools import MemoryService
+        from claude_memory.tools import MemoryService
 
-            result = await MemoryService.search(svc, "what is Python", strategy="semantic")
-            call_kwargs = mock_router.route.call_args.kwargs
-            assert call_kwargs["intent"] == QueryIntent.SEMANTIC
-            assert len(result) == 1
+        result = await MemoryService.search(svc, "what is Python", strategy="semantic")
+        call_kwargs = svc.router.route.call_args.kwargs
+        assert call_kwargs["intent"] == QueryIntent.SEMANTIC
+        assert len(result) == 1
 
     @pytest.mark.asyncio()
     async def test_search_strategy_none_skips_router(self) -> None:
@@ -298,17 +291,16 @@ class TestSearchStrategy:
             {"id": "d-2"},
         ]
 
-        with patch(f"{_TOOLS_MODULE}.QueryRouter") as mock_router_cls:
-            mock_router = mock_router_cls.return_value
-            mock_router.route = AsyncMock(return_value=dicts)
+        svc = MagicMock()
+        svc.router = MagicMock()
+        svc.router.route = AsyncMock(return_value=dicts)
 
-            svc = MagicMock()
-            from claude_memory.tools import MemoryService
+        from claude_memory.tools import MemoryService
 
-            result = await MemoryService.search(svc, "timeline of events", strategy="temporal")
-            assert len(result) == 2
-            assert result[0].id == "d-1"
-            assert result[1].name == "Unknown"  # default for missing name
+        result = await MemoryService.search(svc, "timeline of events", strategy="temporal")
+        assert len(result) == 2
+        assert result[0].id == "d-1"
+        assert result[1].name == "Unknown"  # default for missing name
 
     @pytest.mark.asyncio()
     async def test_search_strategy_empty_query_returns_empty(self) -> None:

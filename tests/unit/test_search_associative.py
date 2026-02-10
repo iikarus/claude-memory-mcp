@@ -47,6 +47,7 @@ def service() -> MemoryService:
                 svc = MemoryService(embedding_service=mock_embedder)
 
     svc.repo = MagicMock()
+    svc.activation_engine.repo = svc.repo  # sync so spread() uses same mock
     svc.vector_store = AsyncMock()
     return svc
 
