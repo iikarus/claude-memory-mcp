@@ -510,3 +510,69 @@ def test_get_bottles_empty(repo: Any, mock_graph: MagicMock) -> None:
 
     result = repo.get_bottles()
     assert result == []
+
+
+# ─── Phase 15A: Graph Health Metrics Tests ──────────────────────────
+
+
+def test_get_graph_health_empty_graph(repo: Any, mock_graph: MagicMock) -> None:
+    """get_graph_health returns zeros for an empty graph."""
+    mock_graph.query.return_value = _make_mock_result([[0]])
+
+    result = repo.get_graph_health()
+    assert result["total_nodes"] == 0
+    assert result["total_edges"] == 0
+    assert result["orphan_count"] == 0
+    assert result["density"] == 0.0
+    assert result["avg_degree"] == 0.0
+
+
+def test_get_graph_health_single_orphan(repo: Any, mock_graph: MagicMock) -> None:
+    """Single node with no edges is an orphan."""
+    # node count=1, edge count=0, orphan count=1
+    mock_graph.query.side_effect = [
+        _make_mock_result([[1]]),
+        _make_mock_result([[0]]),
+        _make_mock_result([[1]]),
+    ]
+
+    result = repo.get_graph_health()
+    assert result["total_nodes"] == 1
+    assert result["total_edges"] == 0
+    assert result["orphan_count"] == 1
+    assert result["density"] == 0.0
+    assert result["avg_degree"] == 0.0
+
+
+def test_get_graph_health_with_edges(repo: Any, mock_graph: MagicMock) -> None:
+    """Graph with nodes and edges computes correct density and avg_degree."""
+    # 5 nodes, 4 edges, 0 orphans
+    mock_graph.query.side_effect = [
+        _make_mock_result([[5]]),
+        _make_mock_result([[4]]),
+        _make_mock_result([[0]]),
+    ]
+
+    result = repo.get_graph_health()
+    assert result["total_nodes"] == 5
+    assert result["total_edges"] == 4
+    assert result["orphan_count"] == 0
+    # density = 4 / (5*4) = 0.2
+    assert result["density"] == 0.2
+    # avg_degree = 4 / 5 = 0.8
+    assert result["avg_degree"] == 0.8
+
+
+def test_get_all_edges(repo: Any, mock_graph: MagicMock) -> None:
+    """get_all_edges returns structured edge list."""
+    mock_graph.query.return_value = _make_mock_result(
+        [
+            ["n1", "n2", "RELATED_TO"],
+            ["n2", "n3", "DEPENDS_ON"],
+        ]
+    )
+
+    result = repo.get_all_edges()
+    assert len(result) == 2
+    assert result[0] == {"source": "n1", "target": "n2", "type": "RELATED_TO"}
+    assert result[1] == {"source": "n2", "target": "n3", "type": "DEPENDS_ON"}

@@ -1219,3 +1219,40 @@ async def test_get_bottles_empty(service: MemoryService) -> None:
     params = BottleQueryParams()
     result = await service.get_bottles(params)
     assert result == []
+
+
+# ─── Phase 15A: Graph Health Metrics Tests ──────────────────────────
+
+
+async def test_get_graph_health_basic(service: MemoryService) -> None:
+    """get_graph_health returns repo stats plus community_count."""
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 10,
+        "total_edges": 15,
+        "density": 0.166667,
+        "orphan_count": 2,
+        "avg_degree": 1.5,
+    }
+    service.repo.get_all_nodes.return_value = []
+
+    result = await service.get_graph_health()
+    assert result["total_nodes"] == 10
+    assert result["total_edges"] == 15
+    assert "community_count" in result
+    service.repo.get_graph_health.assert_called_once()
+
+
+async def test_get_graph_health_few_nodes(service: MemoryService) -> None:
+    """get_graph_health skips clustering when fewer than 3 nodes."""
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 2,
+        "total_edges": 1,
+        "density": 0.5,
+        "orphan_count": 0,
+        "avg_degree": 0.5,
+    }
+
+    result = await service.get_graph_health()
+    assert result["community_count"] == 0
+    # Should not call get_all_nodes since total_nodes < 3
+    service.repo.get_all_nodes.assert_not_called()

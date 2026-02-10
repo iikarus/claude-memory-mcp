@@ -774,6 +774,30 @@ class MemoryService:
             project_id=params.project_id,
         )
 
+    async def get_graph_health(self) -> dict[str, Any]:
+        """Compute graph health metrics including community count.
+
+        Merges repository-level stats (nodes, edges, density, orphans, avg_degree)
+        with clustering-based community count.
+        """
+        from .clustering import ClusteringService  # noqa: PLC0415
+
+        health = self.repo.get_graph_health()
+
+        # Compute community count via clustering
+        community_count = 0
+        cs = ClusteringService()
+        if health["total_nodes"] >= cs.min_samples:
+            try:
+                nodes = self.repo.get_all_nodes(limit=2000)
+                clusters = cs.cluster_nodes(nodes)
+                community_count = len(clusters)
+            except Exception:
+                logger.warning("Clustering failed during health check — community_count=0")
+
+        health["community_count"] = community_count
+        return health  # type: ignore[no-any-return]
+
     async def archive_entity(self, entity_id: str) -> dict[str, Any]:
         """Archive an entity (logical hide)."""
         return self.repo.update_node(entity_id, {"status": "archived"})  # type: ignore[no-any-return]

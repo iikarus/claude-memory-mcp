@@ -482,3 +482,48 @@ class MemoryRepository:
         """
         result = graph.query(query, params)
         return [row[0].properties for row in result.result_set if row]
+
+    @retry_on_transient()
+    def get_graph_health(self) -> dict[str, Any]:
+        """Compute basic graph health metrics.
+
+        Returns a dict with node count, edge count, density, orphan count, and avg degree.
+        Community count is excluded — computed at the service layer via ClusteringService.
+        """
+        graph = self.select_graph()
+
+        # Node count
+        node_result = graph.query("MATCH (n:Entity) RETURN count(n)")
+        total_nodes: int = int(node_result.result_set[0][0]) if node_result.result_set else 0
+
+        # Edge count
+        edge_result = graph.query("MATCH (:Entity)-[r]->(:Entity) RETURN count(r)")
+        total_edges: int = int(edge_result.result_set[0][0]) if edge_result.result_set else 0
+
+        # Orphan count (nodes with zero relationships)
+        orphan_result = graph.query("MATCH (n:Entity) WHERE NOT (n)--() RETURN count(n)")
+        orphan_count: int = int(orphan_result.result_set[0][0]) if orphan_result.result_set else 0
+
+        # Density: edges / max_possible_edges  (directed graph)
+        max_edges = total_nodes * (total_nodes - 1) if total_nodes > 1 else 1
+        density = total_edges / max_edges
+
+        # Average degree: total_edges / total_nodes (each edge counted once)
+        avg_degree = total_edges / total_nodes if total_nodes > 0 else 0.0
+
+        return {
+            "total_nodes": total_nodes,
+            "total_edges": total_edges,
+            "density": round(density, 6),
+            "orphan_count": orphan_count,
+            "avg_degree": round(avg_degree, 2),
+        }
+
+    @retry_on_transient()
+    def get_all_edges(self) -> list[dict[str, Any]]:
+        """Fetch all edges between Entity nodes for gap detection."""
+        graph = self.select_graph()
+        result = graph.query("MATCH (a:Entity)-[r]->(b:Entity) RETURN a.id, b.id, type(r)")
+        return [
+            {"source": row[0], "target": row[1], "type": row[2]} for row in result.result_set if row
+        ]

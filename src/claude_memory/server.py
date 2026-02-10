@@ -356,6 +356,12 @@ async def get_bottles(
     return await service.get_bottles(params)
 
 
+@mcp.tool()
+async def graph_health() -> dict[str, Any]:
+    """Get graph health metrics: nodes, edges, density, orphans, communities, avg degree."""
+    return await service.get_graph_health()
+
+
 def main() -> None:
     """Launch the MCP server via stdio transport."""
     from claude_memory.logging_config import configure_logging  # noqa: PLC0415
