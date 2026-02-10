@@ -1,15 +1,15 @@
 # User Manual: The Exocortex
 
-This manual describes how to interact with the Claude Memory System. Last updated: February 2026.
+This manual describes how to interact with the Claude Memory System. Last updated: February 10, 2026.
 
-## 🤖 For Claude (MCP Tools)
+## 🤖 For Claude (MCP Tools — 25 Total)
 
 The system exposes the following tools via the Model Context Protocol (stdio transport).
 
 ### Core Memory Operations
 
 - **`create_entity(name, node_type, project_id, properties, certainty, evidence)`**
-  - Creates a new memory node with optional metadata.
+  - Creates a new memory node with optional metadata. Automatically links to most recent entity in the same project via `PRECEDED_BY`.
   - _Example_: `create_entity("Project Tesseract", "Project", "tesseract", {"status": "active"})`
 - **`add_observation(entity_id, content, certainty, evidence)`**
   - Adds a raw observation/note linked to an entity.
@@ -26,8 +26,13 @@ The system exposes the following tools via the Model Context Protocol (stdio tra
 
 ### Retrieval Tools (The Magic)
 
-- **`search_memory(query, project_id, limit, offset)`**
-  - Hybrid semantic search with pagination. Returns best matching nodes.
+- **`search_memory(query, project_id, limit, offset, mmr, strategy)`**
+  - Hybrid semantic search with pagination. Supports MMR diversity and strategy selection.
+  - **Strategies**: `auto` (router picks), `semantic`, `associative`, `temporal`, `relational`.
+  - _Example_: `search_memory("graph algorithms", strategy="auto", mmr=True)`
+- **`search_associative(query, limit, project_id, decay, max_hops, w_sim, w_act, w_sal, w_rec)`**
+  - Spreading activation search. Combines vector similarity with graph energy propagation.
+  - Score weights are configurable per-query or via env vars.
 - **`get_neighbors(entity_id, depth=1, limit=20, offset=0)`**
   - Explore the graph. Returns the "Hologram" (connected context) around a node.
 - **`traverse_path(from_id, to_id)`**
@@ -39,16 +44,35 @@ The system exposes the following tools via the Model Context Protocol (stdio tra
 - **`point_in_time_query(query_text, as_of)`**
   - Time-travel search. "What did we know about X last week?"
 
+### Temporal Tools
+
+- **`query_timeline(start, end, limit, project_id)`**
+  - Returns entities within a time window, ordered chronologically.
+  - _Example_: `query_timeline("2026-02-01", "2026-02-10")`
+- **`get_temporal_neighbors(entity_id, direction, limit)`**
+  - Finds entities connected by `PRECEDED_BY` / `CONCURRENT_WITH` edges.
+  - **Direction**: `before`, `after`, or `both`.
+- **`get_bottles(limit, search_text, before_date, after_date, project_id)`**
+  - Queries "Message in a Bottle" entities — timestamped notes to your future self.
+
 ### Session Management
 
-- **`start_session(project_id, focus)`** — Opens a session context.
+- **`start_session(project_id, focus)`** — Opens a session context (also creates temporal anchor).
 - **`end_session(session_id, summary, outcomes)`** — Closes and records.
 - **`record_breakthrough(name, moment, session_id)`** — Captures learning moments.
+
+### Analysis Tools
+
+- **`graph_health()`**
+  - Returns graph metrics: node/edge counts, density, orphan nodes, community count, avg degree.
+- **`find_knowledge_gaps(min_similarity, max_edges, limit)`**
+  - Detects structural gaps — clusters that are semantically similar but poorly connected.
+  - Returns gap details + auto-generated research prompts.
 
 ### Maintenance
 
 - **`run_librarian_cycle()`**
-  - Triggers the Librarian Agent immediately. It clusters related memories and synthesizes higher-order concepts.
+  - Triggers the Librarian Agent. Clusters → Consolidates → Detects Gaps → Stores GapReports → Prunes.
 - **`create_memory_type(name, description, required_properties)`**
   - Registers a custom entity type in the runtime ontology.
 - **`archive_entity(entity_id)`** — Logical hide.
@@ -65,6 +89,7 @@ Access the Streamlit UI at `http://localhost:8501`.
   - **Focus Node**: Filter the graph to show only a specific node and its immediate neighbors (1-2 hops).
   - **Limit**: Adjust the number of nodes rendered (Warning: High limits > 500 may slow down rendering).
   - **Text Filter**: Highlight nodes matching a specific regex pattern.
+- **Diagnostics Tab**: System health checks and verification (via `doctor.py` integration).
 
 ## 💾 Backups
 

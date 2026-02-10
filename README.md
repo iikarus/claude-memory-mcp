@@ -1,29 +1,35 @@
 # Claude Memory MCP Server — "The Exocortex"
 
 > **Status**: Production (Dockerized, Automated Backups)
-> **Last Audit**: February 8, 2026 — 693 nodes, 797 edges, 255 tests, 100% coverage
+> **Last Audit**: February 10, 2026 — 693 nodes, 797 edges, 386 tests, 98% coverage
 
-A long-term memory system for Claude, built as a Model Context Protocol (MCP) server. It provides semantic storage, holographic retrieval, and autonomous maintenance ("The Librarian") using a Hybrid Graph+Vector backend.
+A long-term memory system for Claude, built as a Model Context Protocol (MCP) server. It provides semantic storage, holographic retrieval, spreading activation search, temporal reasoning, structural gap analysis, and autonomous maintenance ("The Librarian") using a Hybrid Graph+Vector backend.
 
 ## 🚀 Features
 
 - **Memory Graph**: Stores entities, relationships, and observations in **FalkorDB** (Cypher queries).
-- **Vector Search**: High-dimensional similarity search via **Qdrant** (1024d, BAAI/bge-m3).
+- **Vector Search**: High-dimensional similarity search via **Qdrant** (1024d, BAAI/bge-m3, MMR diversity).
 - **Holographic Retrieval**: Retrieves not just nodes, but their full connected context ("The Hologram").
-- **Autonomous Maintenance**: "The Librarian" agent clusters related memories and synthesizes higher-order concepts.
+- **Spreading Activation**: Graph-based energy propagation for associative, context-aware retrieval.
+- **Temporal Reasoning**: Timeline queries, temporal neighbors, and time-travel search.
+- **Adaptive Routing**: Automatic query intent classification (semantic, associative, temporal, relational).
+- **Structural Gap Analysis**: InfraNodus-inspired detection of knowledge blind spots.
+- **Autonomous Maintenance**: "The Librarian" agent clusters, consolidates, and detects gaps.
 - **Visual Dashboard**: A Streamlit UI to explore the memory graph interactively.
 - **Automated Backups**: Daily snapshots to Google Drive with rolling 7-day retention.
-- **Strict Quality**: 100% Mypy typed, 100% Test Coverage, 255 unit tests.
+- **Strict Quality**: 100% Mypy typed, 386 unit tests, 5-tier Gold Stack CI/CD.
 
 ## 🛠️ Architecture
 
 - **Graph DB**: `FalkorDB` — structure, relationships, Cypher queries
-- **Vector DB**: `Qdrant` — embeddings, similarity search
+- **Vector DB**: `Qdrant` — embeddings, similarity search, MMR
 - **Embedding**: `sentence-transformers` (`BAAI/bge-m3`) via dedicated microservice
 - **Server**: `FastMCP` — stdio transport (Claude Desktop / VS Code)
 - **Clustering**: `scikit-learn` (DBSCAN) for concept discovery
-- **Dashboard**: `Streamlit` for visualization
-- **CI/CD**: `tox` (4 tiers: pulse, gate, hammer, polish)
+- **Activation**: Spreading activation engine for associative retrieval
+- **Routing**: Rule-based query intent classification
+- **Dashboard**: `Streamlit` for visualization + diagnostics
+- **CI/CD**: `tox` (5 tiers: pulse, gate, forge, hammer, polish)
 
 ## 🏁 Quick Start
 
@@ -62,22 +68,24 @@ docker compose ps   # All 4 should be "healthy"
 ### Run Tests
 
 ```powershell
-tox -e pulse    # lint + type check + 255 tests
+tox -e pulse    # lint + type check + 386 tests
+tox             # full Gold Stack (all 5 tiers)
 ```
 
 ## 📚 Documentation
 
 Detailed manuals are located in `docs/`:
 
-- [User Manual](docs/USER_MANUAL.md): How to use the tools with Claude.
+- [User Manual](docs/USER_MANUAL.md): How to use the 25 MCP tools with Claude.
 - [Maintenance Manual](docs/MAINTENANCE_MANUAL.md): Backups, monitoring, troubleshooting.
 - [Code Inventory](docs/CODE_INVENTORY.md): Comprehensive file listing.
 - [Architecture](docs/ARCHITECTURE.md): System design deep dive.
 - [Gotchas](docs/GOTCHAS.md): Known traps and subtleties.
 - [Rehydration Document](docs/REHYDRATION_DOCUMENT.md): Onboarding guide for new agents.
+- [Upgrade Log](docs/UPGRADE_LOG.md): Phase-by-phase changelog of V2 enhancements.
 
 ## 🛡️ "The Moto"
 
 > "No code without a git pre commit + plethora of unit tests + mercenary checks."
 
-This project adheres to **The Gold Stack** — a 16-tool TDD/CI/CD suite. See `tox.ini` and `.pre-commit-config.yaml`.
+This project adheres to **The Gold Stack** — a 16-tool TDD/CI/CD suite across 5 tiers. See `tox.ini` and `.pre-commit-config.yaml`.

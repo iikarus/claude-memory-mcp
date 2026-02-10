@@ -53,3 +53,27 @@
 - **Gotcha**: Without `.dockerignore`, the entire project (~1.6 GB including `.tox`, caches) gets sent to Docker.
 - **Risk**: 3-hour builds instead of 3-minute builds.
 - **Fix**: `.dockerignore` excludes development artifacts. Keep it updated if adding new large directories.
+
+## 10. Temporal Edge Direction
+
+- **Gotcha**: `PRECEDED_BY` edges point **backward** (newer → older).
+- **Risk**: If you query `get_temporal_neighbors(id, direction="after")`, you traverse **incoming** edges, not outgoing.
+- **Fix**: Read `repository.py` — `direction="before"` follows outgoing PRECEDED_BY, `"after"` follows incoming.
+
+## 11. Salience Is Fire-and-Forget
+
+- **Gotcha**: Salience updates run asynchronously via `asyncio.create_task()` after search.
+- **Risk**: If FalkorDB is slow, the salience update may fail silently. The warning `"Background salience update failed"` is logged but does not block search.
+- **Fix**: This is by design. The `@retry_on_transient` decorator handles transient failures. Salience is eventually consistent.
+
+## 12. Embedding Model Lock-In
+
+- **Gotcha**: We benchmarked BGE-M3 vs MiniLM (Phase 14). BGE-M3 won (r@10=0.926 vs 0.923).
+- **Risk**: Switching models requires re-embedding ALL entities (drop + recreate Qdrant collection). GTE-Qwen2 (1.5B) has known download issues via HuggingFace xet CDN.
+- **Fix**: Stick with BGE-M3 unless recall drops below 0.9. Run `scripts/embedding_eval.py` to re-benchmark.
+
+## 13. GapReport Entities
+
+- **Gotcha**: The Librarian stores `GapReport` entities in FalkorDB during each cycle.
+- **Risk**: Over time, stale GapReports accumulate. They have `detected_at` timestamps but no automatic cleanup.
+- **Fix**: Use `prune_stale(days=30)` or manually archive old GapReports.

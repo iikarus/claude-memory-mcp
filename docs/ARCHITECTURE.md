@@ -3,8 +3,9 @@
 ## Design Principles ("The Moto")
 
 1.  **Mercenary Validation**: "No code without a git pre commit + plethora of unit tests + mercenary checks."
-2.  **Strict Decoupling**: ML logic (`embedding.py`) is isolated from Business Logic (`tools.py`) via Dependency Injection.
+2.  **Strict Decoupling**: ML logic (`embedding.py`, `activation.py`) is isolated from Business Logic (`tools.py`) via Dependency Injection.
 3.  **Semantic Holiness**: We do not treat memories as strings. We treat them as **Holographic Graphs**.
+4.  **Adaptive Retrieval**: Queries are automatically classified and routed to the best search strategy.
 
 ## The Data Model
 
@@ -12,7 +13,7 @@
 
 Nodes in the graph (FalkorDB).
 
-- **Properties**: `id`, `name`, `description`, `node_type`, `project_id`, `created_at`, `certainty`, `weight`.
+- **Properties**: `id`, `name`, `description`, `node_type`, `project_id`, `created_at`, `occurred_at`, `certainty`, `weight`, `salience_score`, `last_accessed`.
 - **Vector**: Stored in **Qdrant** (linked by `id`). Not on graph nodes.
 
 ### Vector Store (Qdrant)
@@ -21,6 +22,7 @@ High-performance vector similarity search.
 
 - **Collection**: `memory_embeddings`
 - **Payload**: Stores `entity_id` and embedding vector (1024d, BAAI/bge-m3).
+- **Features**: MMR diversity search, HNSW optimized threshold (5000), full-text payload index on `name`.
 - **Env**: `QDRANT_HOST` (default `localhost`, set to `qdrant` in Docker).
 
 ### Relationships
@@ -28,7 +30,7 @@ High-performance vector similarity search.
 Edges in the graph.
 
 - **Properties**: `confidence`, `weight` (0-1), `created_at`.
-- **Typed**: `CONNECTED_TO`, `PART_OF`, `CAUSED`, `DEPENDS_ON`, `RELATES_TO`, `DERIVED_FROM`.
+- **Typed**: `CONNECTED_TO`, `PART_OF`, `CAUSED`, `DEPENDS_ON`, `RELATES_TO`, `DERIVED_FROM`, `PRECEDED_BY`, `CONCURRENT_WITH`.
 
 ### The "Hologram"
 
@@ -38,6 +40,33 @@ Instead of `SELECT * FROM Memories WHERE text MATCH query`, we do:
 1.  **Search**: Find anchors (top-k semantic match via Qdrant).
 2.  **Expand**: BFS Traverse outward (Depth 2-3 via FalkorDB).
 3.  **Return**: The connected subgraph (stripped of raw embeddings).
+
+### Spreading Activation
+
+An associative retrieval pattern (Phase 12).
+
+1.  **Seed**: Vector search finds initial anchors.
+2.  **Activate**: Energy propagates through graph edges (decay=0.6, max_hops=3).
+3.  **Inhibit**: Lateral inhibition (top-k) prevents runaway activation.
+4.  **Rank**: Merge vector score + activation score + salience + recency with configurable weights.
+
+### Adaptive Routing (Phase 13)
+
+The `QueryRouter` classifies queries by intent:
+
+- **SEMANTIC**: Factual lookups → vector search
+- **ASSOCIATIVE**: "How does X relate to Y?" → spreading activation
+- **TEMPORAL**: "What happened last week?" → timeline query
+- **RELATIONAL**: "What depends on X?" → graph traversal
+
+### Structural Gap Analysis (Phase 15)
+
+InfraNodus-inspired knowledge gap detection:
+
+1.  **Cluster**: DBSCAN groups related memories.
+2.  **Compare**: Cosine similarity between cluster centroids.
+3.  **Detect**: High similarity + low cross-edges = structural gap.
+4.  **Report**: Generate research prompts + store `GapReport` entities.
 
 ### API Sanitization Layer ("The Bouncer")
 
@@ -64,7 +93,14 @@ Before any data leaves the `MemoryService` to return to the user/LLM:
 
     G[LibrarianAgent] -->|monitors| C
     G -->|clusters| H[ClusteringService]
+    G -->|detects gaps| H
     H -->|reads vectors| I
+
+    K[ActivationEngine] -->|reads edges| F
+    K -->|reads vectors| I
+
+    L[QueryRouter] -->|classifies| C
+    L -->|routes to| K
 
     J[Dashboard :8501] -->|imports| C
 ```
@@ -87,8 +123,14 @@ All ports are bound to `127.0.0.1` — no external access.
 - **Retention**: Rolling 7-day window — both local and cloud copies.
 - **Script**: `scripts/scheduled_backup.py`.
 
-## Future Roadmap (V2+)
+## CI/CD Tiers (The Gold Stack)
 
-1.  **Authentication**: API key / token-based access control.
-2.  **Multi-Tenancy**: Enforce `project_id` strictly at the Repo layer.
-3.  **Recursive Summarization**: Librarian synthesizes concepts of concepts.
+| Tier   | What                                                        |
+| ------ | ----------------------------------------------------------- |
+| pulse  | Ruff lint + format check + Mypy strict + Pytest (386 tests) |
+| gate   | Security scanning (pip-audit, bandit)                       |
+| forge  | Focused unit test subset                                    |
+| hammer | Mutation testing (mutmut)                                   |
+| polish | Final format + lint enforcement                             |
+
+Run all: `tox` | Run one: `tox -e pulse`

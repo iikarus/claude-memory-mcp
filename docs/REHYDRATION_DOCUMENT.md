@@ -118,14 +118,14 @@ python scripts/nuke_data.py --force
 
 **Do not commit code without running these.**
 
-Run `tox -e pulse` — this executes all 4 checks in one command:
+Run `tox -e pulse` — this executes all checks in one command:
 
 1.  **Ruff**: Linting + import sorting.
 2.  **Ruff Format**: Code formatting.
-3.  **Mypy**: Static type checking (17 source files, strict mode).
-4.  **Pytest**: 255 unit tests, 100% coverage required (≥30% threshold).
+3.  **Mypy**: Static type checking (18 source files, strict mode).
+4.  **Pytest**: 386 unit tests, 98% coverage (≥30% threshold).
 
-Additional tiers: `tox -e gate` (security), `tox -e hammer` (mutation testing), `tox -e polish`.
+Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (security), `tox -e forge` (focused tests), `tox -e hammer` (mutation), `tox -e polish` (final format).
 
 ## 6. Known "Gotchas" for Future Agents
 
@@ -142,9 +142,11 @@ If you are reading this to fix a bug or add a feature:
 
 1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
 2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
-3.  **Trust `final_check.py`**: It is your ground truth. If it fails, the system is broken.
-4.  **Run `tox -e pulse` before committing**: 255 tests must pass with 100% coverage.
+3.  **Trust `e2e_test.py`**: It is your ground truth. If it fails, the system is broken.
+4.  **Run `tox -e pulse` before committing**: 386 tests must pass.
 5.  **Never add `WHERE n.embedding IS NOT NULL`**: Embeddings are in Qdrant, not on graph nodes.
+6.  **Read `docs/UPGRADE_LOG.md`**: Understand what V2 added before making changes.
+7.  **Read `docs/GOTCHAS.md`**: Known traps that will burn you if ignored.
 
 _Signed,_
 _Project Antigravity (Feb 2026)_
