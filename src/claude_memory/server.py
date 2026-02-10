@@ -26,6 +26,16 @@ from claude_memory.tools import MemoryService
 from claude_memory.tools_extra import (
     configure as _configure_extra_tools,
 )
+from claude_memory.tools_extra import (
+    create_memory_type,  # noqa: F401 — re-export for backward compat
+    find_knowledge_gaps,  # noqa: F401
+    get_bottles,  # noqa: F401
+    get_temporal_neighbors,  # noqa: F401
+    graph_health,  # noqa: F401
+    query_timeline,  # noqa: F401
+    run_librarian_cycle,  # noqa: F401
+    search_associative,  # noqa: F401
+)
 
 # Initialize MCP Server
 mcp = FastMCP("claude-memory")
