@@ -86,6 +86,7 @@ class EntityCommitReceipt(BaseModel):
     operation_time_ms: float
     total_memory_count: int
     message: str = "Memory committed to graph."
+    warnings: list[str] = Field(default_factory=list)
 
 
 class BreakthroughParams(BaseModel):

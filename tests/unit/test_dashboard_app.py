@@ -122,8 +122,28 @@ async def test_get_graph_data_focused() -> None:
         result = await dashboard_app.get_graph_data(limit=GRAPH_LIMIT_CUSTOM, focus=FOCUS_NODE_NAME)
 
     query_used = mock_service.repo.execute_cypher.call_args[0][0]
-    assert FOCUS_NODE_NAME in query_used
+    params_used = mock_service.repo.execute_cypher.call_args[0][1]
+    assert "$focus" in query_used
+    assert params_used["focus"] == FOCUS_NODE_NAME
     assert result is mock_result
+
+
+async def test_get_graph_data_injection_safe() -> None:
+    """Cypher injection: focus with quote chars must NOT appear in query string."""
+    dashboard_app = _import_dashboard()
+
+    mock_service = MagicMock()
+    mock_service.repo.execute_cypher.return_value = MagicMock()
+    malicious_input = "' OR 1=1 RETURN n //"
+
+    with patch.object(dashboard_app, "get_service", return_value=mock_service):
+        await dashboard_app.get_graph_data(limit=100, focus=malicious_input)
+
+    query_used = mock_service.repo.execute_cypher.call_args[0][0]
+    params_used = mock_service.repo.execute_cypher.call_args[0][1]
+    # The malicious input must be in params, NOT in the query string
+    assert malicious_input not in query_used
+    assert params_used["focus"] == malicious_input
 
 
 # ─── main() Tests ───────────────────────────────────────────────────
