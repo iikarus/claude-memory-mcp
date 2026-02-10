@@ -70,9 +70,9 @@ async def run_e2e() -> None:
 
         found = False
         for res in results:
-            if res["id"] == entity.id:
+            if res.id == entity.id:
                 found = True
-                logger.info(f" -> Found match: {res['name']} (Score: {res['score']:.4f})")
+                logger.info(f" -> Found match: {res.name} (Score: {res.score:.4f})")
                 break
 
         if found:
