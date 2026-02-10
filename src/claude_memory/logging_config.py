@@ -42,7 +42,7 @@ def configure_logging(level: str | None = None) -> None:
     # Remove existing handlers to avoid duplication
     root.handlers.clear()
 
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler(sys.stderr)
 
     if log_format.lower() == "json":
         handler.setFormatter(JSONFormatter())
