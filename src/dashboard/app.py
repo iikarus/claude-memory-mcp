@@ -7,6 +7,7 @@ import subprocess
 import sys
 from typing import Any
 
+import nest_asyncio
 import streamlit as st
 import streamlit.components.v1 as components
 from pyvis.network import Network
@@ -16,6 +17,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from claude_memory.embedding import EmbeddingService
 from claude_memory.tools import MemoryService
+
+# Allow nested event loops so asyncio.run() works inside Streamlit callbacks.
+nest_asyncio.apply()
 
 st.set_page_config(layout="wide", page_title="Memory Explorer")
 
@@ -27,14 +31,11 @@ def get_service() -> MemoryService:
     return MemoryService(embedding_service=embedder)
 
 
-async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
+def get_graph_data(limit: int = 100, focus: str = "") -> Any:
     """Query the graph for node/relationship data, optionally focused on a node."""
     service = get_service()
 
     if focus:
-        # Focused Query (Neighborhood)
-        # Try to find node by ID or Name
-        # We use OPTIONAL MATCH to get connections
         q = """
         MATCH (n:Entity)
         WHERE n.id = $focus OR n.name CONTAINS $focus
@@ -43,7 +44,6 @@ async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
         """
         return service.repo.execute_cypher(q, {"focus": focus, "limit": limit})
     else:
-        # Global Query
         q = """
         MATCH (n:Entity)
         OPTIONAL MATCH (n)-[r]->(m:Entity)
@@ -52,7 +52,7 @@ async def get_graph_data(limit: int = 100, focus: str = "") -> Any:
         return service.repo.execute_cypher(q, {"limit": limit})
 
 
-async def get_stats() -> tuple[int, int]:
+def get_stats() -> tuple[int, int]:
     """Return total node and edge counts from the graph."""
     service = get_service()
     nodes = service.repo.execute_cypher("MATCH (n) RETURN count(n)").result_set[0][0]
@@ -67,7 +67,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     service = get_service()
 
     # Sidebar Stats
-    nodes, edges = asyncio.run(get_stats())
+    nodes, edges = get_stats()
     st.sidebar.metric("Total Nodes", nodes)
     st.sidebar.metric("Relationships", edges)
 
@@ -82,7 +82,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
             focus = st.text_input("Focus Node (ID or Name)", help="Leave empty for global view")
 
         if st.button("Refresh Graph"):
-            res = asyncio.run(get_graph_data(limit, focus))
+            res = get_graph_data(limit, focus)
 
             net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
 
@@ -116,7 +116,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         st.header("Semantic Search")
         query = st.text_input("Query")
         if query:
-            results = asyncio.run(service.search(query))
+            results = asyncio.run(service.search(query))  # nest_asyncio makes this safe
             for res in results:
                 with st.expander(f"{res.name} (Score: {res.score:.2f})"):
                     st.json(res)
@@ -127,7 +127,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         st.subheader("Stale Entities")
         days = st.number_input("Days Inactive", value=30)
         if st.button("Scan"):
-            stale = asyncio.run(service.get_stale_entities(days))
+            stale = asyncio.run(service.get_stale_entities(days))  # nest_asyncio makes this safe
             st.write(f"Found {len(stale)} stale entities.")
             st.dataframe(stale)
 

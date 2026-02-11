@@ -75,7 +75,7 @@ def _import_dashboard() -> Any:
 # ─── get_stats Tests ────────────────────────────────────────────────
 
 
-async def test_get_stats() -> None:
+def test_get_stats() -> None:
     dashboard_app = _import_dashboard()
 
     mock_service = MagicMock()
@@ -86,7 +86,7 @@ async def test_get_stats() -> None:
     mock_service.repo.execute_cypher.side_effect = [mock_result_nodes, mock_result_edges]
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        nodes, edges = await dashboard_app.get_stats()
+        nodes, edges = dashboard_app.get_stats()
 
     assert nodes == NODE_COUNT
     assert edges == EDGE_COUNT
@@ -95,7 +95,7 @@ async def test_get_stats() -> None:
 # ─── get_graph_data Tests ───────────────────────────────────────────
 
 
-async def test_get_graph_data_global() -> None:
+def test_get_graph_data_global() -> None:
     dashboard_app = _import_dashboard()
 
     mock_service = MagicMock()
@@ -103,7 +103,7 @@ async def test_get_graph_data_global() -> None:
     mock_service.repo.execute_cypher.return_value = mock_result
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        result = await dashboard_app.get_graph_data(limit=GRAPH_LIMIT_DEFAULT)
+        result = dashboard_app.get_graph_data(limit=GRAPH_LIMIT_DEFAULT)
 
     mock_service.repo.execute_cypher.assert_called_once()
     query_used = mock_service.repo.execute_cypher.call_args[0][0]
@@ -111,7 +111,7 @@ async def test_get_graph_data_global() -> None:
     assert result is mock_result
 
 
-async def test_get_graph_data_focused() -> None:
+def test_get_graph_data_focused() -> None:
     dashboard_app = _import_dashboard()
 
     mock_service = MagicMock()
@@ -119,7 +119,7 @@ async def test_get_graph_data_focused() -> None:
     mock_service.repo.execute_cypher.return_value = mock_result
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        result = await dashboard_app.get_graph_data(limit=GRAPH_LIMIT_CUSTOM, focus=FOCUS_NODE_NAME)
+        result = dashboard_app.get_graph_data(limit=GRAPH_LIMIT_CUSTOM, focus=FOCUS_NODE_NAME)
 
     query_used = mock_service.repo.execute_cypher.call_args[0][0]
     params_used = mock_service.repo.execute_cypher.call_args[0][1]
@@ -128,7 +128,7 @@ async def test_get_graph_data_focused() -> None:
     assert result is mock_result
 
 
-async def test_get_graph_data_injection_safe() -> None:
+def test_get_graph_data_injection_safe() -> None:
     """Cypher injection: focus with quote chars must NOT appear in query string."""
     dashboard_app = _import_dashboard()
 
@@ -137,7 +137,7 @@ async def test_get_graph_data_injection_safe() -> None:
     malicious_input = "' OR 1=1 RETURN n //"
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        await dashboard_app.get_graph_data(limit=100, focus=malicious_input)
+        dashboard_app.get_graph_data(limit=100, focus=malicious_input)
 
     query_used = mock_service.repo.execute_cypher.call_args[0][0]
     params_used = mock_service.repo.execute_cypher.call_args[0][1]
@@ -185,14 +185,12 @@ def test_main_explorer_mode() -> None:
     mock_network_instance = MagicMock()
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        with patch("asyncio.run") as mock_run:
-            mock_run.side_effect = [
-                (NODE_COUNT, EDGE_COUNT),  # get_stats
-                mock_graph_result,  # get_graph_data
-            ]
-            with patch.object(dashboard_app, "Network", return_value=mock_network_instance):
-                with patch("builtins.open", MagicMock()):
-                    dashboard_app.main()
+        # get_stats and get_graph_data are now sync — mock via get_stats/get_graph_data
+        with patch.object(dashboard_app, "get_stats", return_value=(NODE_COUNT, EDGE_COUNT)):
+            with patch.object(dashboard_app, "get_graph_data", return_value=mock_graph_result):
+                with patch.object(dashboard_app, "Network", return_value=mock_network_instance):
+                    with patch("builtins.open", MagicMock()):
+                        dashboard_app.main()
 
     mock_st.title.assert_called()
     mock_network_instance.add_node.assert_called()
@@ -236,13 +234,10 @@ def test_main_search_mode_with_query() -> None:
     mock_st.text_input.return_value = SEARCH_QUERY
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        with patch("asyncio.run") as mock_async_run:
-            # First call is get_stats, second is service.search
-            mock_async_run.side_effect = [
-                (NODE_COUNT, EDGE_COUNT),
-                [mock_search_result],
-            ]
-            dashboard_app.main()
+        # get_stats is now sync — mock it directly
+        with patch.object(dashboard_app, "get_stats", return_value=(NODE_COUNT, EDGE_COUNT)):
+            with patch("asyncio.run", return_value=[mock_search_result]):
+                dashboard_app.main()
 
 
 def test_main_maintenance_mode() -> None:

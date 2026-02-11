@@ -18,6 +18,7 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
     "httpx>=0.26.0",
+    "nest-asyncio>=1.6.0",
 ]
 
 [project.scripts]
@@ -119,6 +120,16 @@ exclude_lines = [
     '@(abc\.)?abstractmethod',
 ]
 fail_under = 30
+
+[tool.coverage.paths]
+source = [
+    "src/claude_memory",
+    "**/site-packages/claude_memory",
+]
+dashboard = [
+    "src/dashboard",
+    "**/site-packages/dashboard",
+]
 
 [[tool.mypy.overrides]]
 module = [
