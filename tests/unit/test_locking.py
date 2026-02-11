@@ -107,3 +107,34 @@ async def test_update_entity_locks_project(
     calls = mock_redis.set.call_args_list
     assert any("lock:project:p2" in str(c) for c in calls)
     mock_redis.delete.assert_called_with("lock:project:p2")
+
+
+# ─── Env Var Precedence Tests ───────────────────────────────────────
+
+
+def test_redis_host_takes_precedence(mock_redis: MagicMock) -> None:
+    """REDIS_HOST should override FALKORDB_HOST."""
+    env = {
+        "REDIS_HOST": "redis-primary",
+        "FALKORDB_HOST": "graph-host",
+        "REDIS_PORT": "6380",
+        "FALKORDB_PORT": "6379",
+    }
+    with patch.dict("os.environ", env, clear=False):
+        mgr = LockManager()
+    assert mgr.host == "redis-primary"
+    assert mgr.port == 6380
+
+
+def test_falkordb_host_fallback(mock_redis: MagicMock) -> None:
+    """Without REDIS_HOST, should fall back to FALKORDB_HOST."""
+    env = {"FALKORDB_HOST": "graph-host", "FALKORDB_PORT": "6379"}
+    with patch.dict("os.environ", env, clear=False):
+        # Clear REDIS_* to ensure fallback
+        with patch.dict(
+            "os.environ",
+            {"REDIS_HOST": "", "REDIS_PORT": ""},
+        ):
+            mgr = LockManager()
+    assert mgr.host == "graph-host"
+    assert mgr.port == 6379

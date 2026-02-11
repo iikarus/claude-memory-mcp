@@ -62,15 +62,16 @@ class LockManager:
 
     def __init__(self, host: str | None = None, port: int | None = None):
         """Connect to Redis for locking, falling back to file locks if unavailable."""
-        h = host or os.getenv("FALKORDB_HOST", "localhost")
+        h = host or (os.getenv("REDIS_HOST") or os.getenv("FALKORDB_HOST", "localhost"))
         self.host: str = str(h) if h else "localhost"
 
         if port is not None:
             self.port = port
         else:
-            self.port = int(os.getenv("FALKORDB_PORT", "6379"))
+            raw_port = os.getenv("REDIS_PORT") or os.getenv("FALKORDB_PORT") or "6379"
+            self.port = int(raw_port)
 
-        self.password: str | None = os.getenv("FALKORDB_PASSWORD")
+        self.password: str | None = os.getenv("REDIS_PASSWORD") or os.getenv("FALKORDB_PASSWORD")
 
         # Reuse the same Redis instance as FalkorDB (port 6379 usually)
         # FalkorDB is a Redis module, so standard Redis commands work alongside GRAPH commands.

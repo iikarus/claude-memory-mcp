@@ -576,3 +576,39 @@ def test_get_all_edges(repo: Any, mock_graph: MagicMock) -> None:
     assert len(result) == 2
     assert result[0] == {"source": "n1", "target": "n2", "type": "RELATED_TO"}
     assert result[1] == {"source": "n2", "target": "n3", "type": "DEPENDS_ON"}
+
+
+# ─── Constructor Retry Tests ────────────────────────────────────────
+
+
+def test_constructor_retries_on_connection_error() -> None:
+    """FalkorDB() failing twice then succeeding should yield a working repo."""
+    mock_client = MagicMock()
+
+    with (
+        patch("claude_memory.repository.FalkorDB") as mock_fdb,
+        patch("claude_memory.repository.time.sleep") as mock_sleep,
+    ):
+        mock_fdb.side_effect = [ConnectionError("refused"), ConnectionError("refused"), mock_client]
+
+        from claude_memory.repository import MemoryRepository
+
+        r = MemoryRepository()
+
+    assert r.client is mock_client
+    assert mock_fdb.call_count == 3
+    assert mock_sleep.call_count == 2
+
+
+def test_constructor_raises_after_max_retries() -> None:
+    """FalkorDB() failing on all attempts should raise ConnectionError."""
+    with (
+        patch("claude_memory.repository.FalkorDB") as mock_fdb,
+        patch("claude_memory.repository.time.sleep"),
+    ):
+        mock_fdb.side_effect = ConnectionError("refused")
+
+        from claude_memory.repository import MemoryRepository
+
+        with pytest.raises(ConnectionError, match="refused"):
+            MemoryRepository()

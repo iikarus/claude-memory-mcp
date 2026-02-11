@@ -33,7 +33,7 @@ class SearchMixin(SearchAdvancedMixin):
     activation_engine: "ActivationEngine"
     context_manager: "ContextManager"
 
-    # Provided by CrudMixin (also mixed into MemoryService)
+    # Protocol declaration — real implementation in CrudMixin via MRO.
     def _fire_salience_update(self, ids: list[str]) -> None:
         """Trigger salience score recalculation for the given entity IDs."""
         ...

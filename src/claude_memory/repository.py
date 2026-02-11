@@ -2,6 +2,7 @@
 
 import logging
 import os
+import time
 from typing import Any
 
 from falkordb import FalkorDB
@@ -10,6 +11,9 @@ from claude_memory.repository_queries import RepositoryQueryMixin
 from claude_memory.retry import retry_on_transient
 
 logger = logging.getLogger(__name__)
+
+_CONSTRUCTOR_MAX_RETRIES = 3
+_CONSTRUCTOR_BASE_DELAY = 1.0
 
 
 class MemoryRepository(RepositoryQueryMixin):
@@ -26,12 +30,36 @@ class MemoryRepository(RepositoryQueryMixin):
         self.port = port or int(os.getenv("FALKORDB_PORT", "6379"))
         self.password = password or os.getenv("FALKORDB_PASSWORD")
 
-        self.client = FalkorDB(
-            host=self.host,
-            port=self.port,
-            password=self.password,
-        )
+        self.client = self._connect_with_retry()
         self.graph_name = "claude_memory"
+
+    def _connect_with_retry(self) -> FalkorDB:
+        """Attempt to connect to FalkorDB with retry on transient failures."""
+        for attempt in range(_CONSTRUCTOR_MAX_RETRIES):
+            try:
+                return FalkorDB(
+                    host=self.host,
+                    port=self.port,
+                    password=self.password,
+                )
+            except (ConnectionError, TimeoutError, OSError) as exc:
+                if attempt == _CONSTRUCTOR_MAX_RETRIES - 1:
+                    logger.error(
+                        "FalkorDB connection failed after %d attempts: %s",
+                        _CONSTRUCTOR_MAX_RETRIES,
+                        exc,
+                    )
+                    raise
+                delay = _CONSTRUCTOR_BASE_DELAY * (2**attempt)
+                logger.warning(
+                    "FalkorDB connect retry %d/%d in %.1fs — %s",
+                    attempt + 1,
+                    _CONSTRUCTOR_MAX_RETRIES,
+                    delay,
+                    exc,
+                )
+                time.sleep(delay)
+        raise ConnectionError("FalkorDB connection exhausted retries")  # pragma: no cover
 
     @retry_on_transient()
     def select_graph(self) -> Any:
