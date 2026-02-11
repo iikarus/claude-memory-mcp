@@ -22,7 +22,7 @@ Currently triggered manually via `run_librarian_cycle`.
 
 ### Automated Daily Backup (Active)
 
-A Windows Task Scheduler task (`ExocortexDailyBackup`) runs daily at 3:00 AM:
+A Windows Task Scheduler task (`ExocortexBackup`) runs daily at 3:00 AM:
 
 1. Creates a local snapshot in `backups/daily_YYYY_MM_DD/`
 2. Syncs to **Google Drive** (`G:\My Drive\exocortex_backups\`)
@@ -40,7 +40,7 @@ python scripts/scheduled_backup.py
 python scripts/scheduled_backup.py --dry-run
 
 # Check scheduler status
-schtasks /query /tn "ExocortexDailyBackup"
+schtasks /query /tn "ExocortexBackup"
 ```
 
 ### Manual Backup (On-Demand)

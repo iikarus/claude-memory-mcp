@@ -83,3 +83,21 @@
 - **Gotcha**: MCP stdio transport owns `stdout` for JSON-RPC. Any non-JSON output on stdout breaks the protocol.
 - **Risk**: If `logging_config.py` uses `StreamHandler(sys.stdout)`, Claude Desktop / VS Code / CLI all fail with `"Unexpected non-whitespace character after JSON"`.
 - **Fix**: `logging_config.py` uses `StreamHandler(sys.stderr)`. **Never add `print()` statements or stdout handlers to server code.** (Fixed in commit `1f36e09`.)
+
+## 15. FalkorDB `maxmemory` Cap
+
+- **Gotcha**: FalkorDB runs on Redis and defaults to unlimited memory.
+- **Risk**: Unbounded growth can OOM-kill the container or starve other services.
+- **Fix**: `docker-compose.yml` sets `--maxmemory 256mb` via the `command` directive. Do not remove this. (Fixed in commit `06aafec`.)
+
+## 16. `REDIS_*` vs `FALKORDB_*` Env Vars
+
+- **Gotcha**: `LockManager` checks `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` **before** falling back to `FALKORDB_*`.
+- **Risk**: If both are set but point to different hosts, locking uses the `REDIS_*` host and data uses the `FALKORDB_*` host. This is intentional (separate Redis for locks).
+- **Fix**: Either set only `FALKORDB_*` (shared instance) or set both deliberately. (Fixed in commit `06aafec`.)
+
+## 17. Constructor Retry with Backoff
+
+- **Gotcha**: `MemoryRepository.__init__` retries FalkorDB connection 3 times with exponential backoff (1s, 2s, 4s).
+- **Risk**: If connection permanently fails, the constructor blocks for ~7 seconds before raising `ConnectionError`.
+- **Fix**: This is by design for Docker startup ordering. If you need faster failure, reduce `_CONSTRUCTOR_MAX_RETRIES`. (Added in commit `3052347`.)

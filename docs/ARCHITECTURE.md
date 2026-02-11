@@ -118,19 +118,19 @@ All ports are bound to `127.0.0.1` — no external access.
 
 ## Backup Architecture
 
-- **Automated**: Windows Task Scheduler (`ExocortexDailyBackup`) runs daily at 3 AM.
+- **Automated**: Windows Task Scheduler (`ExocortexBackup`) runs daily at 3 AM.
 - **Storage**: Local (`backups/`) + Google Drive (`G:\My Drive\exocortex_backups\`).
 - **Retention**: Rolling 7-day window — both local and cloud copies.
 - **Script**: `scripts/scheduled_backup.py`.
 
 ## CI/CD Tiers (The Gold Stack)
 
-| Tier   | What                                                        |
-| ------ | ----------------------------------------------------------- |
-| pulse  | Ruff lint + format check + Mypy strict + Pytest (386 tests) |
-| gate   | Security scanning (pip-audit, bandit)                       |
-| forge  | Focused unit test subset                                    |
-| hammer | Mutation testing (mutmut)                                   |
-| polish | Final format + lint enforcement                             |
+| Tier   | What                                                           |
+| ------ | -------------------------------------------------------------- |
+| pulse  | Ruff lint + format check + Mypy strict + Pytest (407 tests)    |
+| gate   | Hypothesis property tests + diff-cover (changed-line coverage) |
+| forge  | Mutation testing (mutatest — fault injection)                  |
+| hammer | Security scanning (bandit, pip-audit, detect-secrets)          |
+| polish | Codespell (typos) + docstr-coverage (docstring completeness)   |
 
 Run all: `tox` | Run one: `tox -e pulse`

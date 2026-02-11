@@ -94,7 +94,7 @@ Backups run daily at 3:00 AM via Windows Task Scheduler → Google Drive.
 python scripts/backup_restore.py save --tag my_backup
 
 # Check automated backup status
-schtasks /query /tn "ExocortexDailyBackup"
+schtasks /query /tn "ExocortexBackup"
 ```
 
 - **Local**: `backups/daily_YYYY_MM_DD/` (rolling 7-day)
@@ -122,10 +122,10 @@ Run `tox -e pulse` — this executes all checks in one command:
 
 1.  **Ruff**: Linting + import sorting.
 2.  **Ruff Format**: Code formatting.
-3.  **Mypy**: Static type checking (18 source files, strict mode).
-4.  **Pytest**: 386 unit tests, 98% coverage (≥30% threshold).
+3.  **Mypy**: Static type checking (25 source files, strict mode).
+4.  **Pytest**: 407 unit tests, ~99% coverage (≥30% threshold).
 
-Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (security), `tox -e forge` (focused tests), `tox -e hammer` (mutation), `tox -e polish` (final format).
+Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e forge` (mutation), `tox -e hammer` (security), `tox -e polish` (docs+typos).
 
 ## 6. Known "Gotchas" for Future Agents
 
@@ -143,7 +143,7 @@ If you are reading this to fix a bug or add a feature:
 1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
 2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
 3.  **Trust `e2e_test.py`**: It is your ground truth. If it fails, the system is broken.
-4.  **Run `tox -e pulse` before committing**: 386 tests must pass.
+4.  **Run `tox -e pulse` before committing**: 407 tests must pass.
 5.  **Never add `WHERE n.embedding IS NOT NULL`**: Embeddings are in Qdrant, not on graph nodes.
 6.  **Read `docs/UPGRADE_LOG.md`**: Understand what V2 added before making changes.
 7.  **Read `docs/GOTCHAS.md`**: Known traps that will burn you if ignored.

@@ -148,25 +148,64 @@ The system at Phase 3 completion had:
 
 ---
 
+## Post-Production Audit (`3052347` → `06aafec` → `c4ddb52`, Feb 11)
+
+### Phase 1 — WILL BITE YOU (`3052347`)
+
+| Before                          | After                                                  |
+| ------------------------------- | ------------------------------------------------------ |
+| cp1252 crashes headless scripts | **`PYTHONUTF8=1`** in subprocess calls                 |
+| Silent upsert failures          | **`ON CREATE SET` / `ON MATCH SET`** — explicit Cypher |
+| Raw f-string Cypher injection   | **Parameterized `$params`** for all user inputs        |
+
+### Phase 2 — SHOULD FIX (`06aafec`)
+
+| Before                             | After                                                       |
+| ---------------------------------- | ----------------------------------------------------------- |
+| No connection retry                | **Exponential backoff** (3 attempts, `_connect_with_retry`) |
+| FalkorDB unbounded memory          | **`--maxmemory 256mb`** in docker-compose                   |
+| LockManager uses FALKORDB\_\* only | **REDIS\_\* takes precedence** over FALKORDB\_\*            |
+| Duplicate `_fire_salience_update`  | **Deduplicated** — MRO resolves to CrudMixin                |
+| No system health probe             | **`scripts/healthcheck.ps1`** (FalkorDB, Qdrant, Embedding) |
+
+### Phase 3 — Backup & Restore (Operational)
+
+| Before              | After                                                      |
+| ------------------- | ---------------------------------------------------------- |
+| No scheduled backup | **`ExocortexBackup`** task at 3:00 AM daily                |
+| Backup untested     | **Live tested**: 858 KB + 4773 KB, Google Drive synced     |
+| Restore untested    | **Restore verified**: 695 nodes intact, containers healthy |
+| No live e2e test    | **`scripts/e2e_test.py`** — 14-check lifecycle (`c4ddb52`) |
+
+---
+
 ## Cumulative Summary
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
 | **MCP Tools**         | 17                 | 25                                                 | +8    |
-| **Source Modules**    | 14                 | 18                                                 | +4    |
-| **Unit Tests**        | 255                | 386                                                | +131  |
+| **Source Modules**    | 14                 | 25                                                 | +11   |
+| **Unit Tests**        | 255                | 407                                                | +152  |
 | **Test Files**        | 15                 | 35                                                 | +20   |
-| **Scripts**           | 12                 | 30                                                 | +18   |
+| **Scripts**           | 12                 | 35                                                 | +23   |
 | **Tox Tiers**         | 4                  | 5                                                  | +1    |
 | **Search Strategies** | 1 (vector)         | 4 (semantic, associative, temporal, relational)    | +3    |
 | **Graph Features**    | Basic CRUD         | Temporal edges, salience, activation, gap analysis | —     |
+| **Graph Data**        | —                  | 702 nodes, 806 edges                               | —     |
 
 ### New Source Modules (V2)
 
 - `activation.py` — Spreading activation engine
+- `analysis.py` — AnalysisMixin (graph health, gaps, stale, consolidation)
+- `crud.py` — CrudMixin (entity/relationship/observation CRUD)
+- `search_advanced.py` — Advanced search helpers (hologram, activation wiring)
+- `temporal.py` — TemporalMixin (sessions, breakthroughs, timeline)
+- `tools_extra.py` — Extra MCP tool registrations
+- `repository_queries.py` — Query builder helpers for repository
 - `router.py` — Query intent classification
 - `context_manager.py` — Session context management
 - `ontology.py` — Runtime type system (existed but undocumented)
+- `retry.py` — `@retry_on_transient` decorator
 
 ### New MCP Tools (V2)
 
