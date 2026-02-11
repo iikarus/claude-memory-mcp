@@ -33,11 +33,6 @@ class SearchMixin(SearchAdvancedMixin):
     activation_engine: "ActivationEngine"
     context_manager: "ContextManager"
 
-    # Protocol declaration — real implementation in CrudMixin via MRO.
-    def _fire_salience_update(self, ids: list[str]) -> None:
-        """Trigger salience score recalculation for the given entity IDs."""
-        ...
-
     async def get_neighbors(
         self, entity_id: str, depth: int = 1, limit: int = 20, offset: int = 0
     ) -> list[dict[str, Any]]:
@@ -205,7 +200,7 @@ class SearchMixin(SearchAdvancedMixin):
         nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
         # 4. Fire-and-forget salience update (non-blocking)
-        self._fire_salience_update(ids)
+        self._fire_salience_update(ids)  # type: ignore[attr-defined]
         salience_map = {nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()}
 
         results = []
