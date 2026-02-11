@@ -55,6 +55,32 @@ try {
     $failed += "Embedding"
 }
 
+# 4. Backup status (last_run_status.json)
+$statusFile = Join-Path $PSScriptRoot "..\backups\last_run_status.json"
+Write-Host "[CHECK] Backup status file..." -NoNewline
+if (Test-Path $statusFile) {
+    try {
+        $statusJson = Get-Content $statusFile -Raw | ConvertFrom-Json
+        $lastRun = [datetime]::Parse($statusJson.timestamp)
+        $age = (Get-Date) - $lastRun
+        if ($statusJson.status -ne "OK") {
+            Write-Host " DEGRADED ($($statusJson.status))" -ForegroundColor Yellow
+            $failed += "Backup($($statusJson.status))"
+        } elseif ($age.TotalHours -gt 36) {
+            Write-Host " STALE ($([math]::Round($age.TotalHours,1))h old)" -ForegroundColor Yellow
+            $failed += "Backup(stale)"
+        } else {
+            Write-Host " OK ($($statusJson.backup_tag))" -ForegroundColor Green
+        }
+    } catch {
+        Write-Host " PARSE ERROR" -ForegroundColor Red
+        $failed += "Backup(parse_error)"
+    }
+} else {
+    Write-Host " MISSING (no status file)" -ForegroundColor Yellow
+    $failed += "Backup(no_status_file)"
+}
+
 # Summary
 Write-Host ""
 if ($failed.Count -eq 0) {

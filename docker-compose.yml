@@ -1,7 +1,7 @@
 services:
   graphdb:
     image: falkordb/falkordb:latest
-    command: ["redis-server", "--maxmemory", "256mb", "--loadmodule", "/usr/lib/redis/modules/falkordb.so"]
+    command: ["redis-server", "--maxmemory", "1gb", "--loadmodule", "/usr/lib/redis/modules/falkordb.so"]
     ports:
       - "127.0.0.1:6379:6379"
       - "127.0.0.1:3000:3000"

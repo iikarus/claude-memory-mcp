@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 import datetime
+import json
 import logging
 import shutil
 import subprocess
@@ -24,6 +25,25 @@ GDRIVE_BACKUP_DIR = Path(r"G:\My Drive\exocortex_backups")
 RETENTION_DAYS = 7
 TAG_PREFIX = "daily_"
 LOG_FILE = PROJECT_ROOT / "backups" / "scheduled_backup.log"
+STATUS_FILE = PROJECT_ROOT / "backups" / "last_run_status.json"
+
+
+def write_status_file(
+    status: str,
+    tag: str,
+    gdrive_synced: bool,
+    errors: list[str],
+) -> None:
+    """Write machine-readable status file for external monitoring."""
+    STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "status": status,
+        "backup_tag": tag,
+        "gdrive_synced": gdrive_synced,
+        "errors": errors,
+    }
+    STATUS_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def setup_logging() -> logging.Logger:
@@ -141,6 +161,8 @@ def main() -> None:
 
     # Generate tag from today's date
     tag = TAG_PREFIX + datetime.datetime.now().strftime("%Y_%m_%d")
+    errors: list[str] = []
+    gdrive_synced = False
 
     # Step 1: Create backup
     if args.dry_run:
@@ -150,13 +172,18 @@ def main() -> None:
         backup_path = create_backup(tag, logger)
         if backup_path is None:
             logger.error("BACKUP FAILED — aborting")
+            errors.append("backup_creation_failed")
+            write_status_file("FAILED", tag, False, errors)
             sys.exit(1)
 
     # Step 2: Sync to Google Drive
     if args.dry_run:
         logger.info("[DRY RUN] Would sync to %s", GDRIVE_BACKUP_DIR / tag)
-    elif not sync_to_gdrive(backup_path, tag, logger):
+    elif sync_to_gdrive(backup_path, tag, logger):
+        gdrive_synced = True
+    else:
         logger.warning("Google Drive sync failed — local backup still exists")
+        errors.append("gdrive_sync_failed")
 
     # Step 3: Cleanup old backups (local + Drive)
     local_deleted = cleanup_old_backups(BACKUP_DIR, "local", args.dry_run, logger)
@@ -167,6 +194,11 @@ def main() -> None:
         local_deleted,
         gdrive_deleted,
     )
+
+    # Step 4: Write machine-readable status file for monitoring
+    if not args.dry_run:
+        write_status_file("OK" if not errors else "DEGRADED", tag, gdrive_synced, errors)
+
     logger.info("=" * 60)
 
 

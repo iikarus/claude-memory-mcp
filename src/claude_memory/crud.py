@@ -5,9 +5,15 @@ Provides entity, relationship, and observation create/update/delete logic.
 
 import asyncio
 import logging
+import os
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
+
+# When True (default), Qdrant write failures crash the operation instead of
+# being silently swallowed.  This prevents split-brain scenarios where an
+# entity exists in FalkorDB but is invisible to semantic search.
+STRICT_CONSISTENCY = os.getenv("EXOCORTEX_STRICT_CONSISTENCY", "true").lower() == "true"
 
 if TYPE_CHECKING:  # pragma: no cover
     from .interfaces import Embedder, VectorStore
@@ -111,6 +117,8 @@ class CrudMixin:
             except Exception as e:
                 msg = f"vector_upsert_failed: {e}"
                 logger.error(msg)
+                if STRICT_CONSISTENCY:
+                    raise
                 warnings.append(msg)
 
             # 3. Link to most recent entity in same project via PRECEDED_BY
@@ -228,6 +236,8 @@ class CrudMixin:
             except Exception as e:
                 msg = f"vector_upsert_failed: {e}"
                 logger.error(msg)
+                if STRICT_CONSISTENCY:
+                    raise
                 updated_node["warnings"] = [msg]
 
             return updated_node  # type: ignore[no-any-return]
@@ -237,6 +247,18 @@ class CrudMixin:
                 return await _do_update()
         else:
             return await _do_update()
+
+    async def _safe_vector_delete(self, entity_id: str) -> list[str]:
+        """Delete vector and return warnings list (empty on success)."""
+        warnings: list[str] = []
+        try:
+            await self.vector_store.delete(entity_id)
+        except Exception as e:
+            logger.error(f"vector_delete_failed: {entity_id}: {e}")
+            if STRICT_CONSISTENCY:
+                raise
+            warnings.append(f"vector_delete_failed: {e}")
+        return warnings
 
     async def delete_entity(self, params: "EntityDeleteParams") -> dict[str, Any]:
         """Deletes an entity."""
@@ -256,27 +278,17 @@ class CrudMixin:
                     params.entity_id,
                     {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )
-                soft_warnings: list[str] = []
-                try:
-                    await self.vector_store.delete(params.entity_id)
-                except Exception as e:
-                    logger.error(f"vector_delete_failed: {params.entity_id}: {e}")
-                    soft_warnings.append(f"vector_delete_failed: {e}")
+                warnings = await self._safe_vector_delete(params.entity_id)
                 result_dict: dict[str, Any] = {
                     "status": "archived",
                     "id": params.entity_id,
                 }
-                if soft_warnings:
-                    result_dict["warnings"] = soft_warnings
+                if warnings:
+                    result_dict["warnings"] = warnings
                 return result_dict
             else:
                 self.repo.delete_node(params.entity_id)
-                warnings: list[str] = []
-                try:
-                    await self.vector_store.delete(params.entity_id)
-                except Exception as e:
-                    logger.error(f"vector_delete_failed: {params.entity_id}: {e}")
-                    warnings.append(f"vector_delete_failed: {e}")
+                warnings = await self._safe_vector_delete(params.entity_id)
                 result: dict[str, Any] = {"status": "deleted", "id": params.entity_id}
                 if warnings:
                     result["warnings"] = warnings

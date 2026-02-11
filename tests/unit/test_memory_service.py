@@ -226,12 +226,13 @@ async def test_delete_entity_soft(service: MemoryService) -> None:
 
 
 async def test_delete_entity_soft_vector_delete_fails(service: MemoryService) -> None:
-    """Soft delete should succeed even when vector store delete fails."""
+    """Soft delete should succeed even when vector store delete fails (lenient mode)."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS
     service.vector_store.delete.side_effect = ConnectionError("qdrant down")
 
     params = EntityDeleteParams(entity_id=ENTITY_ID, reason=DELETE_REASON, soft_delete=True)
-    result = await service.delete_entity(params)
+    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
+        result = await service.delete_entity(params)
     assert result["status"] == "archived"
 
 
@@ -245,12 +246,13 @@ async def test_delete_entity_hard(service: MemoryService) -> None:
 
 
 async def test_delete_entity_hard_vector_delete_fails(service: MemoryService) -> None:
-    """Hard delete should succeed even when vector store delete fails."""
+    """Hard delete should succeed even when vector store delete fails (lenient mode)."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS
     service.vector_store.delete.side_effect = ConnectionError("qdrant down")
 
     params = EntityDeleteParams(entity_id=ENTITY_ID, reason=DELETE_REASON, soft_delete=False)
-    result = await service.delete_entity(params)
+    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
+        result = await service.delete_entity(params)
     assert result["status"] == "deleted"
 
 
@@ -1336,7 +1338,8 @@ async def test_create_entity_vector_failure_surfaces_warning(
         node_type=ENTITY_TYPE,
         project_id=PROJECT_ID,
     )
-    receipt = await service.create_entity(params)
+    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
+        receipt = await service.create_entity(params)
 
     assert receipt.status == "committed"
     assert len(receipt.warnings) == 1
@@ -1356,7 +1359,8 @@ async def test_update_entity_vector_failure_surfaces_warning(
         entity_id=ENTITY_ID,
         properties={"description": "updated"},
     )
-    result = await service.update_entity(params)
+    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
+        result = await service.update_entity(params)
 
     assert "warnings" in result
     assert "vector_upsert_failed" in result["warnings"][0]
@@ -1374,7 +1378,8 @@ async def test_delete_entity_soft_vector_failure_surfaces_warning(
         reason="test",
         soft_delete=True,
     )
-    result = await service.delete_entity(params)
+    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
+        result = await service.delete_entity(params)
 
     assert result["status"] == "archived"
     assert "warnings" in result
@@ -1393,7 +1398,8 @@ async def test_delete_entity_hard_vector_failure_surfaces_warning(
         reason="test",
         soft_delete=False,
     )
-    result = await service.delete_entity(params)
+    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
+        result = await service.delete_entity(params)
 
     assert result["status"] == "deleted"
     assert "warnings" in result
