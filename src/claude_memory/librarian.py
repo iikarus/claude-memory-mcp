@@ -107,11 +107,12 @@ class LibrarianAgent:
                 )
 
                 self.memory.repo.create_node(
-                    name=gap_name,
-                    entity_type="GapReport",
-                    content=gap_content,
-                    project_id="librarian",
-                    metadata={
+                    "GapReport",
+                    {
+                        "name": gap_name,
+                        "entity_type": "GapReport",
+                        "content": gap_content,
+                        "project_id": "librarian",
                         "detected_at": datetime.now(UTC).isoformat(),
                         "cluster_a_id": gap.cluster_a_id,
                         "cluster_b_id": gap.cluster_b_id,

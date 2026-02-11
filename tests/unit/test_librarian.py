@@ -121,9 +121,12 @@ async def test_librarian_cycle_gap_detection(
     assert report["gaps_detected"] == 1
     assert report["gap_reports_stored"] == 1
 
-    # Verify GapReport entity was created
+    # Verify GapReport entity was created with correct positional args
     mock_memory_service.repo.create_node.assert_called_once()
-    call_kwargs = mock_memory_service.repo.create_node.call_args
-    assert call_kwargs.kwargs["entity_type"] == "GapReport"
-    assert "detected_at" in call_kwargs.kwargs["metadata"]
-    assert call_kwargs.kwargs["metadata"]["similarity"] == 0.85
+    call_args = mock_memory_service.repo.create_node.call_args
+    label = call_args[0][0]
+    properties = call_args[0][1]
+    assert label == "GapReport"
+    assert properties["entity_type"] == "GapReport"
+    assert "detected_at" in properties
+    assert properties["similarity"] == 0.85
