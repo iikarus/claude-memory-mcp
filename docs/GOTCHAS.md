@@ -88,7 +88,7 @@
 
 - **Gotcha**: FalkorDB runs on Redis and defaults to unlimited memory.
 - **Risk**: Unbounded growth can OOM-kill the container or starve other services.
-- **Fix**: `docker-compose.yml` sets `--maxmemory 256mb` via the `command` directive. Do not remove this. (Fixed in commit `06aafec`.)
+- **Fix**: `docker-compose.yml` sets `--maxmemory 1gb` via the `command` directive. Do not remove this. (Updated to 1gb in commit `e7dd19c`.)
 
 ## 16. `REDIS_*` vs `FALKORDB_*` Env Vars
 
@@ -101,3 +101,15 @@
 - **Gotcha**: `MemoryRepository.__init__` retries FalkorDB connection 3 times with exponential backoff (1s, 2s, 4s).
 - **Risk**: If connection permanently fails, the constructor blocks for ~7 seconds before raising `ConnectionError`.
 - **Fix**: This is by design for Docker startup ordering. If you need faster failure, reduce `_CONSTRUCTOR_MAX_RETRIES`. (Added in commit `3052347`.)
+
+## 18. Strict Consistency (W3 — Split-Brain Prevention)
+
+- **Gotcha**: By default (`EXOCORTEX_STRICT_CONSISTENCY=true`), Qdrant write failures now **raise exceptions** instead of silently returning warnings.
+- **Risk**: Entity creation/deletion will fail loudly if Qdrant is down. The graph node may be created in FalkorDB but the exception prevents the caller from getting a success response.
+- **Fix**: This is intentional — split-brain (data in FalkorDB but not Qdrant) is worse than a loud failure. Set `EXOCORTEX_STRICT_CONSISTENCY=false` only for degraded-mode operation. (Added in commit `e7dd19c`.)
+
+## 19. E2E Test Is the UAT
+
+- **Gotcha**: `tests/e2e_functional.py` exercises the **live Docker stack** end-to-end. It is the User Acceptance Test.
+- **Risk**: It creates and deletes real entities in FalkorDB and Qdrant. If interrupted mid-run, orphan test nodes (prefixed `E2E_TEST_`) may remain.
+- **Fix**: Re-run the test — it cleans up its own data on completion. Or manually delete nodes with `MATCH (n) WHERE n.name STARTS WITH 'E2E_TEST_' DELETE n`.

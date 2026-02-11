@@ -30,7 +30,7 @@ High-performance vector similarity search.
 Edges in the graph.
 
 - **Properties**: `confidence`, `weight` (0-1), `created_at`.
-- **Typed**: `CONNECTED_TO`, `PART_OF`, `CAUSED`, `DEPENDS_ON`, `RELATES_TO`, `DERIVED_FROM`, `PRECEDED_BY`, `CONCURRENT_WITH`.
+- **Typed**: `DEPENDS_ON`, `ENABLES`, `BLOCKS`, `CONTAINS`, `PART_OF`, `EVOLVED_FROM`, `SUPERSEDES`, `PRECEDED_BY`, `CONCURRENT_WITH`, `CONTRADICTS`, `SUPPORTS`, `REJECTED_FOR`, `REVISITED_BECAUSE`, `RHYMES_WITH`, `ANALOGOUS_TO`, `TAUGHT_THROUGH`, `BREAKTHROUGH_IN`, `UNLOCKED`, `CREATED_BY`, `DECIDED_IN`, `MENTIONED_IN`, `BELONGS_TO_PROJECT`, `BRIDGES_TO`, `RELATED_TO`.
 
 ### The "Hologram"
 
@@ -127,7 +127,7 @@ All ports are bound to `127.0.0.1` — no external access.
 
 | Tier   | What                                                           |
 | ------ | -------------------------------------------------------------- |
-| pulse  | Ruff lint + format check + Mypy strict + Pytest (407 tests)    |
+| pulse  | Ruff lint + format check + Mypy strict + Pytest (415 tests)    |
 | gate   | Hypothesis property tests + diff-cover (changed-line coverage) |
 | forge  | Mutation testing (mutatest — fault injection)                  |
 | hammer | Security scanning (bandit, pip-audit, detect-secrets)          |

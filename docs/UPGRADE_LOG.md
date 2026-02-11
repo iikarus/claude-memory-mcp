@@ -1,6 +1,6 @@
 # Upgrade Log: V2 Intelligence Layer
 
-> Tracks what was added, changed, or upgraded from the Phase 3 baseline (Feb 6, 2026) through the current V2 build (Feb 10, 2026).
+> Tracks what was added, changed, or upgraded from the Phase 3 baseline (Feb 6, 2026) through the current V2 build (Feb 12, 2026).
 
 ---
 
@@ -179,19 +179,59 @@ The system at Phase 3 completion had:
 
 ---
 
+## Phase 2 — WILL BITE YOU (`e7dd19c`, Feb 11)
+
+### W1 — Alerting
+
+| Before                    | After                                                       |
+| ------------------------- | ----------------------------------------------------------- |
+| No backup status tracking | **`last_run_status.json`** written by `scheduled_backup.py` |
+| Health check: infra only  | **`healthcheck.ps1`** now monitors backup age + status      |
+
+### W2 — FalkorDB Memory
+
+| Before              | After                                         |
+| ------------------- | --------------------------------------------- |
+| `--maxmemory 256mb` | **`--maxmemory 1gb`** in `docker-compose.yml` |
+
+### W3 — Strict Consistency (Split-Brain Prevention)
+
+| Before                          | After                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| Qdrant write failures → warning | **Raises exception** by default (`EXOCORTEX_STRICT_CONSISTENCY=true`)      |
+| Split-brain possible            | **Fail-loudly** prevents silent data divergence                            |
+| `delete_entity` C901 complexity | **Extracted `_safe_vector_delete`** helper to reduce cyclomatic complexity |
+
+### W4/W5 — Scheduled Tasks
+
+| Before                          | After                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| Manual backup/health management | **`setup_scheduled_tasks.ps1`** — idempotent Task Scheduler registration |
+| No health check schedule        | **ExocortexHealthCheck** every 15 minutes                                |
+
+### E2E UAT (`tests/e2e_functional.py`)
+
+| Before                        | After                                                  |
+| ----------------------------- | ------------------------------------------------------ |
+| 14-check legacy e2e script    | **34-check exhaustive UAT** — 11 phases, 40.9s runtime |
+| No strict consistency testing | **W3 verified live** (strict + lenient modes)          |
+| No vector verification        | **Qdrant point verification** per entity               |
+
+---
+
 ## Cumulative Summary
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
 | **MCP Tools**         | 17                 | 25                                                 | +8    |
-| **Source Modules**    | 14                 | 25                                                 | +11   |
-| **Unit Tests**        | 255                | 407                                                | +152  |
-| **Test Files**        | 15                 | 35                                                 | +20   |
-| **Scripts**           | 12                 | 35                                                 | +23   |
+| **Source Modules**    | 14                 | 27                                                 | +13   |
+| **Unit Tests**        | 255                | 415                                                | +160  |
+| **Test Files**        | 15                 | 38                                                 | +23   |
+| **Scripts**           | 12                 | 37                                                 | +25   |
 | **Tox Tiers**         | 4                  | 5                                                  | +1    |
 | **Search Strategies** | 1 (vector)         | 4 (semantic, associative, temporal, relational)    | +3    |
 | **Graph Features**    | Basic CRUD         | Temporal edges, salience, activation, gap analysis | —     |
-| **Graph Data**        | —                  | 702 nodes, 806 edges                               | —     |
+| **Graph Data**        | —                  | 466 nodes, 580 edges                               | —     |
 
 ### New Source Modules (V2)
 

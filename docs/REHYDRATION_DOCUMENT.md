@@ -46,13 +46,13 @@ If you are landing here fresh (new machine, new agent):
     pip install -e .
     ```
 
-4.  **Run End-to-End Verification**:
+4.  **Run End-to-End Verification (UAT)**:
 
     ```powershell
-    python scripts/final_check.py
+    python tests/e2e_functional.py
     ```
 
-    _If this passes, the system is 100% operational._
+    _34-check exhaustive lifecycle test against the live stack. If this passes, the system is 100% operational._
 
 5.  **Connect Client**:
     Add the configuration from `mcp_config.json` to your MCP Client (Claude Desktop or VS Code).
@@ -82,6 +82,7 @@ graph TD
 2.  **Embeddings Live in Qdrant Only**: Embeddings are NOT stored on FalkorDB graph nodes.
     - The `get_all_nodes` query has NO `WHERE n.embedding IS NOT NULL` filter.
     - **CRITICAL**: The API strips embeddings from responses to prevent flooding the LLM context window.
+3.  **Strict Consistency (W3)**: Qdrant write failures **raise exceptions** by default (`EXOCORTEX_STRICT_CONSISTENCY=true`). This prevents split-brain. Set to `false` only for degraded-mode operation.
 
 ## 4. Operational Drills (Maintenance)
 
@@ -122,10 +123,12 @@ Run `tox -e pulse` — this executes all checks in one command:
 
 1.  **Ruff**: Linting + import sorting.
 2.  **Ruff Format**: Code formatting.
-3.  **Mypy**: Static type checking (25 source files, strict mode).
-4.  **Pytest**: 407 unit tests, ~99% coverage (≥30% threshold).
+3.  **Mypy**: Static type checking (27 source files, strict mode).
+4.  **Pytest**: 415 unit tests, ~99% coverage (≥30% threshold).
 
 Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e forge` (mutation), `tox -e hammer` (security), `tox -e polish` (docs+typos).
+
+**E2E UAT**: `python tests/e2e_functional.py` — 34-check lifecycle against the live Docker stack.
 
 ## 6. Known "Gotchas" for Future Agents
 
@@ -142,11 +145,11 @@ If you are reading this to fix a bug or add a feature:
 
 1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
 2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
-3.  **Trust `e2e_test.py`**: It is your ground truth. If it fails, the system is broken.
-4.  **Run `tox -e pulse` before committing**: 407 tests must pass.
+3.  **Trust `tests/e2e_functional.py`**: It is your UAT ground truth. 34 checks across 11 phases. If it fails, the system is broken.
+4.  **Run `tox -e pulse` before committing**: 415 tests must pass.
 5.  **Never add `WHERE n.embedding IS NOT NULL`**: Embeddings are in Qdrant, not on graph nodes.
 6.  **Read `docs/UPGRADE_LOG.md`**: Understand what V2 added before making changes.
-7.  **Read `docs/GOTCHAS.md`**: Known traps that will burn you if ignored.
+7.  **Read `docs/GOTCHAS.md`**: 19 known traps that will burn you if ignored.
 
 _Signed,_
 _Project Antigravity (Feb 2026)_

@@ -1,6 +1,6 @@
 # User Manual: The Exocortex
 
-This manual describes how to interact with the Claude Memory System. Last updated: February 10, 2026.
+This manual describes how to interact with the Claude Memory System. Last updated: February 12, 2026.
 
 ## 🤖 For Claude (MCP Tools — 25 Total)
 

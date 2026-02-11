@@ -1,6 +1,6 @@
 # Maintenance Manual
 
-Guidelines for keeping the Exocortex healthy and performant. Last updated: February 2026.
+Guidelines for keeping the Exocortex healthy and performant. Last updated: February 12, 2026.
 
 ## 🧹 The Librarian Agent
 
@@ -86,9 +86,17 @@ Run `prune_stale(days=60)` to permanently delete archived items older than 60 da
 python scripts/red_team.py
 ```
 
-### End-to-End (E2E) Test
+### End-to-End UAT
 
-Verify the full stack (Graph + Vector) connectivity on live infrastructure.
+The exhaustive User Acceptance Test exercises all 11 functional areas against the live Docker stack:
+
+```powershell
+python tests/e2e_functional.py
+```
+
+34 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, and W3 strict consistency.
+
+### Legacy E2E
 
 ```powershell
 python scripts/e2e_test.py
@@ -107,7 +115,7 @@ The system uses Redis-based locking (or File-based fallback).
 
 - Ensure `qdrant` container is running (Port 6333).
 - **Env Var**: `QDRANT_HOST` must be set to `qdrant` inside Docker. Defaults to `localhost` for local scripts.
-- **Check**: Run `python scripts/e2e_test.py` to diagnose connectivity.
+- **Check**: Run `python tests/e2e_functional.py` to diagnose connectivity.
 
 ### "Build Takes 3 Hours"
 
@@ -122,3 +130,16 @@ The system uses Redis-based locking (or File-based fallback).
 | qdrant     | `bash /dev/tcp`        | Don't use curl/wget — Qdrant image lacks them         |
 | embeddings | `curl /health`         | Model download not complete (increase `start_period`) |
 | dashboard  | `curl /_stcore/health` | Streamlit startup delay                               |
+
+## 📅 Scheduled Tasks
+
+Registered by `scripts/setup_scheduled_tasks.ps1` (idempotent, run as admin):
+
+| Task                   | Schedule         | Action                |
+| ---------------------- | ---------------- | --------------------- |
+| `ExocortexBackup`      | Daily at 3:00 AM | `scheduled_backup.py` |
+| `ExocortexHealthCheck` | Every 15 minutes | `healthcheck.ps1`     |
+
+## 🔒 Strict Consistency (W3)
+
+By default (`EXOCORTEX_STRICT_CONSISTENCY=true`), Qdrant write failures raise exceptions. This prevents split-brain scenarios (data in FalkorDB but not Qdrant). Set to `false` only for degraded-mode operation.
