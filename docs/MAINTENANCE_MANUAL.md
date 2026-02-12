@@ -88,13 +88,13 @@ python scripts/red_team.py
 
 ### End-to-End UAT
 
-The exhaustive User Acceptance Test exercises all 11 functional areas against the live Docker stack:
+The exhaustive User Acceptance Test exercises all 18 functional areas against the live Docker stack:
 
 ```powershell
 python tests/e2e_functional.py
 ```
 
-34 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, and W3 strict consistency.
+52 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, W3 strict consistency, associative search, graph algorithms (PageRank), hologram retrieval, memory consolidation, ontology management, archive/prune lifecycle, knowledge gap detection, and cleanup.
 
 ### Legacy E2E
 
@@ -142,4 +142,4 @@ Registered by `scripts/setup_scheduled_tasks.ps1` (idempotent, run as admin):
 
 ## 🔒 Strict Consistency (W3)
 
-By default (`EXOCORTEX_STRICT_CONSISTENCY=true`), Qdrant write failures raise exceptions. This prevents split-brain scenarios (data in FalkorDB but not Qdrant). Set to `false` only for degraded-mode operation.
+Qdrant write failures always raise exceptions. This prevents split-brain scenarios (data in FalkorDB but not Qdrant). There is no env var toggle — strict mode is permanently enabled.

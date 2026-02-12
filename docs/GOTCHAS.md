@@ -104,12 +104,24 @@
 
 ## 18. Strict Consistency (W3 — Split-Brain Prevention)
 
-- **Gotcha**: By default (`EXOCORTEX_STRICT_CONSISTENCY=true`), Qdrant write failures now **raise exceptions** instead of silently returning warnings.
+- **Gotcha**: By default, Qdrant write failures now **raise exceptions** instead of silently returning warnings. There is no env var toggle — strict consistency is always on.
 - **Risk**: Entity creation/deletion will fail loudly if Qdrant is down. The graph node may be created in FalkorDB but the exception prevents the caller from getting a success response.
-- **Fix**: This is intentional — split-brain (data in FalkorDB but not Qdrant) is worse than a loud failure. Set `EXOCORTEX_STRICT_CONSISTENCY=false` only for degraded-mode operation. (Added in commit `e7dd19c`.)
+- **Fix**: This is intentional — split-brain (data in FalkorDB but not Qdrant) is worse than a loud failure. (Added in commit `e7dd19c`, toggle removed in audit remediation.)
 
 ## 19. E2E Test Is the UAT
 
 - **Gotcha**: `tests/e2e_functional.py` exercises the **live Docker stack** end-to-end. It is the User Acceptance Test.
 - **Risk**: It creates and deletes real entities in FalkorDB and Qdrant. If interrupted mid-run, orphan test nodes (prefixed `E2E_TEST_`) may remain.
 - **Fix**: Re-run the test — it cleans up its own data on completion. Or manually delete nodes with `MATCH (n) WHERE n.name STARTS WITH 'E2E_TEST_' DELETE n`.
+
+## 20. Ontology Method Names
+
+- **Gotcha**: `OntologyManager.list_types()` returns `list[str]`. There is no `get_all_types()` method.
+- **Risk**: Calling `get_all_types()` will raise `AttributeError`. The E2E test caught this bug during the Feb 12, 2026 enhancement.
+- **Fix**: Use `list_types()` for names or `get_type(name)` for details.
+
+## 21. Archive Uses `status` Property (Not `is_archived`)
+
+- **Gotcha**: `archive_entity()` sets `status: "archived"` on the graph node. There is no `is_archived` boolean flag.
+- **Risk**: Checking `node.is_archived` returns `None` and silently passes truthiness checks.
+- **Fix**: Check `node.status == "archived"` instead. (Caught by E2E test, Feb 12, 2026.)

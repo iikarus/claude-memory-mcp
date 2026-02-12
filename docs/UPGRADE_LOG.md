@@ -213,7 +213,7 @@ The system at Phase 3 completion had:
 
 | Before                        | After                                                  |
 | ----------------------------- | ------------------------------------------------------ |
-| 14-check legacy e2e script    | **34-check exhaustive UAT** — 11 phases, 40.9s runtime |
+| 14-check legacy e2e script    | **52-check exhaustive UAT** — 18 phases, 43.8s runtime |
 | No strict consistency testing | **W3 verified live** (strict + lenient modes)          |
 | No vector verification        | **Qdrant point verification** per entity               |
 
@@ -223,15 +223,16 @@ The system at Phase 3 completion had:
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
-| **MCP Tools**         | 17                 | 25                                                 | +8    |
-| **Source Modules**    | 14                 | 27                                                 | +13   |
-| **Unit Tests**        | 255                | 415                                                | +160  |
-| **Test Files**        | 15                 | 38                                                 | +23   |
-| **Scripts**           | 12                 | 37                                                 | +25   |
+| **MCP Tools**         | 17                 | 27                                                 | +10   |
+| **Source Modules**    | 14                 | 28                                                 | +14   |
+| **Unit Tests**        | 255                | 422                                                | +167  |
+| **Test Files**        | 15                 | 42                                                 | +27   |
+| **Scripts**           | 12                 | 38                                                 | +26   |
 | **Tox Tiers**         | 4                  | 5                                                  | +1    |
 | **Search Strategies** | 1 (vector)         | 4 (semantic, associative, temporal, relational)    | +3    |
 | **Graph Features**    | Basic CRUD         | Temporal edges, salience, activation, gap analysis | —     |
-| **Graph Data**        | —                  | 466 nodes, 580 edges                               | —     |
+| **Graph Data**        | —                  | 697 nodes, 581 edges                               | —     |
+| **E2E Phases**        | —                  | 18 phases, 52 checks                               | —     |
 
 ### New Source Modules (V2)
 
@@ -246,6 +247,7 @@ The system at Phase 3 completion had:
 - `context_manager.py` — Session context management
 - `ontology.py` — Runtime type system (existed but undocumented)
 - `retry.py` — `@retry_on_transient` decorator
+- `crud_maintenance.py` — CrudMaintenanceMixin (observation CRUD, salience updates)
 
 ### New MCP Tools (V2)
 

@@ -13,7 +13,8 @@ A manifest of the project structure. Last updated: February 12, 2026.
 | **Services**              |                                                                                                                           |
 | `tools.py`                | **Business Facade**. `MemoryService` class — thin wrapper composing CrudMixin, SearchMixin, TemporalMixin, AnalysisMixin. |
 | `tools_extra.py`          | **Extra MCP Tools**. Additional tool registrations beyond the core set.                                                   |
-| `crud.py`                 | **CrudMixin**. Entity/relationship/observation create, update, delete logic.                                              |
+| `crud.py`                 | **CrudMixin**. Entity/relationship create, update, delete logic.                                                          |
+| `crud_maintenance.py`     | **CrudMaintenanceMixin**. Observation CRUD, background salience updates (fire-and-forget).                                |
 | `search.py`               | **SearchMixin**. Vector search, hologram retrieval, salience updates.                                                     |
 | `search_advanced.py`      | **Advanced Search**. Hologram subgraph expansion and spreading activation wiring.                                         |
 | `temporal.py`             | **TemporalMixin**. Sessions, breakthroughs, timeline queries, temporal neighbors.                                         |
@@ -28,7 +29,7 @@ A manifest of the project structure. Last updated: February 12, 2026.
 | `interfaces.py`           | **Protocols**. Abstract base classes (e.g., `Embedder`) for decoupling.                                                   |
 | `ontology.py`             | **Type System**. Runtime ontology management for custom memory types.                                                     |
 | **Infrastructure**        |                                                                                                                           |
-| `server.py`               | **MCP Server**. Wires services together, exposes 25 functions as MCP Tools. **stdio transport only.**                     |
+| `server.py`               | **MCP Server**. Wires services together, exposes 27 functions as MCP Tools. **stdio transport only.**                     |
 | `lock_manager.py`         | **Concurrency**. Redis-based distributed locking with file-based fallback. REDIS\_\* env vars take precedence.            |
 | `retry.py`                | **Resilience**. `@retry_on_transient` decorator for handling transient connection failures.                               |
 | `repository_queries.py`   | **Query Builder**. Cypher query construction helpers for repository.                                                      |
@@ -57,6 +58,8 @@ A manifest of the project structure. Last updated: February 12, 2026.
 | `unit/test_vector_store.py`       | Qdrant client, collection init, search, MMR, error re-raise.    |
 | `unit/test_validation.py`         | Pydantic model validation.                                      |
 | `unit/test_tools_coverage.py`     | Comprehensive MemoryService method coverage.                    |
+| `unit/test_consolidate_errors.py` | Memory consolidation error accumulation (P-1 fix).              |
+| `unit/test_embedding_retry.py`    | Embedding CUDA context retry logic (R-4 fix).                   |
 | `unit/test_embedding_coverage.py` | Embedding service edge cases.                                   |
 | `unit/test_embedding_client.py`   | Embedding client integration.                                   |
 | `unit/test_embedding_server.py`   | Embedding HTTP server.                                          |
@@ -88,11 +91,11 @@ A manifest of the project structure. Last updated: February 12, 2026.
 
 ### E2E / UAT (`tests/`)
 
-| File                | Coverage                                                                                                                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `e2e_functional.py` | **Exhaustive UAT**. 11-phase, 34-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, cleanup). |
+| File                | Coverage                                                                                                                                                                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `e2e_functional.py` | **Exhaustive UAT**. 18-phase, 52-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup). |
 
-**Total: 415 tests across 38 files, ~99% coverage.**
+**Total: 422 tests across 42 files, ~99% coverage.**
 
 ## Configuration
 
@@ -119,7 +122,8 @@ A manifest of the project structure. Last updated: February 12, 2026.
 | `start.ps1`                 | **Startup**. Helper to resume Docker containers without rebuilding.                                 |
 | `docker_cleanup.ps1`        | **Hygiene**. Aggressive disk cleanup for Docker artifacts.                                          |
 | `clean_tox.py`              | **Hygiene**. Cleans tox environments.                                                               |
-| `healthcheck.ps1`           | **Health Probe**. Checks FalkorDB, Qdrant, and Embedding server status.                             |
+| `healthcheck.ps1`           | **Health Probe**. Checks FalkorDB, Qdrant, Embedding server status, and MCP process.                |
+| `run_mcp_server.ps1`        | **Auto-Recovery**. Resilient MCP server wrapper with restart loop and cooldown.                     |
 | `cold_run.ps1`              | **Cold Start**. Full cold startup script.                                                           |
 | `cold_test.ps1`             | **Cold Test**. Cold test runner after fresh environment.                                            |
 | **Verification**            |                                                                                                     |

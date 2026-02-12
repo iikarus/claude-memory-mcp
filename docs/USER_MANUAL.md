@@ -2,7 +2,7 @@
 
 This manual describes how to interact with the Claude Memory System. Last updated: February 12, 2026.
 
-## 🤖 For Claude (MCP Tools — 25 Total)
+## 🤖 For Claude (MCP Tools — 27 Total)
 
 The system exposes the following tools via the Model Context Protocol (stdio transport).
 
@@ -75,8 +75,12 @@ The system exposes the following tools via the Model Context Protocol (stdio tra
   - Triggers the Librarian Agent. Clusters → Consolidates → Detects Gaps → Stores GapReports → Prunes.
 - **`create_memory_type(name, description, required_properties)`**
   - Registers a custom entity type in the runtime ontology.
-- **`archive_entity(entity_id)`** — Logical hide.
+- **`archive_entity(entity_id)`** — Logical hide (sets `status: "archived"`).
 - **`prune_stale(days=30)`** — Hard deletes archived entities older than N days.
+- **`get_stale_entities(days=30)`** — Lists entities not accessed in N days.
+- **`consolidate_memories(entity_ids, summary)`** — Merges entities into a new Concept with CONTAINS edges.
+- **`analyze_graph(algorithm)`** — Runs PageRank or Louvain on the knowledge graph.
+- **`get_hologram(query, depth, max_tokens)`** — Retrieves a connected subgraph centered on an entity.
 
 ## 🖥️ Visual Dashboard
 
