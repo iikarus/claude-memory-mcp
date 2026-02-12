@@ -34,8 +34,8 @@ class CrudMaintenanceMixin:
             """Execute the salience increment in the background."""
             try:
                 self.repo.increment_salience(ids)
-            except Exception:
-                logger.warning("Background salience update failed — will retry next search")
+            except (ConnectionError, TimeoutError, OSError) as exc:
+                logger.error("Background salience update failed: %s", exc)
 
         task = asyncio.create_task(_do_update())
         # Hold a reference so it isn't garbage-collected mid-flight
