@@ -112,18 +112,38 @@ class AnalysisMixin:
         return self.repo.update_node(entity_id, {"status": "archived"})  # type: ignore[no-any-return]
 
     async def prune_stale(self, days: int = 30) -> dict[str, Any]:
-        """Hard delete archived entities older than N days."""
+        """Hard delete archived entities older than N days.
 
+        Deletes Qdrant vectors BEFORE graph nodes to prevent orphan vectors.
+        Order: SELECT IDs → delete vectors → DETACH DELETE graph nodes.
+        """
         cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
 
-        query = """
+        # Step 1: SELECT IDs of entities to prune (don't delete yet)
+        select_query = """
+        MATCH (n:Entity)
+        WHERE n.status = 'archived' AND n.archived_at < $cutoff
+        RETURN n.id
+        """
+        res = self.repo.execute_cypher(select_query, {"cutoff": cutoff})
+        entity_ids = [row[0] for row in res.result_set] if res.result_set else []
+
+        if not entity_ids:
+            return {"status": "success", "deleted_count": 0}
+
+        # Step 2: Delete Qdrant vectors FIRST (fail-safe order)
+        for entity_id in entity_ids:
+            await self.vector_store.delete(entity_id)
+
+        # Step 3: DETACH DELETE from FalkorDB
+        delete_query = """
         MATCH (n:Entity)
         WHERE n.status = 'archived' AND n.archived_at < $cutoff
         DETACH DELETE n
         RETURN count(n) as deleted_count
         """
-        res = self.repo.execute_cypher(query, {"cutoff": cutoff})
-        count = res.result_set[0][0] if res.result_set else 0
+        del_res = self.repo.execute_cypher(delete_query, {"cutoff": cutoff})
+        count = del_res.result_set[0][0] if del_res.result_set else 0
         return {"status": "success", "deleted_count": count}
 
     async def analyze_graph(
