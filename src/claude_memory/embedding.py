@@ -66,21 +66,44 @@ class EmbeddingService:
             # Fallback? No, if configured for remote, failure should be noisy.
             raise e
 
+    def _reload_encoder(self) -> None:
+        """Discard the cached encoder so the next access reloads the model."""
+        logger.warning("Clearing encoder cache — model will be reloaded on next call")
+        self._encoder = None
+        self._device = None
+
     def encode(self, text: str) -> list[float]:
-        """Encodes a single string into a vector."""
+        """Encodes a single string into a vector.
+
+        If the local encoder raises RuntimeError (e.g. CUDA context lost),
+        the model is reloaded and the call is retried once.
+        """
         if os.getenv("EMBEDDING_API_URL"):
             return self._call_api([text])[0]
 
-        vec = self.encoder.encode(text)
+        try:
+            vec = self.encoder.encode(text)
+        except RuntimeError:
+            logger.error("encode() failed — reloading model and retrying once")
+            self._reload_encoder()
+            vec = self.encoder.encode(text)
         return cast(list[float], vec.tolist())
 
     def encode_batch(self, texts: list[str]) -> list[list[float]]:
-        """Encodes a list of strings."""
+        """Encodes a list of strings.
+
+        Retries once on RuntimeError (CUDA context recovery).
+        """
         if not texts:
             return []
 
         if os.getenv("EMBEDDING_API_URL"):
             return self._call_api(texts)
 
-        vecs = self.encoder.encode(texts)
+        try:
+            vecs = self.encoder.encode(texts)
+        except RuntimeError:
+            logger.error("encode_batch() failed — reloading model and retrying once")
+            self._reload_encoder()
+            vecs = self.encoder.encode(texts)
         return cast(list[list[float]], vecs.tolist())

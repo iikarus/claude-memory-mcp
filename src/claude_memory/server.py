@@ -1,7 +1,7 @@
 """MCP server exposing Exocortex memory tools via stdio transport."""
 
 import logging
-from typing import Any
+from typing import Any, Literal
 
 from mcp.server.fastmcp import FastMCP
 
@@ -261,6 +261,24 @@ async def search_memory(  # noqa: PLR0913
     if not results:
         return "No results found."
     return [res.model_dump() for res in results]
+
+
+@mcp.tool()
+async def analyze_graph(
+    algorithm: Literal["pagerank", "louvain"] = "pagerank",
+) -> list[dict[str, Any]]:
+    """Runs graph algorithms (pagerank or louvain) to find key entities or communities."""
+    return await service.analyze_graph(algorithm=algorithm)
+
+
+@mcp.tool()
+async def get_hologram(
+    query: str,
+    depth: int = 1,
+    max_tokens: int = 8000,
+) -> dict[str, Any]:
+    """Retrieves a 'Hologram' — a connected subgraph relevant to the query."""
+    return await service.get_hologram(query, depth=depth, max_tokens=max_tokens)
 
 
 def main() -> None:
