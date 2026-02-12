@@ -120,7 +120,7 @@ class SearchAdvancedMixin:
         2. Expand outward from Anchors by 'depth'.
         3. Return the consolidated subgraph.
         """
-        logger.info(f"Generating Hologram for: {query}")
+        logger.info("Generating Hologram for: %s", query)
 
         # 1. Get Anchors
         anchors = await self.search(query, limit=5)  # type: ignore[attr-defined]

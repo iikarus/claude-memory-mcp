@@ -57,7 +57,10 @@ class ClusteringService:
 
         # 2. Run DBSCAN
         logger.info(
-            f"Running DBSCAN on {len(X)} nodes with eps={self.eps}, min_samples={self.min_samples}"
+            "Running DBSCAN on %d nodes with eps=%s, min_samples=%s",
+            len(X),
+            self.eps,
+            self.min_samples,
         )
         db = DBSCAN(eps=self.eps, min_samples=self.min_samples, metric="cosine").fit(X)
         labels = db.labels_
@@ -107,7 +110,7 @@ class ClusteringService:
                 )
             )
 
-        logger.info(f"Found {len(results)} clusters.")
+        logger.info("Found %d clusters.", len(results))
         return results
 
 

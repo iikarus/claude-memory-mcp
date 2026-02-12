@@ -52,7 +52,9 @@ class QdrantVectorStore:
 
             if not exists:
                 logger.info(
-                    f"Creating Qdrant collection '{self.collection}' with size {self.vector_size}"
+                    "Creating Qdrant collection '%s' with size %d",
+                    self.collection,
+                    self.vector_size,
                 )
                 await self.client.create_collection(
                     collection_name=self.collection,
@@ -76,7 +78,7 @@ class QdrantVectorStore:
                 )
             self._initialized = True
         except Exception as e:
-            logger.error(f"Failed to initialize Qdrant collection: {e}")
+            logger.error("Failed to initialize Qdrant collection: %s", e)
             raise
 
     @retry_on_transient()

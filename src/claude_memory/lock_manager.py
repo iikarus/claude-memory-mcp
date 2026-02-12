@@ -83,7 +83,7 @@ class LockManager:
             # Test connection
             self.client.ping()
         except Exception as e:
-            logger.warning(f"Redis unavailable ({e}). Swapping to FileLock fallback strategy.")
+            logger.warning("Redis unavailable (%s). Swapping to FileLock fallback strategy.", e)
             self.client = None
             # Ensure lock directory exists
             self.lock_dir = os.path.join(os.getcwd(), ".locks")
@@ -114,7 +114,7 @@ class LockManager:
             if self.client and self.client.set(lock_key, "locked", nx=True, ex=timeout + 5):
                 return True
             time.sleep(0.1)
-        logger.warning(f"Failed to acquire Redis lock for project {project_id}")
+        logger.warning("Failed to acquire Redis lock for project %s", project_id)
         return False
 
     def _release_redis(self, project_id: str) -> None:
@@ -145,7 +145,7 @@ class LockManager:
                 except (FileNotFoundError, ValueError):
                     pass
                 time.sleep(0.1)
-        logger.warning(f"Failed to acquire File lock for project {project_id}")
+        logger.warning("Failed to acquire File lock for project %s", project_id)
         return False
 
     def _release_file(self, project_id: str) -> None:
@@ -175,7 +175,7 @@ class LockManager:
             if self.client and self.client.set(lock_key, "locked", nx=True, ex=timeout + 5):
                 return True
             await asyncio.sleep(0.1)
-        logger.warning(f"Failed to acquire Redis lock for project {project_id}")
+        logger.warning("Failed to acquire Redis lock for project %s", project_id)
         return False
 
     async def _async_acquire_file(self, project_id: str, timeout: int) -> bool:
@@ -197,5 +197,5 @@ class LockManager:
                 except (FileNotFoundError, ValueError):
                     pass
                 await asyncio.sleep(0.1)
-        logger.warning(f"Failed to acquire File lock for project {project_id}")
+        logger.warning("Failed to acquire File lock for project %s", project_id)
         return False

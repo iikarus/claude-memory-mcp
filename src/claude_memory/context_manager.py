@@ -84,8 +84,10 @@ class ContextManager:
             if budget.remaining() < min_cost:
                 # Can't even fit the skeleton. Stop.
                 logger.info(
-                    f"Context budget reached ({budget.used}/{budget.limit}). "
-                    f"Pruning remaining {len(nodes) - len(optimized_nodes)} nodes."
+                    "Context budget reached (%d/%d). Pruning remaining %d nodes.",
+                    budget.used,
+                    budget.limit,
+                    len(nodes) - len(optimized_nodes),
                 )
                 break
 

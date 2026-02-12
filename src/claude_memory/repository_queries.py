@@ -113,6 +113,9 @@ class RepositoryQueryMixin:
     ) -> dict[str, Any]:
         """Create a temporal relationship between two entities.
 
+        DEAD CODE — no production callers (audit 2026-02-12).
+        Kept for API completeness and future use.
+
         Args:
             from_id: Source entity ID.
             to_id: Target entity ID.

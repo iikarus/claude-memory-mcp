@@ -67,9 +67,9 @@ class OntologyManager:
                     saved = json.load(f)
                     # Merge with defaults (defaults always exist)
                     self._ontology.update(saved)
-                logger.info(f"Loaded {len(self._ontology)} memory types from {self.config_path}")
+                logger.info("Loaded %d memory types from %s", len(self._ontology), self.config_path)
             except Exception as e:
-                logger.error(f"Failed to load ontology: {e}. Using defaults.")
+                logger.error("Failed to load ontology: %s. Using defaults.", e)
         else:
             self._save()
 
@@ -79,7 +79,7 @@ class OntologyManager:
             with open(self.config_path, "w") as f:
                 json.dump(self._ontology, f, indent=2)
         except Exception as e:
-            logger.error(f"Failed to save ontology: {e}")
+            logger.error("Failed to save ontology: %s", e)
 
     def is_valid_type(self, node_type: str) -> bool:
         """Check if a node type is defined."""
@@ -92,17 +92,21 @@ class OntologyManager:
         if required_properties is None:
             required_properties = []
         if name in self._ontology:
-            logger.warning(f"Overwriting memory type: {name}")
+            logger.warning("Overwriting memory type: %s", name)
 
         self._ontology[name] = {
             "description": description,
             "required_properties": required_properties,
         }
         self._save()
-        logger.info(f"Registered memory type: {name}")
+        logger.info("Registered memory type: %s", name)
 
     def get_type_definition(self, name: str) -> dict[str, Any] | None:
-        """Return the schema definition for a given type name, or None."""
+        """Return the schema definition for a given type name, or None.
+
+        DEAD CODE — no production callers (audit 2026-02-12).
+        Kept for API completeness and future use.
+        """
         return self._ontology.get(name)
 
     def list_types(self) -> list[str]:

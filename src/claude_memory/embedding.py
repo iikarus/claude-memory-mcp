@@ -46,7 +46,9 @@ class EmbeddingService:
             from sentence_transformers import SentenceTransformer  # noqa: PLC0415
 
             logger.info(
-                f"Loading SentenceTransformer model ({self.model_name}) on {self.device}..."
+                "Loading SentenceTransformer model (%s) on %s...",
+                self.model_name,
+                self.device,
             )
             self._encoder = SentenceTransformer(self.model_name, device=self.device)
         return self._encoder
@@ -62,7 +64,7 @@ class EmbeddingService:
                 resp.raise_for_status()
                 return cast(list[list[float]], resp.json()["embeddings"])
         except Exception as e:
-            logger.error(f"Remote embedding failed: {e}")
+            logger.error("Remote embedding failed: %s", e)
             # Fallback? No, if configured for remote, failure should be noisy.
             raise e
 

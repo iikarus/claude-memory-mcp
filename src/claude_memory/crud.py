@@ -50,7 +50,7 @@ class CrudMixin:
                 )
 
             start_time = datetime.now()
-            logger.info(f"Creating entity: {params.name} ({params.node_type})")
+            logger.info("Creating entity: %s (%s)", params.name, params.node_type)
 
             props = params.properties.copy()
             props["id"] = params.properties.get("id") or str(uuid.uuid4())
@@ -140,8 +140,10 @@ class CrudMixin:
         async def _do_create() -> dict[str, Any]:
             """Execute relationship creation inside the optional lock."""
             logger.info(
-                f"Creating relationship: {params.from_entity} "
-                f"-[{params.relationship_type}]-> {params.to_entity}"
+                "Creating relationship: %s -[%s]-> %s",
+                params.from_entity,
+                params.relationship_type,
+                params.to_entity,
             )
 
             props = params.properties.copy()
@@ -175,7 +177,7 @@ class CrudMixin:
 
         async def _do_update() -> dict[str, Any]:
             """Execute entity update inside the optional lock."""
-            logger.info(f"Updating entity: {params.entity_id}")
+            logger.info("Updating entity: %s", params.entity_id)
 
             props = params.properties.copy()
             timestamp = datetime.now(UTC).isoformat()
@@ -240,7 +242,7 @@ class CrudMixin:
 
         async def _do_delete() -> dict[str, Any]:
             """Execute entity deletion inside the optional lock."""
-            logger.info(f"Deleting entity: {params.entity_id} ({params.reason})")
+            logger.info("Deleting entity: %s (%s)", params.entity_id, params.reason)
 
             if params.soft_delete:
                 self.repo.update_node(

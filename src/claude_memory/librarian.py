@@ -48,9 +48,9 @@ class LibrarianAgent:
         # Added get_all_nodes to repo in previous step.
         try:
             nodes = self.memory.repo.get_all_nodes(limit=2000)
-            logger.info(f"Fetched {len(nodes)} nodes for analysis.")
+            logger.info("Fetched %d nodes for analysis.", len(nodes))
         except Exception as e:
-            logger.error(f"Failed to fetch nodes: {e}")
+            logger.error("Failed to fetch nodes: %s", e)
             report["errors"].append(str(e))
             return report
 
@@ -71,14 +71,14 @@ class LibrarianAgent:
             summary = self._synthesize_summary(cluster.nodes)
             entity_ids = [n["id"] for n in cluster.nodes if "id" in n]
 
-            logger.info(f"Consolidating Cluster {cluster.id} with {len(entity_ids)} nodes.")
+            logger.info("Consolidating Cluster %s with %d nodes.", cluster.id, len(entity_ids))
             try:
                 # Call the existing tool logic
                 res = await self.memory.consolidate_memories(entity_ids, summary)
                 if res and "id" in res:
                     report["consolidations_created"] += 1
             except Exception as e:
-                logger.error(f"Failed to consolidate cluster {cluster.id}: {e}")
+                logger.error("Failed to consolidate cluster %s: %s", cluster.id, e)
                 report["errors"].append(f"Cluster {cluster.id}: {e!s}")
 
         # 4. Gap Detection

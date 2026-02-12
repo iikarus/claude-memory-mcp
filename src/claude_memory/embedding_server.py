@@ -41,7 +41,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     service = EmbeddingService()
     # Trigger model load
     _ = service.encoder
-    logger.info(f"Model loaded on {service.device}")
+    logger.info("Model loaded on %s", service.device)
     yield
 
 
@@ -61,7 +61,7 @@ async def embed_texts(request: EmbedRequest) -> dict[str, Any]:
         embeddings = service.encode_batch(request.texts)
         return {"embeddings": embeddings}
     except Exception as e:
-        logger.error(f"Embedding failed: {e}")
+        logger.error("Embedding failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
