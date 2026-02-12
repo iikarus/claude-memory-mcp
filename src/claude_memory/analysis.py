@@ -9,6 +9,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal
 
+from claude_memory.graph_algorithms import compute_louvain, compute_pagerank
+
 if TYPE_CHECKING:  # pragma: no cover
     from .interfaces import Embedder, VectorStore
     from .ontology import OntologyManager
@@ -108,7 +110,11 @@ class AnalysisMixin:
         return results
 
     async def archive_entity(self, entity_id: str) -> dict[str, Any]:
-        """Archive an entity (logical hide)."""
+        """Archive an entity (logical hide).
+
+        Deletes Qdrant vector BEFORE graph update to prevent ghost search results.
+        """
+        await self.vector_store.delete(entity_id)
         return self.repo.update_node(entity_id, {"status": "archived"})  # type: ignore[no-any-return]
 
     async def prune_stale(self, days: int = 30) -> dict[str, Any]:
@@ -149,51 +155,33 @@ class AnalysisMixin:
     async def analyze_graph(
         self, algorithm: Literal["pagerank", "louvain"] = "pagerank"
     ) -> list[dict[str, Any]]:
-        """
-        Runs graph algorithms to find key entities or communities.
+        """Run graph algorithms to find key entities or communities.
+
+        Computes algorithms in Python using adjacency data fetched via Cypher.
+        FalkorDB does not provide built-in algo.pageRank/algo.louvain procedures.
 
         Args:
             algorithm: 'pagerank' for influence, 'louvain' for communities.
         """
-        results = []
-        if algorithm == "pagerank":
-            try:
-                self.repo.execute_cypher("CALL algo.pageRank('Entity', 'rank')")
-                res = self.repo.execute_cypher(
-                    "MATCH (n:Entity) RETURN n ORDER BY n.rank DESC LIMIT 10"
-                )
-                for row in res.result_set:
-                    node = row[0]
-                    results.append(
-                        {
-                            "name": node.properties.get("name"),
-                            "rank": node.properties.get("rank"),
-                            "type": (
-                                next(iter(set(node.labels) - {"Entity"}))
-                                if (set(node.labels) - {"Entity"})
-                                else "Entity"
-                            ),
-                        }
-                    )
-            except Exception as e:
-                logger.error(f"PageRank failed: {e}")
-                return [{"error": str(e)}]
+        # Fetch all nodes
+        node_res = self.repo.execute_cypher("MATCH (n:Entity) RETURN n")
+        if not node_res.result_set:
+            return []
 
+        nodes = {row[0].properties["name"]: row[0] for row in node_res.result_set}
+        node_names = list(nodes.keys())
+
+        # Fetch all edges
+        edge_res = self.repo.execute_cypher(
+            "MATCH (a:Entity)-[r]->(b:Entity) RETURN a.name, b.name"
+        )
+        edges = [(row[0], row[1]) for row in edge_res.result_set] if edge_res.result_set else []
+
+        if algorithm == "pagerank":
+            return compute_pagerank(nodes, node_names, edges)
         elif algorithm == "louvain":
-            try:
-                self.repo.execute_cypher("CALL algo.louvain('Entity', 'community')")
-                q = """
-                MATCH (n:Entity)
-                RETURN n.community, count(n) as size, collect(n.name)[..5] as members
-                ORDER BY size DESC LIMIT 5
-                """
-                res = self.repo.execute_cypher(q)
-                for row in res.result_set:
-                    results.append({"community_id": row[0], "size": row[1], "members": row[2]})
-            except Exception as e:
-                logger.error(f"Louvain failed: {e}")
-                return [{"error": str(e)}]
-        return results
+            return compute_louvain(nodes, node_names, edges)
+        return []
 
     async def get_stale_entities(self, days: int = 30) -> list[dict[str, Any]]:
         """Identify entities not modified/accessed in N days."""

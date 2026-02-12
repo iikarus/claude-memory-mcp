@@ -526,30 +526,35 @@ async def test_point_in_time_query_with_results(service: MemoryService) -> None:
 
 
 async def test_analyze_graph_pagerank_success(service: MemoryService) -> None:
-    mock_node = MagicMock()
-    mock_node.properties = {"name": ENTITY_NAME, "rank": PAGERANK_SCORE}
-    mock_node.labels = [ENTITY_TYPE, "Entity"]
+    """PageRank returns ranked entities based on graph adjacency."""
+    mock_node_a = MagicMock()
+    mock_node_a.properties = {"name": ENTITY_NAME}
+    mock_node_a.labels = [ENTITY_TYPE, "Entity"]
+    mock_node_b = MagicMock()
+    mock_node_b.properties = {"name": "NodeB"}
+    mock_node_b.labels = ["Entity"]
 
     service.repo.execute_cypher.side_effect = [
-        None,  # CALL algo.pageRank
-        _make_cypher_result([[mock_node]]),  # MATCH RETURN
+        _make_cypher_result([[mock_node_a], [mock_node_b]]),  # nodes
+        _make_cypher_result([["NodeB", ENTITY_NAME]]),  # edges: B->A
     ]
 
     result = await service.analyze_graph(algorithm="pagerank")
-    assert len(result) == 1
+    assert len(result) >= 1
+    # A has an incoming edge, should have a higher rank
     assert result[0]["name"] == ENTITY_NAME
-    assert result[0]["rank"] == PAGERANK_SCORE
+    assert "rank" in result[0]
 
 
 async def test_analyze_graph_pagerank_only_entity_label(service: MemoryService) -> None:
     """When node only has 'Entity' label, type should be 'Entity'."""
     mock_node = MagicMock()
-    mock_node.properties = {"name": ENTITY_NAME, "rank": PAGERANK_SCORE}
+    mock_node.properties = {"name": ENTITY_NAME}
     mock_node.labels = ["Entity"]  # Only Entity label
 
     service.repo.execute_cypher.side_effect = [
-        None,
-        _make_cypher_result([[mock_node]]),
+        _make_cypher_result([[mock_node]]),  # nodes
+        _make_cypher_result([]),  # no edges
     ]
 
     result = await service.analyze_graph(algorithm="pagerank")
@@ -557,35 +562,44 @@ async def test_analyze_graph_pagerank_only_entity_label(service: MemoryService) 
 
 
 async def test_analyze_graph_pagerank_error(service: MemoryService) -> None:
+    """Errors propagate loudly from PageRank (no silent swallowing)."""
     service.repo.execute_cypher.side_effect = RuntimeError("algo not available")
 
-    result = await service.analyze_graph(algorithm="pagerank")
-    assert len(result) == 1
-    assert "error" in result[0]
+    with pytest.raises(RuntimeError, match="algo not available"):
+        await service.analyze_graph(algorithm="pagerank")
 
 
 async def test_analyze_graph_louvain_success(service: MemoryService) -> None:
+    """Louvain detects communities from graph adjacency."""
+    nodes = []
+    for name in ["A", "B", "C"]:
+        n = MagicMock()
+        n.properties = {"name": name}
+        n.labels = ["Entity"]
+        nodes.append(n)
+
     service.repo.execute_cypher.side_effect = [
-        None,  # CALL algo.louvain
-        _make_cypher_result([[COMMUNITY_ID, COMMUNITY_SIZE, COMMUNITY_MEMBERS]]),
+        _make_cypher_result([[n] for n in nodes]),  # nodes
+        _make_cypher_result([["A", "B"], ["B", "C"], ["A", "C"]]),  # edges
     ]
 
     result = await service.analyze_graph(algorithm="louvain")
-    assert len(result) == 1
-    assert result[0]["community_id"] == COMMUNITY_ID
-    assert result[0]["size"] == COMMUNITY_SIZE
+    assert len(result) >= 1
+    assert "community_id" in result[0]
+    assert "size" in result[0]
+    assert "members" in result[0]
 
 
 async def test_analyze_graph_louvain_error(service: MemoryService) -> None:
+    """Errors propagate loudly from Louvain (no silent swallowing)."""
     service.repo.execute_cypher.side_effect = RuntimeError("algo not available")
 
-    result = await service.analyze_graph(algorithm="louvain")
-    assert len(result) == 1
-    assert "error" in result[0]
+    with pytest.raises(RuntimeError, match="algo not available"):
+        await service.analyze_graph(algorithm="louvain")
 
 
 async def test_analyze_graph_unsupported_algorithm(service: MemoryService) -> None:
-    """Branch 587→601: algorithm is neither 'pagerank' nor 'louvain' → empty results."""
+    """Unsupported algorithm returns empty list."""
     result = await service.analyze_graph(algorithm="unknown")  # type: ignore[arg-type]
     assert result == []
 

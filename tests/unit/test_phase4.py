@@ -42,23 +42,26 @@ def memory_service(mock_repo: Any) -> Any:
 
 @pytest.mark.asyncio
 async def test_analyze_graph_pagerank(memory_service: Any, mock_repo: Any) -> None:
-    """Test PageRank execution and result parsing."""
+    """Test PageRank execution with Python-side implementation."""
 
-    # Mock Cypher output for rank query
-    # Logic in tools uses execute_cypher
+    # Mock nodes
     mock_node = MagicMock()
-    mock_node.properties = {"name": "Important Node", "rank": 0.85}
+    mock_node.properties = {"name": "Important Node"}
     mock_node.labels = {"Entity", "Concept"}
 
-    # execute_cypher returns an object with result_set
-    mock_res = MagicMock()
-    mock_res.result_set = [[mock_node]]
-    mock_repo.execute_cypher.return_value = mock_res
+    # New API: 2 queries — first returns nodes, second returns edges
+    nodes_result = MagicMock()
+    nodes_result.result_set = [[mock_node]]
+    edges_result = MagicMock()
+    edges_result.result_set = []
+
+    mock_repo.execute_cypher.side_effect = [nodes_result, edges_result]
 
     results = await memory_service.analyze_graph("pagerank")
 
     assert len(results) == 1
     assert results[0]["name"] == "Important Node"
+    assert "rank" in results[0]
 
 
 @pytest.mark.asyncio
