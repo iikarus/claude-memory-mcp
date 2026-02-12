@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import shutil
 import subprocess
 
 # Safety net: ensure UTF-8 mode on Windows where the default codepage may be cp1252
@@ -103,6 +104,15 @@ def backup(tag: str | None = None) -> None:
     else:
         print("[FAIL]")
         print(res.stderr.decode("utf-8"))
+
+    # 3. Backup ontology.json
+    ontology_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology.json")
+    if os.path.exists(ontology_src):
+        print("   Backing up ontology.json...", end=" ", flush=True)
+        shutil.copy2(ontology_src, os.path.join(target_dir, "ontology.json"))
+        print("[OK]")
+    else:
+        print("   [SKIP] ontology.json not found (will use defaults)")
 
     print(f"[DONE] Save Point Created in {target_dir}")
     _verify_backup(target_dir)
