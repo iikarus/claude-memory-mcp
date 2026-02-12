@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -48,9 +49,13 @@ class OntologyManager:
     Persists definitions to ontology.json.
     """
 
-    def __init__(self, config_path: str = "ontology.json"):
+    # Default: project root / ontology.json (3 parents up from this file)
+    _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+    _DEFAULT_PATH = str(Path(os.getenv("ONTOLOGY_PATH", str(_PROJECT_ROOT / "ontology.json"))))
+
+    def __init__(self, config_path: str = ""):
         """Load or initialize the ontology from disk."""
-        self.config_path = config_path
+        self.config_path = config_path or self._DEFAULT_PATH
         self._ontology: dict[str, dict[str, Any]] = DEFAULT_ONTOLOGY.copy()
         self._load()
 
