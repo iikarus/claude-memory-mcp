@@ -159,11 +159,11 @@ class RepositoryQueryMixin:
     ) -> list[dict[str, Any]]:
         """Query 'Bottle' entities with optional text/date/project filters."""
         graph = self.select_graph()  # type: ignore[attr-defined]
-        conditions: list[str] = []
+        conditions: list[str] = ["n.name CONTAINS 'Bottle'"]
         params: dict[str, Any] = {"limit": limit}
 
         if search_text:
-            conditions.append("n.name CONTAINS $text OR n.description CONTAINS $text")
+            conditions.append("(n.name CONTAINS $text OR n.description CONTAINS $text)")
             params["text"] = search_text
         if before_date:
             conditions.append("COALESCE(n.occurred_at, n.created_at) <= $before")
@@ -175,9 +175,9 @@ class RepositoryQueryMixin:
             conditions.append("n.project_id = $pid")
             params["pid"] = project_id
 
-        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        where_clause = f"WHERE {' AND '.join(conditions)}"
         query = f"""
-        MATCH (n:Bottle)
+        MATCH (n:Entity)
         {where_clause}
         RETURN n
         ORDER BY COALESCE(n.occurred_at, n.created_at) DESC

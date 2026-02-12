@@ -56,23 +56,49 @@ class SearchMixin(SearchAdvancedMixin):
     async def traverse_path(self, from_id: str, to_id: str) -> list[dict[str, Any]]:
         """Find the shortest path between two entities.
 
-        Uses FalkorDB-compatible syntax: shortestPath must appear in
-        WITH/RETURN clauses, not in MATCH.
+        FalkorDB requires directed shortestPath traversals, so we try
+        both directions (forward and reverse) and return whichever succeeds.
         """
-        query = """
+
+        def _extract_path(res: Any) -> list[dict[str, Any]]:
+            path_data: list[dict[str, Any]] = []
+            if res.result_set and res.result_set[0]:
+                path_obj = res.result_set[0][0]
+                if hasattr(path_obj, "nodes"):
+                    nodes = path_obj.nodes() if callable(path_obj.nodes) else path_obj.nodes
+                    for node in nodes:
+                        props = node.properties
+                        props.pop("embedding", None)
+                        path_data.append(props)
+            return path_data
+
+        params = {"start": from_id, "end": to_id}
+
+        # Try forward direction first
+        fwd_query = """
         MATCH (a:Entity {id: $start}), (b:Entity {id: $end})
-        WITH shortestPath((a)-[*..10]-(b)) AS p
+        WITH shortestPath((a)-[*..10]->(b)) AS p
         RETURN p
         """
-        res = self.repo.execute_cypher(query, {"start": from_id, "end": to_id})
-        path_data = []
-        if res.result_set and res.result_set[0]:
-            path_obj = res.result_set[0][0]
-            if hasattr(path_obj, "nodes"):
-                for node in path_obj.nodes:
-                    props = node.properties
-                    props.pop("embedding", None)
-                    path_data.append(props)
+        try:
+            res = self.repo.execute_cypher(fwd_query, params)
+            path_data = _extract_path(res)
+            if path_data:
+                return path_data
+        except Exception:  # noqa: S110
+            # Forward traversal failed (e.g. no directed path), try reverse
+            pass
+
+        # Try reverse direction
+        rev_query = """
+        MATCH (a:Entity {id: $start}), (b:Entity {id: $end})
+        WITH shortestPath((b)-[*..10]->(a)) AS p
+        RETURN p
+        """
+        res = self.repo.execute_cypher(rev_query, params)
+        path_data = _extract_path(res)
+        if path_data:
+            path_data.reverse()
         return path_data
 
     async def find_cross_domain_patterns(
