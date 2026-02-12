@@ -54,10 +54,14 @@ class SearchMixin(SearchAdvancedMixin):
         return nodes
 
     async def traverse_path(self, from_id: str, to_id: str) -> list[dict[str, Any]]:
-        """Find the shortest path between two entities."""
+        """Find the shortest path between two entities.
+
+        Uses FalkorDB-compatible syntax: shortestPath must appear in
+        WITH/RETURN clauses, not in MATCH.
+        """
         query = """
-        MATCH p = shortestPath((a)-[*]-(b))
-        WHERE a.id = $start AND b.id = $end
+        MATCH (a:Entity {id: $start}), (b:Entity {id: $end})
+        WITH shortestPath((a)-[*..10]-(b)) AS p
         RETURN p
         """
         res = self.repo.execute_cypher(query, {"start": from_id, "end": to_id})
