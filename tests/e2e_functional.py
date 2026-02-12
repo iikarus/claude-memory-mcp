@@ -3,17 +3,24 @@
 Exercises the LIVE stack (FalkorDB + Qdrant + Embedding server) through
 the MemoryService facade.  Tests the full lifecycle:
 
-  1. Service initialization (connects to real DBs)
-  2. Entity CRUD (create -> read -> update -> delete)
-  3. Relationship CRUD
-  4. Observation creation
-  5. Semantic search (vector round-trip)
-  6. Graph traversal & neighbors
-  7. Timeline & temporal queries
-  8. Sessions & breakthroughs
-  9. Graph health metrics
-  10. Strict consistency (W3 - Qdrant-down simulation)
-  11. Cleanup (hard-delete all test entities)
+  1.  Service initialization (connects to real DBs)
+  2.  Entity CRUD (create -> read -> update -> delete)
+  3.  Relationship CRUD
+  4.  Observation creation
+  5.  Semantic search (vector round-trip)
+  6.  Graph traversal & neighbors
+  7.  Timeline & temporal queries
+  8.  Sessions & breakthroughs
+  9.  Graph health metrics
+  10. Strict consistency (Qdrant-down simulation)
+  11. Associative search (spreading activation)
+  12. Graph algorithms (PageRank / Louvain)
+  13. Hologram retrieval (connected subgraph)
+  14. Memory consolidation (merge entities)
+  15. Ontology management (custom memory types)
+  16. Archive & prune lifecycle
+  17. Knowledge gap detection
+  18. Cleanup (hard-delete all test entities)
 
 Requires:
   - FalkorDB on localhost:6379
@@ -41,19 +48,30 @@ sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 PROJECT_ID = "e2e-test-project"
 ENTITY_PREFIX = "E2E_TEST_"
 TIMESTAMP = datetime.now(UTC).isoformat()
+TOTAL_PHASES = 18
 
 
 # -- Helpers --
 
 
 class TestResult:
-    """Accumulates pass/fail results."""
+    """Accumulates pass/fail results with per-phase timing."""
 
     def __init__(self) -> None:
         """Initialize test result tracker."""
         self.passed: list[str] = []
         self.failed: list[tuple[str, str]] = []
         self.warnings: list[str] = []
+        self._phase_start: float = 0.0
+
+    def start_phase(self, label: str) -> None:
+        """Mark the start of a test phase for timing."""
+        self._phase_start = time.monotonic()
+        print(f"\n{label}")
+
+    def _elapsed(self) -> str:
+        """Return elapsed time since phase start."""
+        return f"{time.monotonic() - self._phase_start:.2f}s"
 
     def ok(self, name: str) -> None:
         """Record a passing test."""
@@ -69,6 +87,10 @@ class TestResult:
         """Record a warning (non-fatal)."""
         self.warnings.append(f"{name}: {msg}")
         print(f"  [WARN] {name}: {msg}")
+
+    def end_phase(self) -> None:
+        """Print elapsed time for the current phase."""
+        print(f"  [{self._elapsed()}]")
 
     def summary(self) -> str:
         """Return summary string."""
@@ -97,7 +119,7 @@ results = TestResult()
 
 def test_service_init() -> Any:
     """Test that MemoryService connects to live FalkorDB + Qdrant + Embedder."""
-    print("\n[1/11] Service Initialization")
+    results.start_phase(f"[1/{TOTAL_PHASES}] Service Initialization")
     try:
         from claude_memory.embedding import EmbeddingService
         from claude_memory.tools import MemoryService
@@ -122,10 +144,12 @@ def test_service_init() -> Any:
         assert len(vec) > 0, "Embedding vector is empty"
         results.ok(f"Embedding server connected (dim={len(vec)})")
 
+        results.end_phase()
         return service
     except Exception as e:
         results.fail("Service init", str(e))
         traceback.print_exc()
+        results.end_phase()
         return None
 
 
@@ -134,7 +158,7 @@ def test_service_init() -> Any:
 
 async def test_entity_crud(service: Any) -> dict[str, str]:
     """Test create, read, update, and delete entity."""
-    print("\n[2/11] Entity CRUD")
+    results.start_phase(f"[2/{TOTAL_PHASES}] Entity CRUD")
     ids: dict[str, str] = {}
 
     try:
@@ -176,6 +200,28 @@ async def test_entity_crud(service: Any) -> dict[str, str]:
         ids["gamma"] = receipt3.id
         results.ok(f"Create entity Gamma -> {receipt3.id}")
 
+        # CREATE entity Delta (for consolidation tests)
+        params4 = EntityCreateParams(
+            name=f"{ENTITY_PREFIX}Delta",
+            node_type="Concept",
+            project_id=PROJECT_ID,
+            properties={"description": "Fourth test entity for consolidation"},
+        )
+        receipt4 = await service.create_entity(params4)
+        ids["delta"] = receipt4.id
+        results.ok(f"Create entity Delta -> {receipt4.id}")
+
+        # CREATE entity Epsilon (for archive/prune tests)
+        params5 = EntityCreateParams(
+            name=f"{ENTITY_PREFIX}Epsilon",
+            node_type="Concept",
+            project_id=PROJECT_ID,
+            properties={"description": "Fifth test entity for archive lifecycle"},
+        )
+        receipt5 = await service.create_entity(params5)
+        ids["epsilon"] = receipt5.id
+        results.ok(f"Create entity Epsilon -> {receipt5.id}")
+
         # READ
         node = service.repo.get_node(ids["alpha"])
         assert node is not None, "Entity not found in FalkorDB"
@@ -211,6 +257,7 @@ async def test_entity_crud(service: Any) -> dict[str, str]:
         results.fail("Entity CRUD", str(e))
         traceback.print_exc()
 
+    results.end_phase()
     return ids
 
 
@@ -219,7 +266,7 @@ async def test_entity_crud(service: Any) -> dict[str, str]:
 
 async def test_relationship_crud(service: Any, ids: dict[str, str]) -> str | None:
     """Test create and verify relationships."""
-    print("\n[3/11] Relationship CRUD")
+    results.start_phase(f"[3/{TOTAL_PHASES}] Relationship CRUD")
     rel_id = None
 
     try:
@@ -252,10 +299,24 @@ async def test_relationship_crud(service: Any, ids: dict[str, str]) -> str | Non
         assert "error" not in rel2, f"Relationship 2 error: {rel2.get('error')}"
         results.ok("Create relationship ENABLES (beta->gamma)")
 
+        # Create relationships for delta (for consolidation graph richness)
+        params3 = RelationshipCreateParams(
+            from_entity=ids["gamma"],
+            to_entity=ids["delta"],
+            relationship_type="RELATED_TO",
+            properties={"context": "e2e consolidation chain"},
+            confidence=0.85,
+            weight=0.6,
+        )
+        rel3 = await service.create_relationship(params3)
+        assert "error" not in rel3, f"Relationship 3 error: {rel3.get('error')}"
+        results.ok("Create relationship RELATED_TO (gamma->delta)")
+
     except Exception as e:
         results.fail("Relationship CRUD", str(e))
         traceback.print_exc()
 
+    results.end_phase()
     return rel_id
 
 
@@ -264,7 +325,7 @@ async def test_relationship_crud(service: Any, ids: dict[str, str]) -> str | Non
 
 async def test_observation(service: Any, ids: dict[str, str]) -> None:
     """Test adding an observation to an entity."""
-    print("\n[4/11] Observations")
+    results.start_phase(f"[4/{TOTAL_PHASES}] Observations")
 
     try:
         from claude_memory.schema import ObservationParams
@@ -284,13 +345,15 @@ async def test_observation(service: Any, ids: dict[str, str]) -> None:
         results.fail("Observation", str(e))
         traceback.print_exc()
 
+    results.end_phase()
+
 
 # -- Phase 5: Semantic Search --
 
 
 async def test_search(service: Any) -> None:
     """Test vector search round-trip (embed -> Qdrant -> results)."""
-    print("\n[5/11] Semantic Search")
+    results.start_phase(f"[5/{TOTAL_PHASES}] Semantic Search")
 
     try:
         # Basic search
@@ -328,13 +391,15 @@ async def test_search(service: Any) -> None:
         results.fail("Semantic search", str(e))
         traceback.print_exc()
 
+    results.end_phase()
+
 
 # -- Phase 6: Graph Traversal & Neighbors --
 
 
 async def test_graph_traversal(service: Any, ids: dict[str, str]) -> None:
     """Test neighbor retrieval and path traversal."""
-    print("\n[6/11] Graph Traversal")
+    results.start_phase(f"[6/{TOTAL_PHASES}] Graph Traversal")
 
     try:
         # Neighbors
@@ -367,16 +432,18 @@ async def test_graph_traversal(service: Any, ids: dict[str, str]) -> None:
         results.fail("Graph traversal", str(e))
         traceback.print_exc()
 
+    results.end_phase()
+
 
 # -- Phase 7: Timeline & Temporal --
 
 
 async def test_temporal(service: Any, ids: dict[str, str]) -> None:
-    """Test timeline queries and temporal neighbors."""
-    print("\n[7/11] Timeline & Temporal")
+    """Test timeline queries, temporal neighbors, and bottle queries."""
+    results.start_phase(f"[7/{TOTAL_PHASES}] Timeline & Temporal")
 
     try:
-        from claude_memory.schema import TemporalQueryParams
+        from claude_memory.schema import BottleQueryParams, TemporalQueryParams
 
         # Query timeline (wide window to catch test entities)
         params = TemporalQueryParams(
@@ -392,9 +459,16 @@ async def test_temporal(service: Any, ids: dict[str, str]) -> None:
         neighbors = await service.get_temporal_neighbors(ids["alpha"], direction="both", limit=5)
         results.ok(f"Temporal neighbors -> {len(neighbors)} found")
 
+        # Bottle query (may return 0 if no bottles exist — that's OK)
+        bottle_params = BottleQueryParams(limit=5, project_id=PROJECT_ID)
+        bottles = await service.get_bottles(bottle_params)
+        results.ok(f"Get bottles -> {len(bottles)} found")
+
     except Exception as e:
         results.fail("Temporal", str(e))
         traceback.print_exc()
+
+    results.end_phase()
 
 
 # -- Phase 8: Sessions & Breakthroughs --
@@ -402,7 +476,7 @@ async def test_temporal(service: Any, ids: dict[str, str]) -> None:
 
 async def test_sessions(service: Any) -> None:
     """Test session lifecycle: start -> breakthrough -> end."""
-    print("\n[8/11] Sessions & Breakthroughs")
+    results.start_phase(f"[8/{TOTAL_PHASES}] Sessions & Breakthroughs")
 
     try:
         from claude_memory.schema import (
@@ -440,13 +514,15 @@ async def test_sessions(service: Any) -> None:
         results.fail("Sessions", str(e))
         traceback.print_exc()
 
+    results.end_phase()
+
 
 # -- Phase 9: Graph Health --
 
 
 async def test_graph_health(service: Any) -> None:
     """Test graph health metrics endpoint."""
-    print("\n[9/11] Graph Health")
+    results.start_phase(f"[9/{TOTAL_PHASES}] Graph Health")
 
     try:
         health = await service.get_graph_health()
@@ -463,13 +539,15 @@ async def test_graph_health(service: Any) -> None:
         results.fail("Graph health", str(e))
         traceback.print_exc()
 
+    results.end_phase()
 
-# -- Phase 10: W3 Strict Consistency --
+
+# -- Phase 10: Strict Consistency --
 
 
 async def test_strict_consistency(service: Any) -> None:
     """Test: Qdrant failures always raise — no lenient path exists."""
-    print("\n[10/11] Strict Consistency (always-on)")
+    results.start_phase(f"[10/{TOTAL_PHASES}] Strict Consistency (always-on)")
 
     try:
         from unittest.mock import AsyncMock
@@ -514,13 +592,265 @@ async def test_strict_consistency(service: Any) -> None:
         results.fail("Strict consistency", str(e))
         traceback.print_exc()
 
+    results.end_phase()
 
-# -- Phase 11: Cleanup --
+
+# -- Phase 11: Associative Search --
 
 
-async def test_cleanup(service: Any, ids: dict[str, str]) -> None:
+async def test_associative_search(service: Any) -> None:
+    """Test spreading-activation search through the knowledge graph."""
+    results.start_phase(f"[11/{TOTAL_PHASES}] Associative Search")
+
+    try:
+        assoc_results = await service.search_associative(
+            "test entity validation",
+            limit=5,
+            project_id=PROJECT_ID,
+            decay=0.6,
+            max_hops=2,
+        )
+        results.ok(f"Associative search -> {len(assoc_results)} results")
+
+        # Verify results have expected fields if any came back
+        if assoc_results:
+            first = assoc_results[0]
+            assert hasattr(first, "name") or isinstance(first, dict), (
+                f"Unexpected result type: {type(first)}"
+            )
+            results.ok("Result shape validated")
+        else:
+            results.warn("Associative search", "No results returned (graph may be sparse)")
+
+    except Exception as e:
+        results.fail("Associative search", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+# -- Phase 12: Graph Algorithms --
+
+
+async def test_graph_algorithms(service: Any) -> None:
+    """Test PageRank and Louvain community detection."""
+    results.start_phase(f"[12/{TOTAL_PHASES}] Graph Algorithms")
+
+    # PageRank
+    try:
+        pr_results = await service.analyze_graph(algorithm="pagerank")
+        if pr_results and "error" in pr_results[0]:
+            results.warn("PageRank", f"Algorithm returned error: {pr_results[0]['error'][:80]}")
+        else:
+            results.ok(f"PageRank -> {len(pr_results)} ranked entities")
+    except Exception as e:
+        results.warn("PageRank", str(e)[:80])
+
+    # Louvain
+    try:
+        lv_results = await service.analyze_graph(algorithm="louvain")
+        if lv_results and "error" in lv_results[0]:
+            results.warn("Louvain", f"Algorithm returned error: {lv_results[0]['error'][:80]}")
+        else:
+            results.ok(f"Louvain -> {len(lv_results)} communities")
+    except Exception as e:
+        results.warn("Louvain", str(e)[:80])
+
+    results.end_phase()
+
+
+# -- Phase 13: Hologram Retrieval --
+
+
+async def test_hologram(service: Any) -> None:
+    """Test hologram (connected subgraph) retrieval."""
+    results.start_phase(f"[13/{TOTAL_PHASES}] Hologram Retrieval")
+
+    try:
+        holo = await service.get_hologram("test entity E2E", depth=1, max_tokens=4000)
+        assert isinstance(holo, dict), f"Expected dict, got {type(holo)}"
+        assert "nodes" in holo, f"Missing 'nodes' key in hologram: {list(holo.keys())}"
+        assert "edges" in holo, "Missing 'edges' key in hologram"
+        results.ok(
+            f"Hologram -> {holo.get('stats', {}).get('total_nodes', '?')} nodes, "
+            f"{holo.get('stats', {}).get('total_edges', '?')} edges"
+        )
+
+        # Verify stats structure
+        if "stats" in holo:
+            stats = holo["stats"]
+            assert "total_nodes" in stats
+            assert "total_edges" in stats
+            results.ok("Hologram stats structure validated")
+
+    except Exception as e:
+        results.fail("Hologram", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+# -- Phase 14: Memory Consolidation --
+
+
+async def test_consolidation(service: Any, ids: dict[str, str]) -> str | None:
+    """Test merging multiple entities into a consolidated concept."""
+    results.start_phase(f"[14/{TOTAL_PHASES}] Memory Consolidation")
+    consolidated_id = None
+
+    try:
+        # Consolidate gamma + delta into a new concept
+        target_ids = [ids["gamma"], ids["delta"]]
+        consolidated = await service.consolidate_memories(
+            entity_ids=target_ids,
+            summary="Consolidated Gamma and Delta for E2E testing",
+        )
+
+        if "error" in consolidated:
+            results.warn("Consolidation", f"Returned error: {consolidated['error']}")
+        else:
+            consolidated_id = consolidated.get("consolidated_id")
+            results.ok(f"Consolidate memories -> {consolidated_id}")
+
+            # Verify the consolidated entity exists
+            if consolidated_id:
+                node = service.repo.get_node(consolidated_id)
+                if node:
+                    results.ok("Consolidated node exists in FalkorDB")
+                else:
+                    results.warn("Consolidation", "Consolidated node not found in graph")
+
+            # Check consolidation_errors key (P-1 fix verification)
+            if "consolidation_errors" in consolidated:
+                errors = consolidated["consolidation_errors"]
+                if errors:
+                    results.warn("Consolidation", f"Had {len(errors)} partial errors: {errors}")
+                else:
+                    results.ok("No consolidation errors (P-1 fix verified)")
+
+    except Exception as e:
+        results.fail("Consolidation", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+    return consolidated_id
+
+
+# -- Phase 15: Ontology Management --
+
+
+async def test_ontology(service: Any) -> None:
+    """Test registering a custom memory type."""
+    results.start_phase(f"[15/{TOTAL_PHASES}] Ontology Management")
+
+    try:
+        result = service.create_memory_type(
+            name="E2E_TestType",
+            description="A test memory type created during E2E validation",
+            required_properties=["test_field"],
+        )
+        assert "error" not in result, f"Ontology error: {result.get('error')}"
+        results.ok(f"Create memory type -> {result.get('name', 'E2E_TestType')}")
+
+        # Verify it's registered
+        known = service.ontology.list_types()
+        if "E2E_TestType" in known:
+            results.ok("Memory type registered in ontology")
+        else:
+            results.warn("Ontology", "Type created but not found in list_types()")
+
+    except Exception as e:
+        results.fail("Ontology", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+# -- Phase 16: Archive & Prune Lifecycle --
+
+
+async def test_archive_prune(service: Any, ids: dict[str, str]) -> None:
+    """Test archive -> stale detection -> prune lifecycle."""
+    results.start_phase(f"[16/{TOTAL_PHASES}] Archive & Prune Lifecycle")
+
+    try:
+        epsilon_id = ids.get("epsilon")
+        if not epsilon_id:
+            results.warn("Archive", "No epsilon entity to archive")
+            results.end_phase()
+            return
+
+        # Archive
+        archive_result = await service.archive_entity(epsilon_id)
+        results.ok(f"Archive entity -> {archive_result.get('status', 'OK')}")
+
+        # Verify archived node has status='archived'
+        node = service.repo.get_node(epsilon_id)
+        if node:
+            if node.get("status") == "archived":
+                results.ok("Archive status set on node")
+            else:
+                results.warn("Archive", f"Node found but status={node.get('status')!r}")
+        else:
+            results.warn("Archive", "Archived node not found in graph")
+
+        # Stale entity detection
+        stale = await service.get_stale_entities(days=0)
+        results.ok(f"Get stale entities (days=0) -> {len(stale)} found")
+
+        # Prune (days=0 would delete everything archived — only if we have test isolation)
+        # Use a large days value so we DON'T accidentally delete production data
+        prune_result = await service.prune_stale(days=9999)
+        results.ok(f"Prune stale (days=9999) -> {prune_result}")
+
+    except Exception as e:
+        results.fail("Archive & Prune", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+# -- Phase 17: Knowledge Gap Detection --
+
+
+async def test_knowledge_gaps(service: Any) -> None:
+    """Test structural gap detection between knowledge clusters."""
+    results.start_phase(f"[17/{TOTAL_PHASES}] Knowledge Gap Detection")
+
+    try:
+        from claude_memory.schema import GapDetectionParams
+
+        params = GapDetectionParams(
+            min_similarity=0.5,
+            max_edges=2,
+            limit=5,
+        )
+        gaps = await service.detect_structural_gaps(params)
+        results.ok(f"Detect structural gaps -> {len(gaps)} found")
+
+        # Validate returned shape if any gaps
+        if gaps:
+            first = gaps[0]
+            assert isinstance(first, dict), f"Expected dict, got {type(first)}"
+            results.ok("Gap result shape validated")
+
+    except Exception as e:
+        results.fail("Knowledge gaps", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+# -- Phase 18: Cleanup --
+
+
+async def test_cleanup(
+    service: Any,
+    ids: dict[str, str],
+    consolidated_id: str | None,
+) -> None:
     """Hard-delete all test entities to leave no trace."""
-    print("\n[11/11] Cleanup")
+    results.start_phase(f"[18/{TOTAL_PHASES}] Cleanup")
 
     try:
         from claude_memory.schema import EntityDeleteParams
@@ -537,25 +867,42 @@ async def test_cleanup(service: Any, ids: dict[str, str]) -> None:
             else:
                 results.warn(f"Delete {label}", f"Unexpected: {result}")
 
+        # Delete consolidated entity if it was created
+        if consolidated_id:
+            try:
+                params = EntityDeleteParams(
+                    entity_id=consolidated_id,
+                    reason="e2e consolidated cleanup",
+                    soft_delete=False,
+                )
+                await service.delete_entity(params)
+                results.ok(f"Hard-delete consolidated ({consolidated_id})")
+            except Exception:
+                results.warn("Consolidated cleanup", "Could not delete (may already be gone)")
+
         # Clean up any leftover session/breakthrough/observation nodes
         cleanup_query = """
         MATCH (n)
         WHERE n.name STARTS WITH $prefix
            OR n.focus = 'E2E testing'
            OR n.name = 'E2E Test Breakthrough'
+           OR n.name = 'E2E_TestType'
         DELETE n
         """
         service.repo.execute_cypher(cleanup_query, {"prefix": ENTITY_PREFIX})
-        results.ok("Cleaned up session/breakthrough nodes")
+        results.ok("Cleaned up session/breakthrough/ontology nodes")
 
         # Also remove test vectors from Qdrant
         from qdrant_client import QdrantClient
 
         qc = QdrantClient(url="http://localhost:6333")
+        all_ids = list(ids.values())
+        if consolidated_id:
+            all_ids.append(consolidated_id)
         try:
             qc.delete(
-                collection_name="exocortex",
-                points_selector=list(ids.values()),
+                collection_name="memory_embeddings",
+                points_selector=all_ids,
             )
             results.ok("Cleaned up Qdrant vectors")
         except Exception:
@@ -564,6 +911,8 @@ async def test_cleanup(service: Any, ids: dict[str, str]) -> None:
     except Exception as e:
         results.fail("Cleanup", str(e))
         traceback.print_exc()
+
+    results.end_phase()
 
 
 # -- Main --
@@ -574,6 +923,7 @@ async def run_all() -> int:
     print("=" * 60)
     print("EXHAUSTIVE E2E FUNCTIONAL TEST")
     print(f"Timestamp: {TIMESTAMP}")
+    print(f"Phases: {TOTAL_PHASES}")
     print("=" * 60)
 
     start = time.monotonic()
@@ -604,11 +954,35 @@ async def run_all() -> int:
     await test_sessions(service)
     await test_graph_health(service)
 
-    # Phase 10: W3 strict consistency
+    # Phase 10: Strict consistency
     await test_strict_consistency(service)
 
-    # Phase 11: Cleanup
-    await test_cleanup(service, ids)
+    # Phase 11: Associative search
+    await test_associative_search(service)
+
+    # Phase 12: Graph algorithms
+    await test_graph_algorithms(service)
+
+    # Brief pause for vectors to settle before hologram
+    await asyncio.sleep(0.5)
+
+    # Phase 13: Hologram
+    await test_hologram(service)
+
+    # Phase 14: Consolidation
+    consolidated_id = await test_consolidation(service, ids)
+
+    # Phase 15: Ontology
+    await test_ontology(service)
+
+    # Phase 16: Archive & Prune
+    await test_archive_prune(service, ids)
+
+    # Phase 17: Knowledge gaps
+    await test_knowledge_gaps(service)
+
+    # Phase 18: Cleanup
+    await test_cleanup(service, ids, consolidated_id)
 
     elapsed = time.monotonic() - start
     print(results.summary())

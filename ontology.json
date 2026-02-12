@@ -50,5 +50,11 @@
   "Recipe": {
     "description": "Cooking",
     "required_properties": []
+  },
+  "E2E_TestType": {
+    "description": "A test memory type created during E2E validation",
+    "required_properties": [
+      "test_field"
+    ]
   }
 }
