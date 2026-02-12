@@ -6,7 +6,7 @@ import subprocess
 # Safety net: ensure UTF-8 mode on Windows where the default codepage may be cp1252
 os.environ.setdefault("PYTHONUTF8", "1")
 
-BACKUP_DIR = "backups"
+BACKUP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backups")
 
 
 def backup(tag: str | None = None) -> None:

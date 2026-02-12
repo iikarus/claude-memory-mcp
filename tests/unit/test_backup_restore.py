@@ -54,6 +54,15 @@ def test_pythonutf8_safety_net() -> None:
     assert "PYTHONUTF8" in source, "PYTHONUTF8 safety net not found in source"
 
 
+def test_backup_dir_is_absolute() -> None:
+    """BACKUP_DIR must be an absolute path to avoid CWD-dependent failures."""
+    import backup_restore
+
+    assert os.path.isabs(backup_restore.BACKUP_DIR), (
+        f"BACKUP_DIR is relative: {backup_restore.BACKUP_DIR}"
+    )
+
+
 # ─── Backup Flow Tests ──────────────────────────────────────────────
 
 

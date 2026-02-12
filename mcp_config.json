@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "claude-memory": {
-      "command": "C:\\Users\\Asus\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-      "args": ["-m", "claude_memory.server"],
+      "command": "powershell.exe",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\Asus\\.gemini\\antigravity\\scratch\\new_project\\claude-memory-mcp\\scripts\\run_mcp_server.ps1"],
       "env": {
         "PYTHONPATH": "C:\\Users\\Asus\\.gemini\\antigravity\\scratch\\new_project\\claude-memory-mcp\\src",
         "FALKORDB_HOST": "localhost",

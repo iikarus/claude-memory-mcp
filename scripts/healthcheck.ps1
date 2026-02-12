@@ -80,6 +80,18 @@ if (Test-Path $statusFile) {
     Write-Host " MISSING (no status file)" -ForegroundColor Yellow
     $failed += "Backup(no_status_file)"
 }
+# 5. MCP server process check (R-6)
+Write-Host "[CHECK] MCP server process..." -NoNewline
+$mcpProc = Get-Process -Name "python" -ErrorAction SilentlyContinue |
+    Where-Object {
+        try { $_.CommandLine -match "claude_memory\.server" } catch { $false }
+    }
+if ($mcpProc) {
+    Write-Host " OK (PID: $($mcpProc.Id -join ', '))" -ForegroundColor Green
+} else {
+    Write-Host " NOT RUNNING" -ForegroundColor Red
+    $failed += "MCP_Server(not_running)"
+}
 
 # Summary
 Write-Host ""
@@ -89,6 +101,24 @@ if ($failed.Count -eq 0) {
 } else {
     $list = $failed -join ", "
     Write-Host "[RESULT] FAILING: $list" -ForegroundColor Red
+
+    # R-3: Telegram alerting (enabled by env vars)
+    $telegramToken = $env:EXOCORTEX_TELEGRAM_TOKEN
+    $telegramChatId = $env:EXOCORTEX_TELEGRAM_CHAT_ID
+    if ($telegramToken -and $telegramChatId) {
+        try {
+            $msg = "[Exocortex Health Alert] FAILING: $list"
+            $uri = "https://api.telegram.org/bot${telegramToken}/sendMessage"
+            Invoke-RestMethod -Uri $uri -Method Post -Body @{
+                chat_id = $telegramChatId
+                text    = $msg
+            } | Out-Null
+            Write-Host "[ALERT] Telegram notification sent." -ForegroundColor Cyan
+        } catch {
+            Write-Host "[ALERT] Telegram send failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
+
     # Toast notification (Windows 10+)
     try {
         [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
@@ -102,7 +132,7 @@ if ($failed.Count -eq 0) {
         $toast = [Windows.UI.Notifications.ToastNotification]::new($template)
         $notifier.Show($toast)
     } catch {
-        # Toast not available — already printed to console
+        # Toast not available -- already printed to console
     }
     exit 1
 }
