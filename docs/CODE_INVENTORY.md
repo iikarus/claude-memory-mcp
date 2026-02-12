@@ -1,6 +1,6 @@
 # Code Inventory
 
-A manifest of the project structure. Last updated: February 12, 2026.
+A manifest of the project structure. Last updated: February 13, 2026.
 
 ## Core Logic (`src/claude_memory/`)
 
@@ -33,7 +33,8 @@ A manifest of the project structure. Last updated: February 12, 2026.
 | `lock_manager.py`         | **Concurrency**. Redis-based distributed locking with file-based fallback. REDIS\_\* env vars take precedence.            |
 | `retry.py`                | **Resilience**. `@retry_on_transient` decorator for handling transient connection failures.                               |
 | `repository_queries.py`   | **Query Builder**. Cypher query construction helpers for repository.                                                      |
-| `repository_traversal.py` | **Graph Traversal**. Path finding and cross-domain pattern detection helpers.                                             |
+| `repository_traversal.py` | **Graph Traversal**. Salience scoring (`log(x)/log(2)` for FalkorDB compat), cross-domain patterns.                       |
+| `graph_algorithms.py`     | **Graph Algorithms**. NetworkX Louvain for community detection + PageRank integration.                                    |
 | `logging_config.py`       | **Logging**. Structured logging configuration.                                                                            |
 
 ## Dashboard (`src/dashboard/`)
@@ -93,9 +94,9 @@ A manifest of the project structure. Last updated: February 12, 2026.
 
 | File                | Coverage                                                                                                                                                                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `e2e_functional.py` | **Exhaustive UAT**. 18-phase, 52-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup). |
+| `e2e_functional.py` | **Exhaustive UAT**. 18-phase, 53-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup). |
 
-**Total: 422 tests across 42 files, ~99% coverage.**
+**Total: 437 tests across 42 files, ~99% coverage.**
 
 ## Configuration
 
@@ -156,3 +157,5 @@ A manifest of the project structure. Last updated: February 12, 2026.
 | `operations.py`             | Operational utilities.                                                                              |
 | `setup_scheduled_tasks.ps1` | **Task Scheduler**. Idempotent registration of ExocortexBackup + ExocortexHealthCheck tasks.        |
 | `bunker_protocol.bat`       | **Emergency**. Batch script for emergency backup.                                                   |
+| `run_mutatest.py`           | **Compat Wrapper**. Monkey-patches `random.sample()` for mutatest + Python 3.12 compatibility.      |
+| `reembed_all.py`            | **Bulk Re-embed**. Re-embeds all FalkorDB nodes into Qdrant (for model changes).                    |

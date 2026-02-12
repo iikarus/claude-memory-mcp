@@ -125,3 +125,27 @@
 - **Gotcha**: `archive_entity()` sets `status: "archived"` on the graph node. There is no `is_archived` boolean flag.
 - **Risk**: Checking `node.is_archived` returns `None` and silently passes truthiness checks.
 - **Fix**: Check `node.status == "archived"` instead. (Caught by E2E test, Feb 12, 2026.)
+
+## 22. FalkorDB Does NOT Support `log2()`
+
+- **Gotcha**: FalkorDB's Cypher dialect does not implement the `log2()` math function.
+- **Risk**: Queries silently fail when `log2()` is used in SET clauses — salience scores never update.
+- **Fix**: Use `log(x) / log(2)` as a mathematically equivalent replacement. (Fixed in commit `54dcaec`.)
+
+## 23. FalkorDB `shortestPath` Clause Restriction
+
+- **Gotcha**: FalkorDB only supports `shortestPath()` in `WITH` or `RETURN` clauses, not in `MATCH`.
+- **Risk**: Neo4j-style `MATCH p = shortestPath((a)-[*]-(b))` throws `"currently only supports shortestPaths in WITH or RETURN clauses"`.
+- **Fix**: Use `MATCH (a), (b) WITH shortestPath((a)-[*..10]-(b)) AS p RETURN p`. (Fixed in commit `f33ab01`.)
+
+## 24. Mutatest 3.1.0 + Python 3.12 Incompatibility
+
+- **Gotcha**: `mutatest` 3.1.0 passes a `set` to `random.sample()` at `run.py:530`. Python 3.12 rejects sets (requires a sequence).
+- **Risk**: `tox -e forge` crashes with `TypeError: Population must be a sequence`. The project is unmaintained — no upstream fix available.
+- **Fix**: Use `scripts/run_mutatest.py` wrapper that monkey-patches `random.sample()` to convert sets to sorted lists. (Added in commit `f33ab01`.)
+
+## 25. Custom Louvain Was O(n²) — Use NetworkX
+
+- **Gotcha**: The original pure-Python Louvain implementation in `graph_algorithms.py` had O(n²) complexity inside a loop.
+- **Risk**: E2E tests hang for 15+ minutes on real-world graphs (695 nodes).
+- **Fix**: Replaced with NetworkX's C-optimized `louvain_communities()`. Execution dropped from 15+ min to < 1 second. (Fixed in commit `54dcaec`.)

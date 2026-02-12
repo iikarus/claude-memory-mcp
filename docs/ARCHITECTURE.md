@@ -63,7 +63,7 @@ The `QueryRouter` classifies queries by intent:
 
 InfraNodus-inspired knowledge gap detection:
 
-1.  **Cluster**: DBSCAN groups related memories.
+1.  **Cluster**: Louvain (NetworkX) detects communities; DBSCAN groups related memories.
 2.  **Compare**: Cosine similarity between cluster centroids.
 3.  **Detect**: High similarity + low cross-edges = structural gap.
 4.  **Report**: Generate research prompts + store `GapReport` entities.
@@ -107,12 +107,12 @@ Before any data leaves the `MemoryService` to return to the user/LLM:
 
 ## Docker Services
 
-| Service    | Image               | Ports (localhost-bound) | Healthcheck                          |
-| ---------- | ------------------- | ----------------------- | ------------------------------------ |
-| graphdb    | falkordb/falkordb   | 6379, 3000              | `redis-cli ping`                     |
-| qdrant     | qdrant/qdrant       | 6333                    | `bash /dev/tcp/localhost/6333`       |
-| embeddings | custom (Dockerfile) | 8001→8000               | `curl localhost:8000/health`         |
-| dashboard  | custom (Dockerfile) | 8501                    | `curl localhost:8501/_stcore/health` |
+| Service    | Image                      | Ports (localhost-bound) | Healthcheck                          |
+| ---------- | -------------------------- | ----------------------- | ------------------------------------ |
+| graphdb    | falkordb/falkordb:v4.14.11 | 6379, 3000              | `redis-cli ping`                     |
+| qdrant     | qdrant/qdrant:v1.16.3      | 6333                    | `bash /dev/tcp/localhost/6333`       |
+| embeddings | custom (Dockerfile)        | 8001→8000               | `curl localhost:8000/health`         |
+| dashboard  | custom (Dockerfile)        | 8501                    | `curl localhost:8501/_stcore/health` |
 
 All ports are bound to `127.0.0.1` — no external access.
 
@@ -127,7 +127,7 @@ All ports are bound to `127.0.0.1` — no external access.
 
 | Tier   | What                                                           |
 | ------ | -------------------------------------------------------------- |
-| pulse  | Ruff lint + format check + Mypy strict + Pytest (422 tests)    |
+| pulse  | Ruff lint + format check + Mypy strict + Pytest (437 tests)    |
 | gate   | Hypothesis property tests + diff-cover (changed-line coverage) |
 | forge  | Mutation testing (mutatest — fault injection)                  |
 | hammer | Security scanning (bandit, pip-audit, detect-secrets)          |

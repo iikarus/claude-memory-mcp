@@ -52,7 +52,7 @@ If you are landing here fresh (new machine, new agent):
     python tests/e2e_functional.py
     ```
 
-    _52-check exhaustive lifecycle test against the live stack. If this passes, the system is 100% operational._
+    _53-check exhaustive lifecycle test against the live stack. If this passes, the system is 100% operational._
 
 5.  **Connect Client**:
     Add the configuration from `mcp_config.json` to your MCP Client (Claude Desktop or VS Code).
@@ -123,12 +123,12 @@ Run `tox -e pulse` — this executes all checks in one command:
 
 1.  **Ruff**: Linting + import sorting.
 2.  **Ruff Format**: Code formatting.
-3.  **Mypy**: Static type checking (28 source files, strict mode).
-4.  **Pytest**: 422 unit tests, ~99% coverage (≥30% threshold).
+3.  **Mypy**: Static type checking (29 source files, strict mode).
+4.  **Pytest**: 437 unit tests, ~99% coverage (≥30% threshold).
 
 Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e forge` (mutation), `tox -e hammer` (security), `tox -e polish` (docs+typos).
 
-**E2E UAT**: `python tests/e2e_functional.py` — 52-check lifecycle against the live Docker stack.
+**E2E UAT**: `python tests/e2e_functional.py` — 53-check lifecycle against the live Docker stack.
 
 ## 6. Known "Gotchas" for Future Agents
 
@@ -145,11 +145,11 @@ If you are reading this to fix a bug or add a feature:
 
 1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
 2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
-3.  **Trust `tests/e2e_functional.py`**: It is your UAT ground truth. 52 checks across 18 phases. If it fails, the system is broken.
-4.  **Run `tox -e pulse` before committing**: 422 tests must pass.
+3.  **Trust `tests/e2e_functional.py`**: It is your UAT ground truth. 53 checks across 18 phases. If it fails, the system is broken.
+4.  **Run `tox -e pulse` before committing**: 437 tests must pass.
 5.  **Never add `WHERE n.embedding IS NOT NULL`**: Embeddings are in Qdrant, not on graph nodes.
 6.  **Read `docs/UPGRADE_LOG.md`**: Understand what V2 added before making changes.
-7.  **Read `docs/GOTCHAS.md`**: 21 known traps that will burn you if ignored.
+7.  **Read `docs/GOTCHAS.md`**: 25 known traps that will burn you if ignored.
 
 _Signed,_
 _Project Antigravity (Feb 2026)_

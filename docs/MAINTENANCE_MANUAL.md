@@ -1,6 +1,6 @@
 # Maintenance Manual
 
-Guidelines for keeping the Exocortex healthy and performant. Last updated: February 12, 2026.
+Guidelines for keeping the Exocortex healthy and performant. Last updated: February 13, 2026.
 
 ## 🧹 The Librarian Agent
 
@@ -94,7 +94,7 @@ The exhaustive User Acceptance Test exercises all 18 functional areas against th
 python tests/e2e_functional.py
 ```
 
-52 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, W3 strict consistency, associative search, graph algorithms (PageRank), hologram retrieval, memory consolidation, ontology management, archive/prune lifecycle, knowledge gap detection, and cleanup.
+53 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, W3 strict consistency, associative search, graph algorithms (PageRank), hologram retrieval, memory consolidation, ontology management, archive/prune lifecycle, knowledge gap detection, and cleanup.
 
 ### Legacy E2E
 

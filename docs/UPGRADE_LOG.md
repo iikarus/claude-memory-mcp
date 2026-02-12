@@ -219,20 +219,47 @@ The system at Phase 3 completion had:
 
 ---
 
+## Docker Migration + Bug Fixes (`54dcaec`, `f33ab01`, Feb 13)
+
+### Docker Image Pinning
+
+| Before                     | After                                                   |
+| -------------------------- | ------------------------------------------------------- |
+| `falkordb/falkordb:latest` | **`falkordb/falkordb:v4.14.11`** — pinned for stability |
+| `qdrant/qdrant:v1.13.2`    | **`qdrant/qdrant:v1.16.3`** — +134 recovered vectors    |
+
+### Performance Fix: Louvain O(n²) → NetworkX
+
+| Before                     | After                                              |
+| -------------------------- | -------------------------------------------------- |
+| Custom pure-Python Louvain | **NetworkX `louvain_communities()`** — C-optimized |
+| E2E hung 15+ minutes       | **< 1 second** for 695-node graph                  |
+
+### Bug Fixes
+
+| Bug                         | Cause                                                     | Fix (commit)                                 |
+| --------------------------- | --------------------------------------------------------- | -------------------------------------------- |
+| Salience never updated      | FalkorDB doesn't support `log2()`                         | `log(x)/log(2)` (`54dcaec`)                  |
+| `traverse_path` crashed     | `shortestPath` in MATCH clause (FalkorDB-incompatible)    | Moved to WITH clause (`f33ab01`)             |
+| `get_bottles` returned `[]` | Queried property `n.node_type='Bottle'` instead of label  | Changed to `MATCH (n:Bottle)` (`f33ab01`)    |
+| `tox -e forge` crashed      | mutatest 3.1.0 passes `set` to `random.sample()` (Py3.12) | Wrapper script `run_mutatest.py` (`f33ab01`) |
+
+---
+
 ## Cumulative Summary
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
 | **MCP Tools**         | 17                 | 27                                                 | +10   |
-| **Source Modules**    | 14                 | 28                                                 | +14   |
-| **Unit Tests**        | 255                | 422                                                | +167  |
+| **Source Modules**    | 14                 | 29                                                 | +15   |
+| **Unit Tests**        | 255                | 437                                                | +182  |
 | **Test Files**        | 15                 | 42                                                 | +27   |
-| **Scripts**           | 12                 | 38                                                 | +26   |
+| **Scripts**           | 12                 | 40                                                 | +28   |
 | **Tox Tiers**         | 4                  | 5                                                  | +1    |
 | **Search Strategies** | 1 (vector)         | 4 (semantic, associative, temporal, relational)    | +3    |
 | **Graph Features**    | Basic CRUD         | Temporal edges, salience, activation, gap analysis | —     |
-| **Graph Data**        | —                  | 697 nodes, 581 edges                               | —     |
-| **E2E Phases**        | —                  | 18 phases, 52 checks                               | —     |
+| **Graph Data**        | —                  | 695 nodes, 800 edges                               | —     |
+| **E2E Phases**        | —                  | 18 phases, 53 checks                               | —     |
 
 ### New Source Modules (V2)
 
