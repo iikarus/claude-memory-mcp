@@ -14,6 +14,7 @@ from claude_memory.activation import ActivationEngine
 from claude_memory.analysis import AnalysisMixin
 from claude_memory.context_manager import ContextManager
 from claude_memory.crud import CrudMixin
+from claude_memory.crud_maintenance import CrudMaintenanceMixin
 from claude_memory.interfaces import Embedder, VectorStore
 from claude_memory.router import QueryRouter
 from claude_memory.search import SearchMixin
@@ -45,14 +46,15 @@ from .vector_store import QdrantVectorStore
 logger = logging.getLogger(__name__)
 
 
-class MemoryService(CrudMixin, SearchMixin, TemporalMixin, AnalysisMixin):
+class MemoryService(CrudMixin, CrudMaintenanceMixin, SearchMixin, TemporalMixin, AnalysisMixin):
     """Orchestrates graph, vector, and ontology operations for memory management.
 
     This is a thin facade — all method implementations are in:
-      - crud.py       (entity / relationship / observation CRUD)
-      - search.py     (vector search, spreading activation, hologram)
-      - temporal.py   (sessions, breakthroughs, timeline)
-      - analysis.py   (graph health, gaps, stale, consolidation)
+      - crud.py            (entity / relationship CRUD)
+      - crud_maintenance.py (observation CRUD, background salience)
+      - search.py          (vector search, spreading activation, hologram)
+      - temporal.py        (sessions, breakthroughs, timeline)
+      - analysis.py        (graph health, gaps, stale, consolidation)
     """
 
     def __init__(
