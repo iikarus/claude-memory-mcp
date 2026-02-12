@@ -1,6 +1,10 @@
-"""Tests for W3: Qdrant-down split-brain strict consistency in CrudMixin."""
+"""Tests for P-2: strict consistency — Qdrant failures always raise.
 
-from unittest.mock import AsyncMock, MagicMock, patch
+After removing the STRICT_CONSISTENCY toggle, vector operations must
+always raise on failure. There is no lenient path.
+"""
+
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -16,7 +20,6 @@ def _make_crud_mixin() -> CrudMixin:
     mixin.vector_store = AsyncMock()
     mixin.ontology = MagicMock()
     mixin.lock_manager = MagicMock()
-    mixin._background_tasks = set()
 
     # Default happy-path returns
     mixin.ontology.is_valid_type.return_value = True
@@ -42,35 +45,19 @@ def _make_params() -> EntityCreateParams:
 
 
 @pytest.mark.asyncio
-async def test_create_entity_qdrant_down_strict_raises() -> None:
-    """When strict consistency is on and Qdrant fails, create_entity raises."""
+async def test_create_entity_qdrant_down_always_raises() -> None:
+    """When Qdrant is down, create_entity raises — no lenient path exists."""
     mixin = _make_crud_mixin()
     mixin.vector_store.upsert.side_effect = ConnectionError("Qdrant down")
     params = _make_params()
 
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", True):
-        with pytest.raises(ConnectionError, match="Qdrant down"):
-            await mixin.create_entity(params)
-
-
-@pytest.mark.asyncio
-async def test_create_entity_qdrant_down_lenient_warns() -> None:
-    """When strict consistency is off, create_entity returns with warnings."""
-    mixin = _make_crud_mixin()
-    mixin.vector_store.upsert.side_effect = ConnectionError("Qdrant down")
-    params = _make_params()
-
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        receipt = await mixin.create_entity(params)
-
-    assert receipt.warnings
-    assert "vector_upsert_failed" in receipt.warnings[0]
-    assert receipt.id == "test-123"
+    with pytest.raises(ConnectionError, match="Qdrant down"):
+        await mixin.create_entity(params)
 
 
 @pytest.mark.asyncio
 async def test_create_entity_qdrant_up_no_warnings() -> None:
-    """When Qdrant is healthy, create_entity returns with no warnings."""
+    """When Qdrant is healthy, create_entity returns with empty warnings."""
     mixin = _make_crud_mixin()
     params = _make_params()
 
@@ -78,3 +65,27 @@ async def test_create_entity_qdrant_up_no_warnings() -> None:
 
     assert receipt.warnings == []
     assert receipt.id == "test-123"
+
+
+@pytest.mark.asyncio
+async def test_strict_consistency_env_var_has_no_effect() -> None:
+    """Even if env var were set to 'false', vector failure still raises.
+
+    The toggle has been removed — this test proves it.
+    """
+    import os
+
+    mixin = _make_crud_mixin()
+    mixin.vector_store.upsert.side_effect = ConnectionError("Qdrant down")
+    params = _make_params()
+
+    old_val = os.environ.get("EXOCORTEX_STRICT_CONSISTENCY")
+    try:
+        os.environ["EXOCORTEX_STRICT_CONSISTENCY"] = "false"
+        with pytest.raises(ConnectionError, match="Qdrant down"):
+            await mixin.create_entity(params)
+    finally:
+        if old_val is None:
+            os.environ.pop("EXOCORTEX_STRICT_CONSISTENCY", None)
+        else:
+            os.environ["EXOCORTEX_STRICT_CONSISTENCY"] = old_val

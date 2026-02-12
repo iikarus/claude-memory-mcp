@@ -4,15 +4,9 @@ Provides entity, relationship, and observation create/update/delete logic.
 """
 
 import logging
-import os
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
-
-# When True (default), Qdrant write failures crash the operation instead of
-# being silently swallowed.  This prevents split-brain scenarios where an
-# entity exists in FalkorDB but is invisible to semantic search.
-STRICT_CONSISTENCY = os.getenv("EXOCORTEX_STRICT_CONSISTENCY", "true").lower() == "true"
 
 if TYPE_CHECKING:  # pragma: no cover
     from .interfaces import Embedder, VectorStore
@@ -87,7 +81,6 @@ class CrudMixin:
 
             # 2. Write to Vector Engine (Qdrant) - Source of Truth for Search
             node_id = str(node_props["id"])
-            warnings: list[str] = []
 
             payload = {
                 "name": params.name,
@@ -96,12 +89,11 @@ class CrudMixin:
             }
             try:
                 await self.vector_store.upsert(id=node_id, vector=embedding, payload=payload)
-            except Exception as e:
-                msg = f"vector_upsert_failed: {e}"
-                logger.error(msg)
-                if STRICT_CONSISTENCY:
-                    raise
-                warnings.append(msg)
+            except Exception:
+                logger.error(
+                    "vector_upsert_failed for %s — raising to prevent split-brain", node_id
+                )
+                raise
 
             # 3. Link to most recent entity in same project via PRECEDED_BY
             try:
@@ -132,7 +124,7 @@ class CrudMixin:
                 operation_time_ms=duration,
                 total_memory_count=total_count,
                 message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
-                warnings=warnings,
+                warnings=[],
             )
 
     async def create_relationship(self, params: "RelationshipCreateParams") -> dict[str, Any]:
@@ -215,12 +207,11 @@ class CrudMixin:
                     vector=embedding,
                     payload=payload,
                 )
-            except Exception as e:
-                msg = f"vector_upsert_failed: {e}"
-                logger.error(msg)
-                if STRICT_CONSISTENCY:
-                    raise
-                updated_node["warnings"] = [msg]
+            except Exception:
+                logger.error(
+                    "vector_upsert_failed for %s — raising to prevent split-brain", params.entity_id
+                )
+                raise
 
             return updated_node  # type: ignore[no-any-return]
 
@@ -230,17 +221,13 @@ class CrudMixin:
         else:
             return await _do_update()
 
-    async def _safe_vector_delete(self, entity_id: str) -> list[str]:
-        """Delete vector and return warnings list (empty on success)."""
-        warnings: list[str] = []
+    async def _safe_vector_delete(self, entity_id: str) -> None:
+        """Delete vector — raises on failure to prevent split-brain."""
         try:
             await self.vector_store.delete(entity_id)
-        except Exception as e:
-            logger.error(f"vector_delete_failed: {entity_id}: {e}")
-            if STRICT_CONSISTENCY:
-                raise
-            warnings.append(f"vector_delete_failed: {e}")
-        return warnings
+        except Exception:
+            logger.error("vector_delete_failed for %s — raising to prevent split-brain", entity_id)
+            raise
 
     async def delete_entity(self, params: "EntityDeleteParams") -> dict[str, Any]:
         """Deletes an entity."""
@@ -260,21 +247,12 @@ class CrudMixin:
                     params.entity_id,
                     {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )
-                warnings = await self._safe_vector_delete(params.entity_id)
-                result_dict: dict[str, Any] = {
-                    "status": "archived",
-                    "id": params.entity_id,
-                }
-                if warnings:
-                    result_dict["warnings"] = warnings
-                return result_dict
+                await self._safe_vector_delete(params.entity_id)
+                return {"status": "archived", "id": params.entity_id}
             else:
                 self.repo.delete_node(params.entity_id)
-                warnings = await self._safe_vector_delete(params.entity_id)
-                result: dict[str, Any] = {"status": "deleted", "id": params.entity_id}
-                if warnings:
-                    result["warnings"] = warnings
-                return result
+                await self._safe_vector_delete(params.entity_id)
+                return {"status": "deleted", "id": params.entity_id}
 
         if project_id:
             async with self.lock_manager.lock(project_id):

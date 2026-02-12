@@ -468,11 +468,11 @@ async def test_graph_health(service: Any) -> None:
 
 
 async def test_strict_consistency(service: Any) -> None:
-    """Test W3: strict consistency re-raises Qdrant failures."""
-    print("\n[10/11] W3: Strict Consistency")
+    """Test: Qdrant failures always raise — no lenient path exists."""
+    print("\n[10/11] Strict Consistency (always-on)")
 
     try:
-        from unittest.mock import AsyncMock, patch
+        from unittest.mock import AsyncMock
 
         from claude_memory.schema import EntityCreateParams
 
@@ -485,17 +485,16 @@ async def test_strict_consistency(service: Any) -> None:
         # Save real method
         original_upsert = service.vector_store.upsert
 
-        # Test STRICT mode: Qdrant failure -> exception
+        # Qdrant failure -> exception (always, no toggle)
         service.vector_store.upsert = AsyncMock(
             side_effect=ConnectionError("Qdrant simulated down")
         )
         try:
-            with patch("claude_memory.crud.STRICT_CONSISTENCY", True):
-                try:
-                    await service.create_entity(params)
-                    results.fail("Strict mode", "Should have raised ConnectionError")
-                except ConnectionError:
-                    results.ok("Strict mode -> create_entity raises on Qdrant failure")
+            try:
+                await service.create_entity(params)
+                results.fail("Strict consistency", "Should have raised ConnectionError")
+            except ConnectionError:
+                results.ok("create_entity raises on Qdrant failure (no lenient path)")
         finally:
             service.vector_store.upsert = original_upsert
 
@@ -510,23 +509,6 @@ async def test_strict_consistency(service: Any) -> None:
             if nid:
                 service.repo.delete_node(nid)
                 results.ok("Cleaned up orphan graph node from strict test")
-
-        # Test LENIENT mode: Qdrant failure -> warning
-        service.vector_store.upsert = AsyncMock(
-            side_effect=ConnectionError("Qdrant simulated down")
-        )
-        try:
-            with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-                receipt = await service.create_entity(params)
-                assert receipt.warnings, "Should have warnings in lenient mode"
-                assert "vector_upsert_failed" in receipt.warnings[0]
-                results.ok("Lenient mode -> create_entity returns with warning")
-
-                # Clean up
-                service.repo.delete_node(receipt.id)
-                results.ok("Cleaned up lenient test entity")
-        finally:
-            service.vector_store.upsert = original_upsert
 
     except Exception as e:
         results.fail("Strict consistency", str(e))

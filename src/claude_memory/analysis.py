@@ -232,6 +232,7 @@ class AnalysisMixin:
         await self.vector_store.upsert(id=new_id, vector=embedding, payload=payload)
 
         # 3. Link old to new
+        errors: list[str] = []
         for old_id in entity_ids:
             try:
                 link_props = {
@@ -245,10 +246,14 @@ class AnalysisMixin:
                     old_id,
                     {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )
-            except Exception:  # noqa: S112
-                continue
+            except (ConnectionError, TimeoutError, OSError) as e:
+                logger.error("consolidate_memories: failed to archive %s: %s", old_id, e)
+                errors.append(f"{old_id}: {e}")
 
-        return new_node_props  # type: ignore[no-any-return]
+        result = dict(new_node_props) if not isinstance(new_node_props, dict) else new_node_props
+        if errors:
+            result["consolidation_errors"] = errors
+        return result
 
     def create_memory_type(
         self, name: str, description: str, required_properties: list[str] | None = None

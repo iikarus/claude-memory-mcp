@@ -225,15 +225,14 @@ async def test_delete_entity_soft(service: MemoryService) -> None:
     service.vector_store.delete.assert_awaited_once_with(ENTITY_ID)
 
 
-async def test_delete_entity_soft_vector_delete_fails(service: MemoryService) -> None:
-    """Soft delete should succeed even when vector store delete fails (lenient mode)."""
+async def test_delete_entity_soft_vector_delete_raises(service: MemoryService) -> None:
+    """Soft delete raises when vector store delete fails — no lenient path."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS
     service.vector_store.delete.side_effect = ConnectionError("qdrant down")
 
     params = EntityDeleteParams(entity_id=ENTITY_ID, reason=DELETE_REASON, soft_delete=True)
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        result = await service.delete_entity(params)
-    assert result["status"] == "archived"
+    with pytest.raises(ConnectionError, match="qdrant down"):
+        await service.delete_entity(params)
 
 
 async def test_delete_entity_hard(service: MemoryService) -> None:
@@ -245,15 +244,14 @@ async def test_delete_entity_hard(service: MemoryService) -> None:
     service.repo.delete_node.assert_called_once_with(ENTITY_ID)
 
 
-async def test_delete_entity_hard_vector_delete_fails(service: MemoryService) -> None:
-    """Hard delete should succeed even when vector store delete fails (lenient mode)."""
+async def test_delete_entity_hard_vector_delete_raises(service: MemoryService) -> None:
+    """Hard delete raises when vector store delete fails — no lenient path."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS
     service.vector_store.delete.side_effect = ConnectionError("qdrant down")
 
     params = EntityDeleteParams(entity_id=ENTITY_ID, reason=DELETE_REASON, soft_delete=False)
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        result = await service.delete_entity(params)
-    assert result["status"] == "deleted"
+    with pytest.raises(ConnectionError, match="qdrant down"):
+        await service.delete_entity(params)
 
 
 async def test_delete_entity_not_found(service: MemoryService) -> None:
@@ -626,7 +624,7 @@ async def test_consolidate_memories_edge_error(service: MemoryService) -> None:
     """When linking an old entity fails, continue with remaining."""
     service.repo.create_node.return_value = {"id": "consolidated-001", "name": "Consolidated"}
     service.repo.create_edge.side_effect = [
-        RuntimeError("edge failed"),  # First entity fails
+        ConnectionError("edge failed"),  # First entity fails
         MagicMock(),  # Second succeeds
     ]
     service.repo.update_node.return_value = {}
@@ -1320,13 +1318,13 @@ async def test_detect_structural_gaps_with_gaps(service: MemoryService) -> None:
 # ─── Phase 1B: Vector Failure Warning Tests ─────────────────────────
 
 
-async def test_create_entity_vector_failure_surfaces_warning(
+async def test_create_entity_vector_failure_always_raises(
     service: MemoryService,
 ) -> None:
-    """When vector upsert fails during create, receipt must contain a warning."""
+    """When vector upsert fails during create, it always raises — no lenient path."""
     from claude_memory.schema import EntityCreateParams
 
-    service.repo.create_node.return_value = MOCK_NODE_PROPS
+    service.repo.create_node.return_value = {"id": ENTITY_ID, "name": ENTITY_NAME}
     service.repo.get_most_recent_entity.return_value = None
     service.repo.get_total_node_count.return_value = 42
     service.ontology = MagicMock()
@@ -1338,19 +1336,14 @@ async def test_create_entity_vector_failure_surfaces_warning(
         node_type=ENTITY_TYPE,
         project_id=PROJECT_ID,
     )
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        receipt = await service.create_entity(params)
-
-    assert receipt.status == "committed"
-    assert len(receipt.warnings) == 1
-    assert "vector_upsert_failed" in receipt.warnings[0]
-    assert "Qdrant down" in receipt.warnings[0]
+    with pytest.raises(RuntimeError, match="Qdrant down"):
+        await service.create_entity(params)
 
 
-async def test_update_entity_vector_failure_surfaces_warning(
+async def test_update_entity_vector_failure_always_raises(
     service: MemoryService,
 ) -> None:
-    """When vector upsert fails during update, result dict must contain warnings."""
+    """When vector upsert fails during update, it always raises — no lenient path."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS.copy()
     service.repo.update_node.return_value = MOCK_NODE_PROPS.copy()
     service.vector_store.upsert.side_effect = RuntimeError("Qdrant timeout")
@@ -1359,17 +1352,14 @@ async def test_update_entity_vector_failure_surfaces_warning(
         entity_id=ENTITY_ID,
         properties={"description": "updated"},
     )
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        result = await service.update_entity(params)
-
-    assert "warnings" in result
-    assert "vector_upsert_failed" in result["warnings"][0]
+    with pytest.raises(RuntimeError, match="Qdrant timeout"):
+        await service.update_entity(params)
 
 
-async def test_delete_entity_soft_vector_failure_surfaces_warning(
+async def test_delete_entity_soft_vector_failure_always_raises(
     service: MemoryService,
 ) -> None:
-    """When vector delete fails during soft delete, result must contain warnings."""
+    """When vector delete fails during soft delete, it always raises."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS.copy()
     service.vector_store.delete.side_effect = RuntimeError("Qdrant unreachable")
 
@@ -1378,18 +1368,14 @@ async def test_delete_entity_soft_vector_failure_surfaces_warning(
         reason="test",
         soft_delete=True,
     )
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        result = await service.delete_entity(params)
-
-    assert result["status"] == "archived"
-    assert "warnings" in result
-    assert "vector_delete_failed" in result["warnings"][0]
+    with pytest.raises(RuntimeError, match="Qdrant unreachable"):
+        await service.delete_entity(params)
 
 
-async def test_delete_entity_hard_vector_failure_surfaces_warning(
+async def test_delete_entity_hard_vector_failure_always_raises(
     service: MemoryService,
 ) -> None:
-    """When vector delete fails during hard delete, result must contain warnings."""
+    """When vector delete fails during hard delete, it always raises."""
     service.repo.get_node.return_value = MOCK_NODE_PROPS.copy()
     service.vector_store.delete.side_effect = RuntimeError("Qdrant gone")
 
@@ -1398,9 +1384,5 @@ async def test_delete_entity_hard_vector_failure_surfaces_warning(
         reason="test",
         soft_delete=False,
     )
-    with patch("claude_memory.crud.STRICT_CONSISTENCY", False):
-        result = await service.delete_entity(params)
-
-    assert result["status"] == "deleted"
-    assert "warnings" in result
-    assert "vector_delete_failed" in result["warnings"][0]
+    with pytest.raises(RuntimeError, match="Qdrant gone"):
+        await service.delete_entity(params)
