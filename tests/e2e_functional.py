@@ -576,17 +576,12 @@ async def test_strict_consistency(service: Any) -> None:
         finally:
             service.vector_store.upsert = original_upsert
 
-        # Clean up the orphan graph node
-        nodes = service.repo.execute_cypher(
-            "MATCH (n) WHERE n.name = $name RETURN n",
+        # Clean up the orphan graph node (DETACH DELETE in case edges exist)
+        service.repo.execute_cypher(
+            "MATCH (n) WHERE n.name = $name DETACH DELETE n",
             {"name": f"{ENTITY_PREFIX}StrictTest"},
         )
-        if nodes.result_set:
-            node = nodes.result_set[0][0]
-            nid = str(node.properties.get("id", ""))
-            if nid:
-                service.repo.delete_node(nid)
-                results.ok("Cleaned up orphan graph node from strict test")
+        results.ok("Cleaned up orphan graph node from strict test")
 
     except Exception as e:
         results.fail("Strict consistency", str(e))
@@ -633,28 +628,34 @@ async def test_associative_search(service: Any) -> None:
 
 
 async def test_graph_algorithms(service: Any) -> None:
-    """Test PageRank and Louvain community detection."""
+    """Test PageRank and Louvain community detection.
+
+    Post Phase-2 rebuild: analyze_graph() uses Python-side algorithms
+    and raises on error (LOUD). No more silent {"error": ...} dicts.
+    """
     results.start_phase(f"[12/{TOTAL_PHASES}] Graph Algorithms")
 
-    # PageRank
+    # PageRank — should return list of ranked entities (never error dicts)
     try:
         pr_results = await service.analyze_graph(algorithm="pagerank")
-        if pr_results and "error" in pr_results[0]:
-            results.warn("PageRank", f"Algorithm returned error: {pr_results[0]['error'][:80]}")
-        else:
-            results.ok(f"PageRank -> {len(pr_results)} ranked entities")
+        assert isinstance(pr_results, list), f"Expected list, got {type(pr_results)}"
+        if pr_results:
+            assert "name" in pr_results[0], f"Missing 'name' key: {pr_results[0]}"
+            assert "rank" in pr_results[0], f"Missing 'rank' key: {pr_results[0]}"
+        results.ok(f"PageRank -> {len(pr_results)} ranked entities")
     except Exception as e:
-        results.warn("PageRank", str(e)[:80])
+        results.fail("PageRank", str(e)[:120])
 
-    # Louvain
+    # Louvain — should return list of communities (never error dicts)
     try:
         lv_results = await service.analyze_graph(algorithm="louvain")
-        if lv_results and "error" in lv_results[0]:
-            results.warn("Louvain", f"Algorithm returned error: {lv_results[0]['error'][:80]}")
-        else:
-            results.ok(f"Louvain -> {len(lv_results)} communities")
+        assert isinstance(lv_results, list), f"Expected list, got {type(lv_results)}"
+        if lv_results:
+            assert "community_id" in lv_results[0], f"Missing 'community_id': {lv_results[0]}"
+            assert "members" in lv_results[0], f"Missing 'members': {lv_results[0]}"
+        results.ok(f"Louvain -> {len(lv_results)} communities")
     except Exception as e:
-        results.warn("Louvain", str(e)[:80])
+        results.fail("Louvain", str(e)[:120])
 
     results.end_phase()
 
@@ -881,13 +882,14 @@ async def test_cleanup(
                 results.warn("Consolidated cleanup", "Could not delete (may already be gone)")
 
         # Clean up any leftover session/breakthrough/observation nodes
+        # Use DETACH DELETE to remove edges first (prevents silent failure)
         cleanup_query = """
         MATCH (n)
         WHERE n.name STARTS WITH $prefix
            OR n.focus = 'E2E testing'
            OR n.name = 'E2E Test Breakthrough'
            OR n.name = 'E2E_TestType'
-        DELETE n
+        DETACH DELETE n
         """
         service.repo.execute_cypher(cleanup_query, {"prefix": ENTITY_PREFIX})
         results.ok("Cleaned up session/breakthrough/ontology nodes")
