@@ -1,7 +1,6 @@
 services:
   graphdb:
-    image: falkordb/falkordb:v4.4.1
-    command: ["redis-server", "--maxmemory", "2gb", "--loadmodule", "/usr/lib/redis/modules/falkordb.so"]
+    image: falkordb/falkordb:v4.14.11
     ports:
       - "127.0.0.1:6379:6379"
       - "127.0.0.1:3000:3000"
@@ -16,7 +15,7 @@ services:
       start_period: 10s
 
   qdrant:
-    image: qdrant/qdrant:v1.13.2
+    image: qdrant/qdrant:v1.16.3
     ports:
       - "127.0.0.1:6333:6333"
     volumes:

@@ -152,6 +152,7 @@ class RepositoryTraversalMixin:
         """Atomically increment retrieval_count and recalculate salience_score for nodes.
 
         Formula: salience_score = 1.0 + log2(1 + retrieval_count)
+        Uses log(x)/log(2) since FalkorDB doesn't support log2().
         This gives diminishing returns — early retrievals boost salience fast.
         """
         if not node_ids:
@@ -161,7 +162,7 @@ class RepositoryTraversalMixin:
         MATCH (n:Entity)
         WHERE n.id IN $ids
         SET n.retrieval_count = COALESCE(n.retrieval_count, 0) + 1,
-            n.salience_score = 1.0 + log2(1 + COALESCE(n.retrieval_count, 0) + 1)
+            n.salience_score = 1.0 + log(1 + COALESCE(n.retrieval_count, 0) + 1) / log(2)
         RETURN n.id AS id, n.salience_score AS salience_score, n.retrieval_count AS retrieval_count
         """
         result = graph.query(query, {"ids": node_ids})
