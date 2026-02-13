@@ -61,6 +61,7 @@ class SearchMixin(SearchAdvancedMixin):
         """
 
         def _extract_path(res: Any) -> list[dict[str, Any]]:
+            """Extract node properties from a FalkorDB shortestPath result."""
             path_data: list[dict[str, Any]] = []
             if res.result_set and res.result_set[0]:
                 path_obj = res.result_set[0][0]
@@ -85,7 +86,7 @@ class SearchMixin(SearchAdvancedMixin):
             path_data = _extract_path(res)
             if path_data:
                 return path_data
-        except Exception:  # noqa: S110
+        except Exception:  # noqa: S110  # nosec B110
             # Forward traversal failed (e.g. no directed path), try reverse
             pass
 
