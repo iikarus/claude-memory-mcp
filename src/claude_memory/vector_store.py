@@ -78,7 +78,7 @@ class QdrantVectorStore:
                     ),
                 )
             self._initialized = True
-        except Exception as e:
+        except (ConnectionError, TimeoutError, OSError) as e:
             logger.error("Failed to initialize Qdrant collection: %s", e)
             raise
 

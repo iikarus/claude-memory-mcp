@@ -180,10 +180,15 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                 # Ideally, we inspect our own labels to find project name.
                 # But hardcoding is safer v0.
 
-                cmd = "docker ps -q --filter label=com.docker.compose.project=claude-memory-mcp"
-                ids_res = subprocess.run(  # noqa: S602
+                cmd = [
+                    "docker",
+                    "ps",
+                    "-q",
+                    "--filter",
+                    "label=com.docker.compose.project=claude-memory-mcp",
+                ]
+                ids_res = subprocess.run(  # noqa: S603
                     cmd,
-                    shell=True,
                     capture_output=True,
                     text=True,
                     check=False,

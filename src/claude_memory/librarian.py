@@ -49,7 +49,7 @@ class LibrarianAgent:
         try:
             nodes = self.memory.repo.get_all_nodes(limit=2000)
             logger.info("Fetched %d nodes for analysis.", len(nodes))
-        except Exception as e:
+        except (ConnectionError, TimeoutError, OSError) as e:
             logger.error("Failed to fetch nodes: %s", e)
             report["errors"].append(str(e))
             return report
@@ -77,7 +77,7 @@ class LibrarianAgent:
                 res = await self.memory.consolidate_memories(entity_ids, summary)
                 if res and "id" in res:
                     report["consolidations_created"] += 1
-            except Exception as e:
+            except (ConnectionError, TimeoutError, OSError, ValueError) as e:
                 logger.error("Failed to consolidate cluster %s: %s", cluster.id, e)
                 report["errors"].append(f"Cluster {cluster.id}: {e!s}")
 
@@ -121,14 +121,14 @@ class LibrarianAgent:
                     },
                 )
                 report["gap_reports_stored"] += 1
-            except Exception as e:
+            except (ConnectionError, TimeoutError, OSError) as e:
                 report["errors"].append(f"GapReport: {e!s}")
 
         # 5. Prune Stale
         try:
             prune_res = await self.memory.prune_stale(days=60)
             report["deleted_stale"] = prune_res.get("deleted_count", 0)
-        except Exception as e:
+        except (ConnectionError, TimeoutError, OSError, ValueError) as e:
             report["errors"].append(f"Prune: {e!s}")
 
         logger.info("Librarian Cycle Complete.")

@@ -1619,7 +1619,7 @@ async def test_delete_entity_hard_vector_failure_always_raises(
 
 async def test_search_returns_empty_on_embedder_failure(service: MemoryService) -> None:
     """When embedder.encode raises, search should return [] instead of propagating."""
-    service.embedder.encode.side_effect = RuntimeError("Embedding server down")
+    service.embedder.encode.side_effect = ConnectionError("Embedding server down")
 
     result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert result == []
@@ -1637,7 +1637,7 @@ async def test_search_associative_returns_empty_on_embedder_failure(
     service: MemoryService,
 ) -> None:
     """When embedder.encode raises, search_associative returns [] instead of propagating."""
-    service.embedder.encode.side_effect = RuntimeError("Embedding server down")
+    service.embedder.encode.side_effect = ConnectionError("Embedding server down")
 
     result = await service.search_associative(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert result == []

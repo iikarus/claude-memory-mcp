@@ -83,7 +83,7 @@ class TestLibrarianAgent:
 
     async def test_run_cycle_fetch_exception(self, librarian: Any) -> None:
         """Lines 46-49: fetch throws, returns early with error."""
-        librarian.memory.repo.get_all_nodes.side_effect = Exception(LIBRARIAN_FETCH_ERROR)
+        librarian.memory.repo.get_all_nodes.side_effect = ConnectionError(LIBRARIAN_FETCH_ERROR)
         report = await librarian.run_cycle()
         assert LIBRARIAN_FETCH_ERROR in report["errors"][0]
         assert report["clusters_found"] == 0
@@ -107,7 +107,7 @@ class TestLibrarianAgent:
         )
         librarian.clustering.cluster_nodes.return_value = [mock_cluster]
         librarian.memory.consolidate_memories = AsyncMock(
-            side_effect=Exception(LIBRARIAN_CONSOLIDATE_ERROR)
+            side_effect=ConnectionError(LIBRARIAN_CONSOLIDATE_ERROR)
         )
         librarian.memory.prune_stale = AsyncMock(
             return_value={"deleted_count": LIBRARIAN_PRUNE_DELETED_COUNT}
@@ -127,7 +127,7 @@ class TestLibrarianAgent:
         ]
         librarian.memory.repo.get_all_nodes.return_value = nodes
         librarian.clustering.cluster_nodes.return_value = []
-        librarian.memory.prune_stale = AsyncMock(side_effect=Exception(LIBRARIAN_PRUNE_ERROR))
+        librarian.memory.prune_stale = AsyncMock(side_effect=ConnectionError(LIBRARIAN_PRUNE_ERROR))
 
         report = await librarian.run_cycle()
         assert any("Prune" in e for e in report["errors"])

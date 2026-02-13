@@ -112,7 +112,7 @@ class SearchAdvancedMixin:
                     )
                 )
             return results
-        except Exception:
+        except (ConnectionError, TimeoutError, OSError, ValueError):
             logger.error("search_associative failed for query=%r", query, exc_info=True)
             return []
 

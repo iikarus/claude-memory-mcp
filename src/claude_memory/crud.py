@@ -106,7 +106,7 @@ class CrudMixin:
                         "PRECEDED_BY",
                         {"created_at": datetime.now(UTC).isoformat()},
                     )
-            except Exception:
+            except (ConnectionError, TimeoutError, OSError):
                 msg = "PRECEDED_BY link failed — entity created without temporal link"
                 logger.error(msg, exc_info=True)
                 warnings.append(msg)

@@ -72,7 +72,7 @@ class OntologyManager:
                     # Merge with defaults (defaults always exist)
                     self._ontology.update(saved)
                 logger.info("Loaded %d memory types from %s", len(self._ontology), self.config_path)
-            except Exception as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger.error("Failed to load ontology: %s. Using defaults.", e)
         else:
             self._save()
@@ -82,7 +82,7 @@ class OntologyManager:
         try:
             with open(self.config_path, "w") as f:
                 json.dump(self._ontology, f, indent=2)
-        except Exception as e:
+        except OSError as e:
             logger.error("Failed to save ontology: %s", e)
 
     def is_valid_type(self, node_type: str) -> bool:

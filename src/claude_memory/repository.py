@@ -95,7 +95,7 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         """
 
         result = graph.query(query, params)
-        return result.result_set[0][0].properties  # type: ignore
+        return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
     @retry_on_transient()
     def get_node(self, node_id: str) -> dict[str, Any] | None:
@@ -107,7 +107,7 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         if not result.result_set:
             return None
 
-        return result.result_set[0][0].properties  # type: ignore
+        return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
     @retry_on_transient()
     def update_node(self, node_id: str, properties: dict[str, Any]) -> dict[str, Any]:
@@ -126,7 +126,7 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         result = graph.query(query, params)
         if not result.result_set:
             return {}
-        return result.result_set[0][0].properties  # type: ignore
+        return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
     def delete_node(
         self, node_id: str, soft_delete: bool = False, reason: str | None = None
@@ -162,7 +162,7 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         result = graph.query(query, {"from": from_id, "to": to_id, "props": properties})
         if not result.result_set:
             return {}
-        return result.result_set[0][0].properties  # type: ignore
+        return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
     def delete_edge(self, edge_id: str) -> bool:
         """Deletes a relationship by ID."""
