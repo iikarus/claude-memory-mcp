@@ -91,33 +91,36 @@ def test_get_project_ids_empty() -> None:
 
 
 def test_create_preceded_by_dry_run() -> None:
-    """Dry-run counts edges but does not create them."""
+    """Dry-run counts missing edges but does not create them."""
     graph = MagicMock()
-    # First call: get_project_ids
-    # Second call: count edges for project-alpha
+    # Query flow: project list → entity order → check pair(a,b) → check pair(b,c)
     graph.query.side_effect = [
         _mock_query_result([[PROJECT_A]]),  # project list
-        _mock_query_result([[5]]),  # edge count for project-alpha
+        _mock_query_result([["id-1"], ["id-2"], ["id-3"]]),  # entity IDs
+        _mock_query_result([[0]]),  # pair (id-1, id-2) missing
+        _mock_query_result([[1]]),  # pair (id-2, id-3) exists
     ]
 
     summary = create_preceded_by_edges(graph, dry_run=True)
-    assert summary == {PROJECT_A: 5}
+    assert summary == {PROJECT_A: 1}
     # No CREATE query executed
-    assert graph.query.call_count == 2
+    assert graph.query.call_count == 4
 
 
 def test_create_preceded_by_execute() -> None:
-    """Execute mode creates edges for each project."""
+    """Execute mode creates edges for missing pairs."""
     graph = MagicMock()
+    # Query flow: project list → entity order → check pair → create pair
     graph.query.side_effect = [
         _mock_query_result([[PROJECT_A]]),  # project list
-        _mock_query_result([[3]]),  # count for project-alpha
-        _mock_query_result([[3]]),  # create for project-alpha
+        _mock_query_result([["id-1"], ["id-2"]]),  # entity IDs
+        _mock_query_result([[0]]),  # pair (id-1, id-2) missing
+        _mock_query_result([]),  # CREATE result
     ]
 
     summary = create_preceded_by_edges(graph, dry_run=False)
-    assert summary == {PROJECT_A: 3}
-    assert graph.query.call_count == 3
+    assert summary == {PROJECT_A: 1}
+    assert graph.query.call_count == 4
 
 
 def test_create_preceded_by_no_projects() -> None:
@@ -130,11 +133,12 @@ def test_create_preceded_by_no_projects() -> None:
 
 
 def test_create_preceded_by_zero_edges() -> None:
-    """Projects with 0 pending edges are skipped."""
+    """Projects with all edges present are skipped."""
     graph = MagicMock()
     graph.query.side_effect = [
         _mock_query_result([[PROJECT_A]]),  # project list
-        _mock_query_result([[0]]),  # count = 0
+        _mock_query_result([["id-1"], ["id-2"]]),  # entity IDs
+        _mock_query_result([[1]]),  # pair exists → skip
     ]
 
     summary = create_preceded_by_edges(graph, dry_run=False)

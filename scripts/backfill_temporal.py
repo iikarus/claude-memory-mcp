@@ -78,6 +78,9 @@ def get_project_ids(graph: Any) -> list[str]:
 def create_preceded_by_edges(graph: Any, *, dry_run: bool = True) -> dict[str, int]:
     """Create PRECEDED_BY edges between adjacent entities per project.
 
+    Uses simple per-pair queries to avoid FalkorDB Cypher limitations
+    (collect/UNWIND + pattern match combinations fail with type errors).
+
     Returns a dict mapping project_id → edges_created.
     """
     project_ids = get_project_ids(graph)
@@ -88,53 +91,60 @@ def create_preceded_by_edges(graph: Any, *, dry_run: bool = True) -> dict[str, i
     summary: dict[str, int] = {}
 
     for pid in project_ids:
-        count_query = """
+        # Fetch entities in temporal order
+        order_query = """
         MATCH (n:Entity {project_id: $pid})
-        WITH n ORDER BY COALESCE(n.occurred_at, n.created_at) ASC
-        WITH collect(n) AS nodes
-        UNWIND range(0, size(nodes)-2) AS i
-        WITH nodes[i] AS a, nodes[i+1] AS b
-        WHERE NOT (a)-[:PRECEDED_BY]->(b)
-        RETURN count(*) AS total
+        WHERE n.created_at IS NOT NULL
+        RETURN n.id AS nid
+        ORDER BY n.created_at ASC
         """
-        result = graph.query(count_query, {"pid": pid})
-        edge_count = result.result_set[0][0] if result.result_set else 0
+        result = graph.query(order_query, {"pid": pid})
+        entity_ids = [row[0] for row in result.result_set if row]
 
-        if edge_count == 0:
+        if len(entity_ids) < 2:
+            continue
+
+        # Check each consecutive pair for missing PRECEDED_BY edge
+        missing_count = 0
+        for i in range(len(entity_ids) - 1):
+            a_id, b_id = entity_ids[i], entity_ids[i + 1]
+            check_query = """
+            MATCH (a:Entity {id: $a_id})-[:PRECEDED_BY]->(b:Entity {id: $b_id})
+            RETURN count(*) AS cnt
+            """
+            check_result = graph.query(check_query, {"a_id": a_id, "b_id": b_id})
+            cnt = check_result.result_set[0][0] if check_result.result_set else 0
+
+            if cnt == 0:
+                missing_count += 1
+                if not dry_run:
+                    from datetime import UTC, datetime
+
+                    create_query = """
+                    MATCH (a:Entity {id: $a_id}), (b:Entity {id: $b_id})
+                    CREATE (a)-[:PRECEDED_BY {created_at: $now}]->(b)
+                    """
+                    graph.query(
+                        create_query,
+                        {"a_id": a_id, "b_id": b_id, "now": datetime.now(UTC).isoformat()},
+                    )
+
+        if missing_count == 0:
             continue
 
         if dry_run:
             logger.info(
                 "  🔍 DRY RUN: %d PRECEDED_BY edges would be created for project '%s'",
-                edge_count,
+                missing_count,
                 pid,
             )
-            summary[pid] = edge_count
-            continue
-
-        create_query = """
-        MATCH (n:Entity {project_id: $pid})
-        WITH n ORDER BY COALESCE(n.occurred_at, n.created_at) ASC
-        WITH collect(n) AS nodes
-        UNWIND range(0, size(nodes)-2) AS i
-        WITH nodes[i] AS a, nodes[i+1] AS b
-        WHERE NOT (a)-[:PRECEDED_BY]->(b)
-        CREATE (a)-[:PRECEDED_BY {created_at: $now}]->(b)
-        RETURN count(*) AS edges_created
-        """
-        from datetime import UTC, datetime
-
-        result = graph.query(
-            create_query,
-            {"pid": pid, "now": datetime.now(UTC).isoformat()},
-        )
-        created = result.result_set[0][0] if result.result_set else 0
-        logger.info(
-            "  ✅ Created %d PRECEDED_BY edges for project '%s'",
-            created,
-            pid,
-        )
-        summary[pid] = created
+        else:
+            logger.info(
+                "  ✅ Created %d PRECEDED_BY edges for project '%s'",
+                missing_count,
+                pid,
+            )
+        summary[pid] = missing_count
 
     return summary
 
