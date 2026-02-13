@@ -1,6 +1,6 @@
 # Code Inventory
 
-A manifest of the project structure. Last updated: February 13, 2026.
+A manifest of the project structure. Last updated: February 14, 2026.
 
 ## Core Logic (`src/claude_memory/`)
 
@@ -29,7 +29,7 @@ A manifest of the project structure. Last updated: February 13, 2026.
 | `interfaces.py`           | **Protocols**. Abstract base classes (e.g., `Embedder`) for decoupling.                                                   |
 | `ontology.py`             | **Type System**. Runtime ontology management for custom memory types.                                                     |
 | **Infrastructure**        |                                                                                                                           |
-| `server.py`               | **MCP Server**. Wires services together, exposes 27 functions as MCP Tools. **stdio transport only.**                     |
+| `server.py`               | **MCP Server**. Wires services together, exposes 29 functions as MCP Tools. **stdio transport only.**                     |
 | `lock_manager.py`         | **Concurrency**. Redis-based distributed locking with file-based fallback. REDIS\_\* env vars take precedence.            |
 | `retry.py`                | **Resilience**. `@retry_on_transient` decorator for handling transient connection failures.                               |
 | `repository_queries.py`   | **Query Builder**. Cypher query construction helpers for repository.                                                      |
@@ -92,11 +92,11 @@ A manifest of the project structure. Last updated: February 13, 2026.
 
 ### E2E / UAT (`tests/`)
 
-| File                | Coverage                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `e2e_functional.py` | **Exhaustive UAT**. 31-phase, 60+ check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, point-in-time). |
+| File                | Coverage                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `e2e_functional.py` | **Exhaustive UAT**. 31-phase, 74-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, point-in-time). |
 
-**Total: 460 tests across 42 files, ~99% coverage.**
+**Total: 463 tests across 46 files, ~98% coverage.**
 
 ## Configuration
 

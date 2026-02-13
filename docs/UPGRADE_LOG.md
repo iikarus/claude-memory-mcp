@@ -1,6 +1,6 @@
 # Upgrade Log: V2 Intelligence Layer
 
-> Tracks what was added, changed, or upgraded from the Phase 3 baseline (Feb 6, 2026) through the current V2 build (Feb 12, 2026).
+> Tracks what was added, changed, or upgraded from the Phase 3 baseline (Feb 6, 2026) through the current V2 build (Feb 14, 2026).
 
 ---
 
@@ -250,16 +250,16 @@ The system at Phase 3 completion had:
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
-| **MCP Tools**         | 17                 | 27                                                 | +10   |
+| **MCP Tools**         | 17                 | 29                                                 | +12   |
 | **Source Modules**    | 14                 | 29                                                 | +15   |
-| **Unit Tests**        | 255                | 437                                                | +182  |
-| **Test Files**        | 15                 | 42                                                 | +27   |
-| **Scripts**           | 12                 | 40                                                 | +28   |
+| **Unit Tests**        | 255                | 463                                                | +208  |
+| **Test Files**        | 15                 | 46                                                 | +31   |
+| **Scripts**           | 12                 | 42                                                 | +30   |
 | **Tox Tiers**         | 4                  | 5                                                  | +1    |
 | **Search Strategies** | 1 (vector)         | 4 (semantic, associative, temporal, relational)    | +3    |
 | **Graph Features**    | Basic CRUD         | Temporal edges, salience, activation, gap analysis | —     |
-| **Graph Data**        | —                  | 695 nodes, 800 edges                               | —     |
-| **E2E Phases**        | —                  | 18 phases, 53 checks                               | —     |
+| **Graph Data**        | —                  | 700 nodes, 1253 edges                              | —     |
+| **E2E Phases**        | —                  | 31 phases, 74 checks                               | —     |
 
 ### New Source Modules (V2)
 
@@ -286,3 +286,32 @@ The system at Phase 3 completion had:
 6. `find_knowledge_gaps` — Structural gap detection
 7. `search_memory` (upgraded) — `strategy` and `mmr` params added
 8. `create_entity` (upgraded) — Auto-links `PRECEDED_BY` edges
+9. `reconnect` — Session reconnect briefing (E-4)
+10. `system_diagnostics` — Unified backend health check (E-5)
+
+---
+
+## Audit Remediation (`2b34df1` → `b3c8d4f` → `dd27ded`, Feb 13)
+
+### Phase 3a — WILL BITE YOU (`2b34df1`)
+
+| Before                                               | After                                                        |
+| ---------------------------------------------------- | ------------------------------------------------------------ |
+| Observation vector upsert failure silently swallowed | **Raises exception** — prevents split-brain (TDD: Red→Green) |
+
+### Phase 3b — SHOULD FIX (`b3c8d4f`)
+
+| Before                                   | After                                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| 16 bare `except Exception` catches       | **Narrowed** to specific types (`FalkorDBError`, `QdrantException`, `RedisError`, etc.) |
+| Bare `# type: ignore` in `repository.py` | **Scoped** to `# type: ignore[no-any-return]`                                           |
+| `shell=True` in `dashboard/app.py`       | **Removed** — security fix                                                              |
+| No `requirements.lock`                   | **Generated** `requirements.lock`                                                       |
+
+### Phase 3c — COSMETIC (`dd27ded`)
+
+| Before                                   | After                                       |
+| ---------------------------------------- | ------------------------------------------- |
+| `sys.path.append` hack in dashboard      | **Removed** — package installed via pip     |
+| `app.py` monolithic `main()` (C901)      | **Extracted** 4 renderer functions          |
+| Globals undocumented in `tools_extra.py` | **Documented** with module-level docstrings |

@@ -1,7 +1,7 @@
 # Claude Memory MCP Server — "The Exocortex"
 
 > **Status**: Production (Dockerized, Automated Backups)
-> **Last Audit**: February 13, 2026 — 700 nodes, 1253 edges, 460 tests, 98% coverage
+> **Last Audit**: February 14, 2026 — 700 nodes, 1253 edges, 463 tests, ~98% coverage
 
 A long-term memory system for Claude, built as a Model Context Protocol (MCP) server. It provides semantic storage, holographic retrieval, spreading activation search, temporal reasoning, structural gap analysis, and autonomous maintenance ("The Librarian") using a Hybrid Graph+Vector backend.
 
@@ -17,7 +17,7 @@ A long-term memory system for Claude, built as a Model Context Protocol (MCP) se
 - **Autonomous Maintenance**: "The Librarian" agent clusters, consolidates, and detects gaps.
 - **Visual Dashboard**: A Streamlit UI to explore the memory graph interactively.
 - **Automated Backups**: Daily snapshots to Google Drive with rolling 7-day retention.
-- **Strict Quality**: 100% Mypy typed, 460 unit tests, 5-tier Gold Stack CI/CD.
+- **Strict Quality**: 100% Mypy typed, 463 unit tests, 5-tier Gold Stack CI/CD.
 - **Strict Consistency**: Qdrant write failures always raise exceptions (split-brain prevention). No toggle.
 
 ## 🛠️ Architecture
@@ -69,7 +69,7 @@ docker compose ps   # All 4 should be "healthy"
 ### Run Tests
 
 ```powershell
-tox -e pulse    # lint + type check + 460 tests
+tox -e pulse    # lint + type check + 463 tests
 tox             # full Gold Stack (all 5 tiers)
 ```
 

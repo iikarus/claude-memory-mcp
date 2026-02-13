@@ -1,6 +1,6 @@
 # Maintenance Manual
 
-Guidelines for keeping the Exocortex healthy and performant. Last updated: February 13, 2026.
+Guidelines for keeping the Exocortex healthy and performant. Last updated: February 14, 2026.
 
 ## 🧹 The Librarian Agent
 
@@ -88,13 +88,13 @@ python scripts/red_team.py
 
 ### End-to-End UAT
 
-The exhaustive User Acceptance Test exercises all 18 functional areas against the live Docker stack:
+The exhaustive User Acceptance Test exercises all 31 functional areas against the live Docker stack:
 
 ```powershell
 python tests/e2e_functional.py
 ```
 
-53 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, W3 strict consistency, associative search, graph algorithms (PageRank), hologram retrieval, memory consolidation, ontology management, archive/prune lifecycle, knowledge gap detection, and cleanup.
+74 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, W3 strict consistency, associative search, graph algorithms (PageRank), hologram retrieval, memory consolidation, ontology management, archive/prune lifecycle, knowledge gap detection, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, and point-in-time.
 
 ### Legacy E2E
 

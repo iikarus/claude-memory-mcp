@@ -127,7 +127,7 @@ All ports are bound to `127.0.0.1` — no external access.
 
 | Tier   | What                                                           |
 | ------ | -------------------------------------------------------------- |
-| pulse  | Ruff lint + format check + Mypy strict + Pytest (460 tests)    |
+| pulse  | Ruff lint + format check + Mypy strict + Pytest (463 tests)    |
 | gate   | Hypothesis property tests + diff-cover (changed-line coverage) |
 | forge  | Mutation testing (mutatest — fault injection)                  |
 | hammer | Security scanning (bandit, pip-audit, detect-secrets)          |

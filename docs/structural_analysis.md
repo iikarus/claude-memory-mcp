@@ -1,5 +1,7 @@
 # Structural Analysis — Pre-Remediation Baseline
 
+> **⚠️ HISTORICAL ARTIFACT** — This document captures the codebase state **before** the Feb 13, 2026 audit remediation. All error handling gaps listed below have been fixed in commits `2b34df1` → `b3c8d4f` → `dd27ded`. For current state, see `docs/CODE_INVENTORY.md`.
+
 **Generated**: 2026-02-13T12:42:00+03:00
 **Commit**: Baseline snapshot before P0 remediation
 **Purpose**: Directive §0 artifact — records module structure, dependency graph, error handling surfaces, and known gaps BEFORE any code changes.

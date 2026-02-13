@@ -1,6 +1,6 @@
 # Documentation Index
 
-> **Last updated**: February 13, 2026 — Post E-7 build
+> **Last updated**: February 14, 2026 — Post audit remediation
 
 This is the master table of contents for all Claude Memory MCP documentation. Use this to find the right doc, and to know **when each doc needs updating**.
 
@@ -8,15 +8,15 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 
 | Metric                                | Value                              | As Of  |
 | ------------------------------------- | ---------------------------------- | ------ |
-| Source modules (`src/claude_memory/`) | 28                                 | Feb 13 |
-| Scripts (`scripts/`)                  | 42                                 | Feb 13 |
-| Unit tests                            | 460                                | Feb 13 |
-| Coverage                              | 98.05%                             | Feb 13 |
-| MCP tools                             | 29                                 | Feb 13 |
-| FalkorDB nodes (post-P0 brain)        | 700                                | Feb 13 |
-| FalkorDB edges (post-P0 brain)        | 1253                               | Feb 13 |
-| Qdrant vectors (post-P0 brain)        | 464                                | Feb 13 |
-| Gold Stack tiers                      | 5 (pulse/gate/forge/hammer/polish) | Feb 13 |
+| Source modules (`src/claude_memory/`) | 29                                 | Feb 14 |
+| Scripts (`scripts/`)                  | 42                                 | Feb 14 |
+| Unit tests                            | 463                                | Feb 14 |
+| Coverage                              | 97.86%                             | Feb 14 |
+| MCP tools                             | 29                                 | Feb 14 |
+| FalkorDB nodes (post-P0 brain)        | 700                                | Feb 14 |
+| FalkorDB edges (post-P0 brain)        | 1253                               | Feb 14 |
+| Qdrant vectors (post-P0 brain)        | 464                                | Feb 14 |
+| Gold Stack tiers                      | 5 (pulse/gate/forge/hammer/polish) | Feb 14 |
 
 > **Update rule**: When any of these numbers change, update this table first, then propagate to the docs that reference them (mainly README.md, ARCHITECTURE.md, REHYDRATION_DOCUMENT.md).
 
