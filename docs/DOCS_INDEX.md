@@ -12,7 +12,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | Scripts (`scripts/`)                  | 42                                 | Feb 13 |
 | Unit tests                            | 460                                | Feb 13 |
 | Coverage                              | 98.05%                             | Feb 13 |
-| MCP tools                             | 27                                 | Feb 13 |
+| MCP tools                             | 29                                 | Feb 13 |
 | FalkorDB nodes (post-P0 brain)        | 700                                | Feb 13 |
 | FalkorDB edges (post-P0 brain)        | 1253                               | Feb 13 |
 | Qdrant vectors (post-P0 brain)        | 464                                | Feb 13 |
@@ -36,8 +36,8 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | **This file** (`DOCS_INDEX.md`)                                                                                                         | Master TOC and update guide                        | All maintainers        | Any doc is added/removed/renamed                  |
 | [ARCHITECTURE.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/ARCHITECTURE.md)                 | System design, data model, component diagram       | Developers, new agents | New components, data model changes, infra changes |
 | [CODE_INVENTORY.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/CODE_INVENTORY.md)             | File-by-file manifest with descriptions            | Developers, auditors   | Any file added/removed/renamed                    |
-| [USER_MANUAL.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/USER_MANUAL.md)                   | How to use the 27 MCP tools with Claude            | End users              | New tools added, tool signatures change           |
-| [MCP_TOOL_REFERENCE.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/MCP_TOOL_REFERENCE.md)     | API reference: all 27 tools, params, return shapes | Developers, AI agents  | Tool added/removed, params change                 |
+| [USER_MANUAL.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/USER_MANUAL.md)                   | How to use the 29 MCP tools with Claude            | End users              | New tools added, tool signatures change           |
+| [MCP_TOOL_REFERENCE.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/MCP_TOOL_REFERENCE.md)     | API reference: all 29 tools, params, return shapes | Developers, AI agents  | Tool added/removed, params change                 |
 | [MAINTENANCE_MANUAL.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/MAINTENANCE_MANUAL.md)     | Backups, monitoring, troubleshooting               | Operators              | Infra changes, new backup procedures              |
 | [RUNBOOK.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/RUNBOOK.md)                           | 10 incident response recipes                       | Operators              | New incident types, procedure changes             |
 | [REHYDRATION_DOCUMENT.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/REHYDRATION_DOCUMENT.md) | Onboarding guide for new AI agents                 | New agents             | Architecture changes, new conventions             |

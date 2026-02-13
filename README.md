@@ -77,8 +77,8 @@ tox             # full Gold Stack (all 5 tiers)
 
 Detailed manuals are located in `docs/`:
 
-- [User Manual](docs/USER_MANUAL.md): How to use the 27 MCP tools with Claude.
-- [MCP Tool Reference](docs/MCP_TOOL_REFERENCE.md): API reference — all 27 tools, params, return shapes.
+- [User Manual](docs/USER_MANUAL.md): How to use the 29 MCP tools with Claude.
+- [MCP Tool Reference](docs/MCP_TOOL_REFERENCE.md): API reference — all 29 tools, params, return shapes.
 - [Maintenance Manual](docs/MAINTENANCE_MANUAL.md): Backups, monitoring, troubleshooting.
 - [Runbook](docs/RUNBOOK.md): 10 incident response recipes.
 - [Code Inventory](docs/CODE_INVENTORY.md): Comprehensive file listing.

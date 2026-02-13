@@ -1,6 +1,6 @@
 # MCP Tool Reference
 
-Complete reference for the **27 MCP tools** exposed by the Exocortex memory system.
+Complete reference for the **29 MCP tools** exposed by the Exocortex memory system.
 
 ---
 
@@ -333,6 +333,26 @@ Find structural gaps: clusters that are semantically similar but poorly connecte
 | `limit`          | `int`   | `10`    |
 
 **Returns:** `list[dict]` — gap descriptions
+
+### `system_diagnostics`
+
+Unified system diagnostics — graph stats, vector stats, and split-brain check (E-5).
+
+**Returns:** `dict` — `{graph: {total_nodes, total_edges, ...}, vector: {count, error}, split_brain: {status, graph_only_count, graph_only_ids}}`
+
+> [!NOTE]
+> `split_brain.status` is `ok` (consistent), `drift` (graph-only entities found), or `unavailable` (vector store unreachable).
+
+### `reconnect`
+
+Session reconnect — structured briefing for a returning agent (E-4).
+
+| Param        | Type  | Default |
+| ------------ | ----- | ------- |
+| `project_id` | `str` | `None`  |
+| `limit`      | `int` | `10`    |
+
+**Returns:** `dict` — `{recent_entities: [...], health: {...}, window: {start, end}}`
 
 ---
 
