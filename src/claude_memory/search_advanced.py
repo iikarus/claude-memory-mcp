@@ -47,68 +47,74 @@ class SearchAdvancedMixin:
             return []
 
         # 1. Vector search for seed nodes
-        vec = self.embedder.encode(query)  # type: ignore[attr-defined]
-        search_filter: dict[str, Any] | None = None
-        if project_id:
-            search_filter = {"project_id": project_id}
+        try:
+            vec = self.embedder.encode(query)  # type: ignore[attr-defined]
+            search_filter: dict[str, Any] | None = None
+            if project_id:
+                search_filter = {"project_id": project_id}
 
-        vector_results = await self.vector_store.search(  # type: ignore[attr-defined]
-            vector=vec, limit=limit, filter=search_filter
-        )
-        if not vector_results:
-            return []
-
-        seed_ids = [item["_id"] for item in vector_results]
-        vector_scores = {item["_id"]: item["_score"] for item in vector_results}
-
-        # 2. Spreading activation
-        activation_map = self.activation_engine.activate(seed_ids)  # type: ignore[attr-defined]
-        activation_map = self.activation_engine.spread(  # type: ignore[attr-defined]
-            activation_map, decay=decay, max_hops=max_hops
-        )
-
-        # 3. Gather all candidate IDs (seeds + spread targets)
-        all_ids = list(set(seed_ids) | set(activation_map.keys()))
-        graph_data = self.repo.get_subgraph(all_ids, depth=0)  # type: ignore[attr-defined]
-        nodes_map = {n["id"]: n for n in graph_data["nodes"]}
-
-        # Fire-and-forget salience update for associative search too
-        result_ids = list(nodes_map.keys())
-        self._fire_salience_update(result_ids)  # type: ignore[attr-defined]
-
-        # Build salience map from graph properties (pre-update values)
-        salience_map = {nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()}
-
-        # 4. Composite ranking
-        candidates = list(nodes_map.values())
-        ranked = self.activation_engine.rank(  # type: ignore[attr-defined]
-            candidates,
-            vector_scores,
-            activation_map,
-            salience_map,
-            w_sim=w_sim,
-            w_act=w_act,
-            w_sal=w_sal,
-            w_rec=w_rec,
-        )
-
-        # 5. Convert to SearchResult
-        results = []
-        for entity in ranked[:limit]:
-            eid = entity.get("id", "")
-            results.append(
-                SearchResult(
-                    id=eid,
-                    name=entity.get("name", "Unknown"),
-                    node_type=entity.get("node_type", "Entity"),
-                    project_id=entity.get("project_id", "unknown"),
-                    content=entity.get("description", ""),
-                    score=entity.get("composite_score", 0.0),
-                    distance=1.0 - vector_scores.get(eid, 0.0),
-                    salience_score=salience_map.get(eid, 0.0),
-                )
+            vector_results = await self.vector_store.search(  # type: ignore[attr-defined]
+                vector=vec, limit=limit, filter=search_filter
             )
-        return results
+            if not vector_results:
+                return []
+
+            seed_ids = [item["_id"] for item in vector_results]
+            vector_scores = {item["_id"]: item["_score"] for item in vector_results}
+
+            # 2. Spreading activation
+            activation_map = self.activation_engine.activate(seed_ids)  # type: ignore[attr-defined]
+            activation_map = self.activation_engine.spread(  # type: ignore[attr-defined]
+                activation_map, decay=decay, max_hops=max_hops
+            )
+
+            # 3. Gather all candidate IDs (seeds + spread targets)
+            all_ids = list(set(seed_ids) | set(activation_map.keys()))
+            graph_data = self.repo.get_subgraph(all_ids, depth=0)  # type: ignore[attr-defined]
+            nodes_map = {n["id"]: n for n in graph_data["nodes"]}
+
+            # Fire-and-forget salience update for associative search too
+            result_ids = list(nodes_map.keys())
+            self._fire_salience_update(result_ids)  # type: ignore[attr-defined]
+
+            # Build salience map from graph properties (pre-update values)
+            salience_map = {
+                nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()
+            }
+
+            # 4. Composite ranking
+            candidates = list(nodes_map.values())
+            ranked = self.activation_engine.rank(  # type: ignore[attr-defined]
+                candidates,
+                vector_scores,
+                activation_map,
+                salience_map,
+                w_sim=w_sim,
+                w_act=w_act,
+                w_sal=w_sal,
+                w_rec=w_rec,
+            )
+
+            # 5. Convert to SearchResult
+            results = []
+            for entity in ranked[:limit]:
+                eid = entity.get("id", "")
+                results.append(
+                    SearchResult(
+                        id=eid,
+                        name=entity.get("name", "Unknown"),
+                        node_type=entity.get("node_type", "Entity"),
+                        project_id=entity.get("project_id", "unknown"),
+                        content=entity.get("description", ""),
+                        score=entity.get("composite_score", 0.0),
+                        distance=1.0 - vector_scores.get(eid, 0.0),
+                        salience_score=salience_map.get(eid, 0.0),
+                    )
+                )
+            return results
+        except Exception:
+            logger.error("search_associative failed for query=%r", query, exc_info=True)
+            return []
 
     async def get_hologram(
         self, query: str, depth: int = 1, max_tokens: int = 8000

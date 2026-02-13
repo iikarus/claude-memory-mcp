@@ -176,81 +176,87 @@ class SearchMixin(SearchAdvancedMixin):
             return []
 
         # Route through QueryRouter if strategy is specified
-        if strategy is not None:
-            intent = None if strategy == "auto" else QueryIntent(strategy)
-            results = await self.router.route(
-                query,
-                self,  # type: ignore[arg-type]  # self is MemoryService at runtime
-                intent=intent,
-                limit=limit,
-                project_id=project_id,
-            )
-            # router.route may return dicts (temporal/relational) or SearchResults
-            if results and isinstance(results[0], dict):
-                return [
-                    SearchResult(
-                        id=r.get("id", ""),
-                        name=r.get("name", "Unknown"),
-                        node_type=r.get("node_type", "Entity"),
-                        project_id=r.get("project_id", "unknown"),
-                        content=r.get("description", ""),
-                        score=0.0,
-                        distance=0.0,
-                    )
-                    for r in results
-                ]
-            return results
-
-        # 1. Embed Query
-        vec = self.embedder.encode(query)
-
-        # 2. Search Qdrant (Vector Engine)
-        search_filter: dict[str, Any] | None = None
-        if project_id:
-            search_filter = {"project_id": project_id}
-
-        if mmr:
-            vector_results = await self.vector_store.search_mmr(
-                vector=vec, limit=limit, filter=search_filter
-            )
-        else:
-            vector_results = await self.vector_store.search(
-                vector=vec, limit=limit, filter=search_filter, offset=offset
-            )
-
-        if not vector_results:
-            return []
-
-        # 3. Hydrate from Graph
-        # We have IDs, fetch full nodes.
-        ids = [item["_id"] for item in vector_results]
-
-        # We can use get_subgraph with depth 0 to get nodes
-        graph_data = self.repo.get_subgraph(ids, depth=0)
-        nodes_map = {n["id"]: n for n in graph_data["nodes"]}
-
-        # 4. Fire-and-forget salience update (non-blocking)
-        self._fire_salience_update(ids)  # type: ignore[attr-defined]
-        salience_map = {nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()}
-
-        results = []
-        for v_res in vector_results:
-            node_id = v_res["_id"]
-            if node_id in nodes_map:
-                node_props = nodes_map[node_id]
-                results.append(
-                    SearchResult(
-                        id=node_id,
-                        name=node_props.get("name", "Unknown"),
-                        node_type=node_props.get("node_type", "Entity"),
-                        project_id=node_props.get("project_id", "unknown"),
-                        content=node_props.get("description", ""),
-                        score=v_res["_score"],
-                        distance=1.0 - v_res["_score"],
-                        salience_score=salience_map.get(
-                            node_id,
-                            node_props.get("salience_score", 0.0),
-                        ),
-                    )
+        try:
+            if strategy is not None:
+                intent = None if strategy == "auto" else QueryIntent(strategy)
+                results = await self.router.route(
+                    query,
+                    self,  # type: ignore[arg-type]  # self is MemoryService at runtime
+                    intent=intent,
+                    limit=limit,
+                    project_id=project_id,
                 )
-        return results
+                # router.route may return dicts (temporal/relational) or SearchResults
+                if results and isinstance(results[0], dict):
+                    return [
+                        SearchResult(
+                            id=r.get("id", ""),
+                            name=r.get("name", "Unknown"),
+                            node_type=r.get("node_type", "Entity"),
+                            project_id=r.get("project_id", "unknown"),
+                            content=r.get("description", ""),
+                            score=0.0,
+                            distance=0.0,
+                        )
+                        for r in results
+                    ]
+                return results
+
+            # 1. Embed Query
+            vec = self.embedder.encode(query)
+
+            # 2. Search Qdrant (Vector Engine)
+            search_filter: dict[str, Any] | None = None
+            if project_id:
+                search_filter = {"project_id": project_id}
+
+            if mmr:
+                vector_results = await self.vector_store.search_mmr(
+                    vector=vec, limit=limit, filter=search_filter
+                )
+            else:
+                vector_results = await self.vector_store.search(
+                    vector=vec, limit=limit, filter=search_filter, offset=offset
+                )
+
+            if not vector_results:
+                return []
+
+            # 3. Hydrate from Graph
+            # We have IDs, fetch full nodes.
+            ids = [item["_id"] for item in vector_results]
+
+            # We can use get_subgraph with depth 0 to get nodes
+            graph_data = self.repo.get_subgraph(ids, depth=0)
+            nodes_map = {n["id"]: n for n in graph_data["nodes"]}
+
+            # 4. Fire-and-forget salience update (non-blocking)
+            self._fire_salience_update(ids)  # type: ignore[attr-defined]
+            salience_map = {
+                nid: props.get("salience_score", 0.0) for nid, props in nodes_map.items()
+            }
+
+            results = []
+            for v_res in vector_results:
+                node_id = v_res["_id"]
+                if node_id in nodes_map:
+                    node_props = nodes_map[node_id]
+                    results.append(
+                        SearchResult(
+                            id=node_id,
+                            name=node_props.get("name", "Unknown"),
+                            node_type=node_props.get("node_type", "Entity"),
+                            project_id=node_props.get("project_id", "unknown"),
+                            content=node_props.get("description", ""),
+                            score=v_res["_score"],
+                            distance=1.0 - v_res["_score"],
+                            salience_score=salience_map.get(
+                                node_id,
+                                node_props.get("salience_score", 0.0),
+                            ),
+                        )
+                    )
+            return results
+        except Exception:
+            logger.error("search failed for query=%r", query, exc_info=True)
+            return []

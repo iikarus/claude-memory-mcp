@@ -1403,3 +1403,42 @@ async def test_delete_entity_hard_vector_failure_always_raises(
     )
     with pytest.raises(RuntimeError, match="Qdrant gone"):
         await service.delete_entity(params)
+
+
+# ─── P0-3: Search Error Handling Tests ──────────────────────────────
+
+
+async def test_search_returns_empty_on_embedder_failure(service: MemoryService) -> None:
+    """When embedder.encode raises, search should return [] instead of propagating."""
+    service.embedder.encode.side_effect = RuntimeError("Embedding server down")
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert result == []
+
+
+async def test_search_returns_empty_on_vector_store_failure(service: MemoryService) -> None:
+    """When vector_store.search raises, search should return [] instead of propagating."""
+    service.vector_store.search.side_effect = ConnectionError("Qdrant unreachable")
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert result == []
+
+
+async def test_search_associative_returns_empty_on_embedder_failure(
+    service: MemoryService,
+) -> None:
+    """When embedder.encode raises, search_associative returns [] instead of propagating."""
+    service.embedder.encode.side_effect = RuntimeError("Embedding server down")
+
+    result = await service.search_associative(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert result == []
+
+
+async def test_search_associative_returns_empty_on_vector_store_failure(
+    service: MemoryService,
+) -> None:
+    """When vector_store.search raises, search_associative returns [] instead of propagating."""
+    service.vector_store.search.side_effect = ConnectionError("Qdrant unreachable")
+
+    result = await service.search_associative(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert result == []
