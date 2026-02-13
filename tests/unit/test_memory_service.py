@@ -358,6 +358,27 @@ async def test_add_observation_skip_embed_on_entity_not_found(service: MemorySer
     service.vector_store.upsert.assert_not_called()
 
 
+async def test_add_observation_vector_upsert_failure_raises(service: MemoryService) -> None:
+    """Audit #1: vector upsert failure on add_observation must raise — no silent split-brain."""
+    mock_obs_node = MagicMock()
+    mock_obs_node.properties = {
+        "id": "obs-003",
+        "content": OBSERVATION_CONTENT,
+        "project_id": PROJECT_ID,
+    }
+    service.repo.execute_cypher.return_value = _make_cypher_result([[mock_obs_node]])
+    service.embedder.encode.return_value = [0.1] * 1024
+    service.vector_store.upsert.side_effect = ConnectionError("qdrant down")
+
+    params = ObservationParams(
+        entity_id=ENTITY_ID,
+        content=OBSERVATION_CONTENT,
+        certainty=CERTAINTY_CONFIRMED,
+    )
+    with pytest.raises(ConnectionError, match="qdrant down"):
+        await service.add_observation(params)
+
+
 # ─── end_session Tests ─────────────────────────────────────────────
 
 

@@ -91,5 +91,6 @@ class CrudMaintenanceMixin:
                 "observation_vector_upsert_failed for %s — graph write succeeded",
                 obs_props.get("id"),
             )
+            raise
 
         return obs_props
