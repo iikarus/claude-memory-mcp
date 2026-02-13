@@ -140,7 +140,7 @@ class TemporalMixin:
         params: "BottleQueryParams",
     ) -> list[dict[str, Any]]:
         """Query 'Bottle' entities (messages to future self)."""
-        bottles = self.repo.get_bottles(  # type: ignore[no-any-return]
+        bottles = self.repo.get_bottles(
             limit=params.limit,
             search_text=params.search_text,
             before_date=params.before_date.isoformat() if params.before_date else None,
@@ -158,4 +158,4 @@ class TemporalMixin:
                 result = self.repo.execute_cypher(obs_query, {"eid": bottle["id"]})
                 bottle["observations"] = [row[0] for row in result.result_set if row[0]]
 
-        return bottles
+        return list(bottles)
