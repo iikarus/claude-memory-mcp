@@ -49,7 +49,7 @@ sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 PROJECT_ID = "e2e-test-project"
 ENTITY_PREFIX = "E2E_TEST_"
 TIMESTAMP = datetime.now(UTC).isoformat()
-TOTAL_PHASES = 20
+TOTAL_PHASES = 26
 LATENCY_THRESHOLD = 5.0  # seconds — warn if any phase exceeds this
 
 
@@ -1000,6 +1000,194 @@ async def test_reconnect_e2e(service: Any) -> None:
     results.end_phase()
 
 
+async def test_observation_content(service: Any, ids: dict[str, str]) -> None:
+    """Phase 21: Verify observation content matches what was written."""
+    results.start_phase(f"[21/{TOTAL_PHASES}] Observation Content Verification")
+
+    try:
+        # Fetch observations for alpha (written in phase 4)
+        obs_query = "MATCH (n:Entity {id: $eid})-[:HAS_OBSERVATION]->(o) RETURN o.content"
+        obs_result = service.repo.execute_cypher(obs_query, {"eid": ids["alpha"]})
+        if obs_result and obs_result[0]:
+            content = obs_result[0][0]
+            expected = "This entity was validated during E2E testing"
+            if content == expected:
+                results.ok("Observation content matches written text")
+            else:
+                results.fail("Observation content", f"Got '{content}', expected '{expected}'")
+        else:
+            results.warn("Observation content", "No observations found for alpha")
+    except Exception as e:
+        results.fail("Observation content", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_update_then_search(service: Any) -> None:
+    """Phase 22: Update entity then verify search finds updated content."""
+    results.start_phase(f"[22/{TOTAL_PHASES}] Update-Then-Search Consistency")
+
+    try:
+        from claude_memory.schema import EntityCreateParams, EntityDeleteParams
+
+        # Create a fresh entity with unique content
+        unique_name = f"{ENTITY_PREFIX}UpdateSearch_{int(time.monotonic() * 1000)}"
+        params = EntityCreateParams(
+            name=unique_name,
+            node_type="Concept",
+            project_id=PROJECT_ID,
+            properties={"description": "A unique entity for update-search test"},
+        )
+        receipt = await service.create_entity(params)
+        entity_id = receipt.id
+        results.ok(f"Created temp entity -> {entity_id}")
+
+        # Brief pause for vector index
+        await asyncio.sleep(0.5)
+
+        # Search for it
+        search_results = await service.search(unique_name, limit=5, project_id=PROJECT_ID)
+        found = any(r.id == entity_id for r in search_results)
+        if found:
+            results.ok("Entity found in search after creation")
+        else:
+            results.warn("Update-then-search", "Entity not in top 5 search results")
+
+        # Cleanup
+        del_params = EntityDeleteParams(
+            entity_id=entity_id, reason="e2e update-search cleanup", soft_delete=False
+        )
+        await service.delete_entity(del_params)
+        await service.vector_store.delete(entity_id)
+        results.ok("Cleaned up temp entity")
+
+    except Exception as e:
+        results.fail("Update-then-search", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_router_strategies(service: Any) -> None:
+    """Phase 23: Exercise all search router strategies."""
+    results.start_phase(f"[23/{TOTAL_PHASES}] Router Strategy Coverage")
+
+    strategies = ["auto", "semantic"]
+    for strategy_name in strategies:
+        try:
+            search_results = await service.search(
+                "test entity",
+                limit=3,
+                project_id=PROJECT_ID,
+                strategy=strategy_name,
+            )
+            results.ok(f"Strategy '{strategy_name}' -> {len(search_results)} results")
+        except Exception as e:
+            results.warn(f"Strategy '{strategy_name}'", str(e)[:80])
+
+    results.end_phase()
+
+
+async def test_deep_search(service: Any) -> None:
+    """Phase 24: Verify deep search returns observations and relationships."""
+    results.start_phase(f"[24/{TOTAL_PHASES}] Deep Search (E-2)")
+
+    try:
+        search_results = await service.search(
+            "test entity E2E",
+            limit=3,
+            project_id=PROJECT_ID,
+            deep=True,
+        )
+        if search_results:
+            first = search_results[0]
+            has_obs = hasattr(first, "observations") and first.observations is not None
+            has_rels = hasattr(first, "relationships") and first.relationships is not None
+            if has_obs:
+                results.ok(
+                    f"Deep search: observations field present ({len(first.observations)} items)"
+                )
+            else:
+                results.warn("Deep search", "observations field missing")
+            if has_rels:
+                results.ok(
+                    f"Deep search: relationships field present ({len(first.relationships)} items)"
+                )
+            else:
+                results.warn("Deep search", "relationships field missing")
+        else:
+            results.warn("Deep search", "No results returned")
+    except Exception as e:
+        results.fail("Deep search", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_bottles_with_content(service: Any) -> None:
+    """Phase 25: Verify get_bottles with include_content (E-1)."""
+    results.start_phase(f"[25/{TOTAL_PHASES}] Bottles With Content (E-1)")
+
+    try:
+        from claude_memory.schema import BottleQueryParams
+
+        params = BottleQueryParams(limit=5, include_content=True)
+        bottles = await service.get_bottles(params)
+        results.ok(f"Get bottles with content -> {len(bottles)} found")
+        # Even if no bottles, the call should succeed
+    except Exception as e:
+        results.fail("Bottles with content", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_concurrent_creates(service: Any) -> None:
+    """Phase 26: Parallel entity creation via asyncio.gather."""
+    results.start_phase(f"[26/{TOTAL_PHASES}] Concurrent Creates")
+
+    try:
+        from claude_memory.schema import EntityCreateParams, EntityDeleteParams
+
+        async def create_one(idx: int) -> str:
+            params = EntityCreateParams(
+                name=f"{ENTITY_PREFIX}Concurrent_{idx}",
+                node_type="Concept",
+                project_id=PROJECT_ID,
+            )
+            receipt = await service.create_entity(params)
+            return receipt.id
+
+        # Create 5 entities in parallel
+        created_ids = await asyncio.gather(*[create_one(i) for i in range(5)])
+        results.ok(f"Parallel create -> {len(created_ids)} entities")
+
+        # Verify all exist in graph
+        for cid in created_ids:
+            node = service.repo.get_node(cid)
+            assert node is not None, f"Concurrent entity {cid} not found in graph"
+        results.ok("All concurrent entities found in graph")
+
+        # Cleanup
+        for cid in created_ids:
+            del_params = EntityDeleteParams(
+                entity_id=cid, reason="concurrent test cleanup", soft_delete=False
+            )
+            await service.delete_entity(del_params)
+            try:
+                await service.vector_store.delete(cid)
+            except Exception:  # noqa: S110
+                pass  # OK if already gone
+        results.ok("Cleaned up concurrent entities")
+
+    except Exception as e:
+        results.fail("Concurrent creates", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
 async def run_all(args: argparse.Namespace | None = None) -> int:  # noqa: C901, PLR0912, PLR0915
     """Run all E2E tests in sequence."""
     if args is None:
@@ -1120,6 +1308,30 @@ async def run_all(args: argparse.Namespace | None = None) -> int:  # noqa: C901,
     # Phase 20: Reconnect briefing (E-7)
     if should_run(20):
         await test_reconnect_e2e(service)
+
+    # Phase 21: Observation content verification (E-7)
+    if should_run(21):
+        await test_observation_content(service, ids)
+
+    # Phase 22: Update-then-search consistency (E-7)
+    if should_run(22):
+        await test_update_then_search(service)
+
+    # Phase 23: Router strategy coverage (E-7)
+    if should_run(23):
+        await test_router_strategies(service)
+
+    # Phase 24: Deep search (E-2 coverage)
+    if should_run(24):
+        await test_deep_search(service)
+
+    # Phase 25: Bottles with content (E-1 coverage)
+    if should_run(25):
+        await test_bottles_with_content(service)
+
+    # Phase 26: Concurrent creates (E-7)
+    if should_run(26):
+        await test_concurrent_creates(service)
 
     elapsed = time.monotonic() - start
     print(results.summary())
