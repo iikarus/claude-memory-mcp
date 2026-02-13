@@ -19,7 +19,7 @@ If you are landing here fresh (new machine, new agent):
 ### Prerequisites
 
 - Docker & Docker Compose
-- Python 3.10+
+- Python 3.12+
 - Git
 
 ### Startup Sequence
@@ -52,7 +52,7 @@ If you are landing here fresh (new machine, new agent):
     python tests/e2e_functional.py
     ```
 
-    _53-check exhaustive lifecycle test against the live stack. If this passes, the system is 100% operational._
+    _73-check exhaustive lifecycle test across 31 phases against the live stack. If this passes, the system is 100% operational._
 
 5.  **Connect Client**:
     Add the configuration from `mcp_config.json` to your MCP Client (Claude Desktop or VS Code).
@@ -83,6 +83,21 @@ graph TD
     - The `get_all_nodes` query has NO `WHERE n.embedding IS NOT NULL` filter.
     - **CRITICAL**: The API strips embeddings from responses to prevent flooding the LLM context window.
 3.  **Strict Consistency (W3)**: Qdrant write failures **always raise exceptions** (no toggle). This prevents split-brain. The env var `EXOCORTEX_STRICT_CONSISTENCY` has been removed.
+
+## 3b. Enhancement Features (E-1 through E-6)
+
+All shipped February 2026. These extend the V2 Intelligence Layer:
+
+| Feature | Tool / Method | What It Does |
+|---------|--------------|--------------|
+| **E-1: Bottle Reader** | `get_bottles(include_content=true)` | Hydrates Message in a Bottle entities with full observation text |
+| **E-2: Deep Search** | `search_memory(depth="full")` | Returns entities + top 3 observations + relationships in one call |
+| **E-3: Observation Vectorization** | Automatic on `add_observation` | Observations are auto-embedded and upserted to Qdrant on creation |
+| **E-4: Session Reconnect** | `reconnect()` | Structured briefing: recent entities, bottles, health snapshot |
+| **E-5: System Diagnostics** | `system_diagnostics()` | Unified health check across graph, vectors, embeddings, integrity |
+| **E-6: Procedural Memory** | `Procedure` entity type | Step-based procedural knowledge stored as entities with ordered observations |
+
+All features are code-complete, MCP-registered, and covered by E2E tests (phases 19-24).
 
 ## 4. Operational Drills (Maintenance)
 
@@ -123,12 +138,12 @@ Run `tox -e pulse` — this executes all checks in one command:
 
 1.  **Ruff**: Linting + import sorting.
 2.  **Ruff Format**: Code formatting.
-3.  **Mypy**: Static type checking (29 source files, strict mode).
-4.  **Pytest**: 460 unit tests, ~98% coverage (≥30% threshold).
+3.  **Mypy**: Static type checking (30 source files, strict mode).
+4.  **Pytest**: 460+ unit tests, ~98% coverage (≥30% threshold).
 
 Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e forge` (mutation), `tox -e hammer` (security), `tox -e polish` (docs+typos).
 
-**E2E UAT**: `python tests/e2e_functional.py` — 53-check lifecycle against the live Docker stack.
+**E2E UAT**: `python tests/e2e_functional.py` — 73-check lifecycle across 31 phases against the live Docker stack.
 
 ## 6. Known "Gotchas" for Future Agents
 
@@ -146,7 +161,7 @@ If you are reading this to fix a bug or add a feature:
 1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
 2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
 3.  **Trust `tests/e2e_functional.py`**: It is your UAT ground truth. 73 checks across 31 phases. If it fails, the system is broken.
-4.  **Run `tox -e pulse` before committing**: 460 tests must pass.
+4.  **Run `tox -e pulse` before committing**: 460+ tests must pass.
 5.  **Never add `WHERE n.embedding IS NOT NULL`**: Embeddings are in Qdrant, not on graph nodes.
 6.  **Read `docs/UPGRADE_LOG.md`**: Understand what V2 added before making changes.
 7.  **Read `docs/GOTCHAS.md`**: 25 known traps that will burn you if ignored.
