@@ -31,6 +31,7 @@ Run:
     python tests/e2e_functional.py
 """
 
+import argparse
 import asyncio
 import sys
 import time
@@ -48,7 +49,8 @@ sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 PROJECT_ID = "e2e-test-project"
 ENTITY_PREFIX = "E2E_TEST_"
 TIMESTAMP = datetime.now(UTC).isoformat()
-TOTAL_PHASES = 18
+TOTAL_PHASES = 20
+LATENCY_THRESHOLD = 5.0  # seconds — warn if any phase exceeds this
 
 
 # -- Helpers --
@@ -67,6 +69,7 @@ class TestResult:
     def start_phase(self, label: str) -> None:
         """Mark the start of a test phase for timing."""
         self._phase_start = time.monotonic()
+        self._phase_label = label
         print(f"\n{label}")
 
     def _elapsed(self) -> str:
@@ -90,7 +93,14 @@ class TestResult:
 
     def end_phase(self) -> None:
         """Print elapsed time for the current phase."""
-        print(f"  [{self._elapsed()}]")
+        elapsed = time.monotonic() - self._phase_start
+        marker = "⚠️ SLOW" if elapsed > LATENCY_THRESHOLD else "⏱"
+        print(f"  {marker} {elapsed:.2f}s")
+        if elapsed > LATENCY_THRESHOLD:
+            self.warn(
+                getattr(self, "_phase_label", "phase"),
+                f"exceeded {LATENCY_THRESHOLD}s ({elapsed:.2f}s)",
+            )
 
     def summary(self) -> str:
         """Return summary string."""
@@ -920,71 +930,196 @@ async def test_cleanup(
 # -- Main --
 
 
-async def run_all() -> int:
+def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments for E2E test control."""
+    parser = argparse.ArgumentParser(description="Exocortex E2E Functional Test")
+    parser.add_argument(
+        "--phase",
+        type=int,
+        default=None,
+        help="Run only this phase number (1-based). Phases 1-2 always run for setup.",
+    )
+    parser.add_argument(
+        "--skip-cleanup",
+        action="store_true",
+        help="Skip cleanup phase (leave test data in place for debugging).",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Abort on first failure (default: run all phases).",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output (show full stack traces).",
+    )
+    return parser.parse_args()
+
+
+async def test_split_brain(service: Any) -> None:
+    """Phase 19: Verify graph/vector consistency for test entities."""
+    results.start_phase(f"[19/{TOTAL_PHASES}] Split-Brain Integrity Check")
+
+    try:
+        diag = await service.system_diagnostics()
+        sb = diag["split_brain"]
+        if sb["status"] == "ok":
+            results.ok("Split-brain check: graph and vector store are consistent")
+        elif sb["status"] == "drift":
+            results.warn(
+                "Split-brain",
+                f"{sb['graph_only_count']} graph-only entities: {sb['graph_only_ids'][:5]}",
+            )
+        else:
+            results.warn("Split-brain", f"status={sb['status']}")
+    except Exception as e:
+        results.fail("Split-brain", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_reconnect_e2e(service: Any) -> None:
+    """Phase 20: Verify reconnect briefing returns valid data."""
+    results.start_phase(f"[20/{TOTAL_PHASES}] Reconnect Briefing")
+
+    try:
+        briefing = await service.reconnect(project_id=PROJECT_ID)
+        assert "recent_entities" in briefing, "Missing recent_entities"
+        assert "health" in briefing, "Missing health"
+        assert "window" in briefing, "Missing window"
+        results.ok(
+            f"Reconnect: {len(briefing['recent_entities'])} recent entities, "
+            f"{briefing['health']['total_nodes']} total nodes"
+        )
+    except Exception as e:
+        results.fail("Reconnect", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def run_all(args: argparse.Namespace | None = None) -> int:  # noqa: C901, PLR0912, PLR0915
     """Run all E2E tests in sequence."""
+    if args is None:
+        args = argparse.Namespace(phase=None, skip_cleanup=False, strict=False, verbose=False)
+
+    target = args.phase
+    skip_cleanup = args.skip_cleanup
+    strict = args.strict
+
+    def should_run(phase: int) -> bool:
+        return target is None or target == phase
+
     print("=" * 60)
     print("EXHAUSTIVE E2E FUNCTIONAL TEST")
     print(f"Timestamp: {TIMESTAMP}")
     print(f"Phases: {TOTAL_PHASES}")
+    if target:
+        print(f"Target phase: {target}")
+    if skip_cleanup:
+        print("Cleanup: SKIPPED")
+    if strict:
+        print("Mode: STRICT (abort on first failure)")
     print("=" * 60)
 
     start = time.monotonic()
 
-    # Phase 1: Init
+    # Phase 1: Init (always runs)
     service = test_service_init()
     if not service:
         print("\nFATAL: Cannot proceed - service initialization failed.")
         return 1
 
-    # Phase 2: Entity CRUD
+    # Phase 2: Entity CRUD (always runs for setup)
     ids = await test_entity_crud(service)
     if not ids:
         print("\nFATAL: Cannot proceed - entity creation failed.")
         return 1
 
+    if strict and results.failed:
+        print(results.summary())
+        return 1
+
     # Phase 3-4: Relationships and observations
-    await test_relationship_crud(service, ids)
-    await test_observation(service, ids)
+    if should_run(3):
+        await test_relationship_crud(service, ids)
+    if should_run(4):
+        await test_observation(service, ids)
+
+    if strict and results.failed:
+        print(results.summary())
+        return 1
 
     # Brief pause for vector index to settle
     await asyncio.sleep(1.0)
 
     # Phase 5-9: Search, traversal, temporal, sessions, health
-    await test_search(service)
-    await test_graph_traversal(service, ids)
-    await test_temporal(service, ids)
-    await test_sessions(service)
-    await test_graph_health(service)
+    if should_run(5):
+        await test_search(service)
+    if should_run(6):
+        await test_graph_traversal(service, ids)
+    if should_run(7):
+        await test_temporal(service, ids)
+    if should_run(8):
+        await test_sessions(service)
+    if should_run(9):
+        await test_graph_health(service)
+
+    if strict and results.failed:
+        print(results.summary())
+        return 1
 
     # Phase 10: Strict consistency
-    await test_strict_consistency(service)
+    if should_run(10):
+        await test_strict_consistency(service)
 
     # Phase 11: Associative search
-    await test_associative_search(service)
+    if should_run(11):
+        await test_associative_search(service)
 
     # Phase 12: Graph algorithms
-    await test_graph_algorithms(service)
+    if should_run(12):
+        await test_graph_algorithms(service)
 
     # Brief pause for vectors to settle before hologram
     await asyncio.sleep(0.5)
 
     # Phase 13: Hologram
-    await test_hologram(service)
+    if should_run(13):
+        await test_hologram(service)
 
     # Phase 14: Consolidation
-    consolidated_id = await test_consolidation(service, ids)
+    consolidated_id = None
+    if should_run(14):
+        consolidated_id = await test_consolidation(service, ids)
 
     # Phase 15: Ontology
-    await test_ontology(service)
+    if should_run(15):
+        await test_ontology(service)
 
     # Phase 16: Archive & Prune
-    await test_archive_prune(service, ids)
+    if should_run(16):
+        await test_archive_prune(service, ids)
 
     # Phase 17: Knowledge gaps
-    await test_knowledge_gaps(service)
+    if should_run(17):
+        await test_knowledge_gaps(service)
 
-    # Phase 18: Cleanup
-    await test_cleanup(service, ids, consolidated_id)
+    # Phase 18: Cleanup (skippable)
+    if not skip_cleanup and should_run(18):
+        await test_cleanup(service, ids, consolidated_id)
+    elif skip_cleanup:
+        print("\n─" * 40 + "\n[18] Cleanup: SKIPPED (--skip-cleanup)")
+
+    # Phase 19: Split-brain integrity check (E-7)
+    if should_run(19):
+        await test_split_brain(service)
+
+    # Phase 20: Reconnect briefing (E-7)
+    if should_run(20):
+        await test_reconnect_e2e(service)
 
     elapsed = time.monotonic() - start
     print(results.summary())
@@ -994,4 +1129,5 @@ async def run_all() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(run_all()))
+    cli_args = parse_args()
+    sys.exit(asyncio.run(run_all(cli_args)))
