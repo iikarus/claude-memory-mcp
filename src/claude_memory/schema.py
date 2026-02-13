@@ -188,6 +188,10 @@ class SearchResult(BaseModel):
     score: float
     distance: float
     salience_score: float = Field(default=0.0, description="Entity salience at retrieval time")
+    observations: list[str] = Field(default_factory=list, description="E-2: observation texts")
+    relationships: list[dict[str, str]] = Field(
+        default_factory=list, description="E-2: connected edges"
+    )
 
 
 class BottleQueryParams(BaseModel):

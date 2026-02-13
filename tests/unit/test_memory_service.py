@@ -491,6 +491,92 @@ async def test_search_node_not_in_graph(service: MemoryService) -> None:
     assert result == []
 
 
+# ─── E-2: Deep Search ──────────────────────────────────────────────
+
+
+async def test_search_deep_returns_observations(service: MemoryService) -> None:
+    """E-2: deep=True populates observations on each SearchResult."""
+    from unittest.mock import MagicMock
+
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+                "description": "A language",
+            }
+        ],
+        "edges": [],
+    }
+    # Mock observation lookup
+    obs_result = MagicMock()
+    obs_result.result_set = [["First observation"], ["Second observation"]]
+    service.repo.execute_cypher.return_value = obs_result
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT, deep=True)
+    assert len(result) == 1
+    assert result[0].observations == ["First observation", "Second observation"]
+
+
+async def test_search_deep_returns_relationships(service: MemoryService) -> None:
+    """E-2: deep=True populates relationships on each SearchResult."""
+    from unittest.mock import MagicMock
+
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+            }
+        ],
+        "edges": [
+            {"src": ENTITY_ID, "dst": "other-1", "type": "RELATES_TO"},
+            {"src": "other-2", "dst": ENTITY_ID, "type": "DEPENDS_ON"},
+        ],
+    }
+    obs_result = MagicMock()
+    obs_result.result_set = []
+    service.repo.execute_cypher.return_value = obs_result
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT, deep=True)
+    assert len(result) == 1
+    assert len(result[0].relationships) == 2
+
+
+async def test_search_shallow_backward_compat(service: MemoryService) -> None:
+    """E-2: Default search (no deep) does NOT include observations/relationships."""
+    service.vector_store.search.return_value = [
+        {"_id": ENTITY_ID, "_score": PAGERANK_SCORE},
+    ]
+    service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": ENTITY_ID,
+                "name": ENTITY_NAME,
+                "node_type": ENTITY_TYPE,
+                "project_id": PROJECT_ID,
+            }
+        ],
+        "edges": [],
+    }
+
+    result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
+    assert len(result) == 1
+    # Shallow search should have empty/None observations and relationships
+    assert not result[0].observations
+    assert not result[0].relationships
+
+
 # ─── search with project_id filter ─────────────────────────────────
 
 

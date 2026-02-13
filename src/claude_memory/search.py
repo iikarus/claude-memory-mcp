@@ -153,7 +153,7 @@ class SearchMixin(SearchAdvancedMixin):
             n.pop("embedding", None)
         return nodes
 
-    async def search(  # noqa: PLR0913
+    async def search(  # noqa: PLR0913, C901
         self,
         query: str,
         limit: int = 5,
@@ -161,6 +161,7 @@ class SearchMixin(SearchAdvancedMixin):
         offset: int = 0,
         mmr: bool = False,
         strategy: str | None = None,
+        deep: bool = False,
     ) -> list["SearchResult"]:
         """Search for entities, optionally routing via QueryRouter.
 
@@ -226,8 +227,9 @@ class SearchMixin(SearchAdvancedMixin):
             # We have IDs, fetch full nodes.
             ids = [item["_id"] for item in vector_results]
 
-            # We can use get_subgraph with depth 0 to get nodes
-            graph_data = self.repo.get_subgraph(ids, depth=0)
+            # We can use get_subgraph with depth 0 (or 1 for deep) to get nodes
+            graph_depth = 1 if deep else 0
+            graph_data = self.repo.get_subgraph(ids, depth=graph_depth)
             nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
             # 4. Fire-and-forget salience update (non-blocking)
@@ -241,6 +243,23 @@ class SearchMixin(SearchAdvancedMixin):
                 node_id = v_res["_id"]
                 if node_id in nodes_map:
                     node_props = nodes_map[node_id]
+
+                    # E-2: Deep hydration
+                    observations: list[str] = []
+                    relationships: list[dict[str, str]] = []
+                    if deep:
+                        obs_query = (
+                            "MATCH (e:Entity {id: $eid})-[:HAS_OBSERVATION]->(o) "
+                            "RETURN o.content ORDER BY o.created_at ASC"
+                        )
+                        obs_res = self.repo.execute_cypher(obs_query, {"eid": node_id})
+                        observations = [row[0] for row in obs_res.result_set if row[0]]
+                        relationships = [
+                            e
+                            for e in graph_data["edges"]
+                            if e.get("src") == node_id or e.get("dst") == node_id
+                        ]
+
                     results.append(
                         SearchResult(
                             id=node_id,
@@ -254,6 +273,8 @@ class SearchMixin(SearchAdvancedMixin):
                                 node_id,
                                 node_props.get("salience_score", 0.0),
                             ),
+                            observations=observations,
+                            relationships=relationships,
                         )
                     )
             return results
