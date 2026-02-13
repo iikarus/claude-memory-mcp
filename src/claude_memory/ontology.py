@@ -40,6 +40,10 @@ DEFAULT_ONTOLOGY = {
         "description": "A timestamped note to your future self (Message in a Bottle).",
         "required_properties": [],
     },
+    "Procedure": {
+        "description": "A learned process or protocol with ordered steps.",
+        "required_properties": [],
+    },
 }
 
 
