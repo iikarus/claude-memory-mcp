@@ -27,6 +27,15 @@ try:
 except ImportError:  # pragma: no cover
     pass
 
+# Add Qdrant-specific transient exceptions
+try:
+    from grpc import RpcError  # type: ignore[import-untyped]
+    from qdrant_client.http.exceptions import UnexpectedResponse
+
+    _TRANSIENT_EXCEPTIONS = (*_TRANSIENT_EXCEPTIONS, UnexpectedResponse, RpcError)
+except ImportError:  # pragma: no cover
+    pass
+
 
 def retry_on_transient(  # noqa: C901
     max_retries: int = 5,
