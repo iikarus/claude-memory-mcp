@@ -33,7 +33,7 @@ COPY pyproject.toml README.md ./
 
 # 2. Generate requirements from pyproject.toml (hacky but works without extra tools)
 # or just install the heavy hitters explicitly to cache them.
-RUN pip install --no-cache-dir torch==2.9.1 sentence-transformers qdrant-client redis neo4j pandas fastapi uvicorn httpx
+RUN pip install --no-cache-dir torch==2.9.1 sentence-transformers qdrant-client redis fastapi uvicorn httpx
 
 # 3. Model Caching Layer (Isolate this!)
 # Copy ONLY the download script first so this layer is cached unless the script changes

@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "Custom MCP server for Claude's Hybrid Memory System"
 requires-python = ">=3.12"
 dependencies = [
-    "graphiti-core>=0.5.0,<1.0.0",
     "falkordb>=1.0.0",
     "mcp>=0.1.0",
     "pydantic>=2.0.0",
@@ -137,7 +136,6 @@ module = [
     "pyvis.*",
     "streamlit.*",
     "sentence_transformers.*",
-    "graphiti_core.*"
 ]
 ignore_missing_imports = true
 
