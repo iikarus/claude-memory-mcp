@@ -140,10 +140,22 @@ class TemporalMixin:
         params: "BottleQueryParams",
     ) -> list[dict[str, Any]]:
         """Query 'Bottle' entities (messages to future self)."""
-        return self.repo.get_bottles(  # type: ignore[no-any-return]
+        bottles = self.repo.get_bottles(  # type: ignore[no-any-return]
             limit=params.limit,
             search_text=params.search_text,
             before_date=params.before_date.isoformat() if params.before_date else None,
             after_date=params.after_date.isoformat() if params.after_date else None,
             project_id=params.project_id,
         )
+
+        if params.include_content:
+            for bottle in bottles:
+                obs_query = """
+                MATCH (e:Entity {id: $eid})-[:HAS_OBSERVATION]->(o)
+                RETURN o.content
+                ORDER BY o.created_at ASC
+                """
+                result = self.repo.execute_cypher(obs_query, {"eid": bottle["id"]})
+                bottle["observations"] = [row[0] for row in result.result_set if row[0]]
+
+        return bottles
