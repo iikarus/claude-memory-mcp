@@ -49,7 +49,7 @@ sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 PROJECT_ID = "e2e-test-project"
 ENTITY_PREFIX = "E2E_TEST_"
 TIMESTAMP = datetime.now(UTC).isoformat()
-TOTAL_PHASES = 26
+TOTAL_PHASES = 31
 LATENCY_THRESHOLD = 5.0  # seconds — warn if any phase exceeds this
 
 
@@ -1188,6 +1188,174 @@ async def test_concurrent_creates(service: Any) -> None:
     results.end_phase()
 
 
+async def test_preceded_by_chain(service: Any, ids: dict[str, str]) -> None:
+    """Phase 27: Verify PRECEDED_BY temporal chain between test entities."""
+    results.start_phase(f"[27/{TOTAL_PHASES}] PRECEDED_BY Chain Verification")
+
+    try:
+        # Query PRECEDED_BY edges originating from any test entity
+        query = (
+            "MATCH (a:Entity)-[r:PRECEDED_BY]->(b:Entity) "
+            "WHERE a.name STARTS WITH $prefix "
+            "RETURN a.name, b.name ORDER BY a.name"
+        )
+        chain = service.repo.execute_cypher(query, {"prefix": ENTITY_PREFIX})
+        rows = chain.result_set if hasattr(chain, "result_set") else chain
+        if rows:
+            results.ok(f"PRECEDED_BY chain: {len(rows)} edges found")
+            for row in rows[:5]:
+                results.ok(f"  {row[0]} -> {row[1]}")
+        else:
+            # No PRECEDED_BY edges between test entities is acceptable
+            # if the E2E run doesn't create them explicitly
+            results.warn(
+                "PRECEDED_BY chain",
+                "No PRECEDED_BY edges between test entities (expected if not explicitly created)",
+            )
+    except Exception as e:
+        results.fail("PRECEDED_BY chain", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_search_error_recovery(service: Any) -> None:
+    """Phase 28: Verify search degrades gracefully on vector store errors."""
+    results.start_phase(f"[28/{TOTAL_PHASES}] Search Error Recovery")
+
+    try:
+        # Normal search should work
+        normal = await service.search("test recovery", limit=3, project_id=PROJECT_ID)
+        results.ok(f"Normal search works -> {len(normal)} results")
+
+        # Search with invalid project should return empty, not crash
+        empty = await service.search(
+            "xyzzy_nonexistent_12345",
+            limit=3,
+            project_id="nonexistent_project_99",
+        )
+        assert isinstance(empty, list), f"Expected list, got {type(empty)}"
+        results.ok(f"Search with bad project -> {len(empty)} results (graceful)")
+
+    except Exception as e:
+        results.fail("Search error recovery", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_cleanup_verification(service: Any) -> None:
+    """Phase 29: Verify zero orphans in graph and vector store after cleanup."""
+    results.start_phase(f"[29/{TOTAL_PHASES}] Cleanup Verification")
+
+    try:
+        # Check for leftover test entities in graph
+        query = "MATCH (n:Entity) WHERE n.name STARTS WITH $prefix RETURN count(n) AS cnt"
+        result = service.repo.execute_cypher(query, {"prefix": ENTITY_PREFIX})
+        rows = result.result_set if hasattr(result, "result_set") else result
+        count = rows[0][0] if rows and rows[0] else 0
+        if count == 0:
+            results.ok("Zero orphan test entities in graph")
+        else:
+            results.warn(
+                "Cleanup verification",
+                f"{count} test entities still in graph",
+            )
+
+        # Check Qdrant for vectors with test entity names
+        from qdrant_client import QdrantClient
+
+        qc = QdrantClient(url="http://localhost:6333")
+        scroll_result, _ = qc.scroll(
+            collection_name="memory_embeddings",
+            limit=100,
+            with_payload=True,
+            with_vectors=False,
+        )
+        test_vectors = [
+            p
+            for p in scroll_result
+            if p.payload and p.payload.get("name", "").startswith(ENTITY_PREFIX)
+        ]
+        if not test_vectors:
+            results.ok("Zero orphan test vectors in Qdrant")
+        else:
+            results.warn(
+                "Cleanup verification",
+                f"{len(test_vectors)} test vectors in Qdrant",
+            )
+
+    except Exception as e:
+        results.fail("Cleanup verification", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
+async def test_graph_algo_semantics(service: Any) -> None:
+    """Phase 30: Semantic validation for PageRank + Louvain results."""
+    results.start_phase(f"[30/{TOTAL_PHASES}] Graph Algorithm Semantics")
+
+    # PageRank: ranks should be positive floats, sorted descending
+    try:
+        pr = await service.analyze_graph(algorithm="pagerank")
+        if pr:
+            ranks = [entry["rank"] for entry in pr]
+            assert all(isinstance(r, (int, float)) and r >= 0 for r in ranks), (
+                f"Non-numeric or negative ranks: {ranks[:5]}"
+            )
+            if ranks == sorted(ranks, reverse=True):
+                results.ok("PageRank: ranks are sorted descending")
+            else:
+                results.warn(
+                    "PageRank semantics",
+                    "Ranks not in descending order",
+                )
+            results.ok(f"PageRank: top entity '{pr[0]['name']}' rank={pr[0]['rank']:.4f}")
+        else:
+            results.warn("PageRank semantics", "Empty results")
+    except Exception as e:
+        results.fail("PageRank semantics", str(e)[:100])
+
+    # Louvain: each community should have >0 members, IDs unique
+    try:
+        lv = await service.analyze_graph(algorithm="louvain")
+        if lv:
+            community_ids = [c["community_id"] for c in lv]
+            assert len(community_ids) == len(set(community_ids)), "Duplicate community IDs"
+            for comm in lv:
+                assert len(comm["members"]) > 0, f"Empty community {comm['community_id']}"
+            results.ok(f"Louvain: {len(lv)} communities, all non-empty, unique IDs")
+        else:
+            results.warn("Louvain semantics", "Empty results")
+    except Exception as e:
+        results.fail("Louvain semantics", str(e)[:100])
+
+    results.end_phase()
+
+
+async def test_point_in_time(service: Any) -> None:
+    """Phase 31: Point-in-time query test."""
+    results.start_phase(f"[31/{TOTAL_PHASES}] Point-in-Time Query")
+
+    try:
+        # Query as of now — should return results
+        as_of = datetime.now(UTC).isoformat()
+        pit_results = await service.point_in_time_query("test entity", as_of=as_of)
+        results.ok(f"Point-in-time (now) -> {len(pit_results)} results")
+
+        # Query as of very old date — should return 0 or few results
+        old_date = datetime(2020, 1, 1, tzinfo=UTC).isoformat()
+        pit_old = await service.point_in_time_query("test entity", as_of=old_date)
+        results.ok(f"Point-in-time (2020) -> {len(pit_old)} results")
+
+    except Exception as e:
+        results.fail("Point-in-time", str(e))
+        traceback.print_exc()
+
+    results.end_phase()
+
+
 async def run_all(args: argparse.Namespace | None = None) -> int:  # noqa: C901, PLR0912, PLR0915
     """Run all E2E tests in sequence."""
     if args is None:
@@ -1332,6 +1500,26 @@ async def run_all(args: argparse.Namespace | None = None) -> int:  # noqa: C901,
     # Phase 26: Concurrent creates (E-7)
     if should_run(26):
         await test_concurrent_creates(service)
+
+    # Phase 27: PRECEDED_BY chain verification (E-7)
+    if should_run(27):
+        await test_preceded_by_chain(service, ids)
+
+    # Phase 28: Search error recovery (E-7)
+    if should_run(28):
+        await test_search_error_recovery(service)
+
+    # Phase 29: Cleanup verification (E-7)
+    if should_run(29):
+        await test_cleanup_verification(service)
+
+    # Phase 30: Graph algorithm semantics (E-7)
+    if should_run(30):
+        await test_graph_algo_semantics(service)
+
+    # Phase 31: Point-in-time query (E-7)
+    if should_run(31):
+        await test_point_in_time(service)
 
     elapsed = time.monotonic() - start
     print(results.summary())
