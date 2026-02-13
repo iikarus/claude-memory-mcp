@@ -198,6 +198,7 @@ class BottleQueryParams(BaseModel):
     before_date: datetime | None = None
     after_date: datetime | None = None
     project_id: str | None = None
+    include_content: bool = False
 
 
 class GapDetectionParams(BaseModel):

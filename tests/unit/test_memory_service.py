@@ -1238,6 +1238,61 @@ async def test_get_bottles_empty(service: MemoryService) -> None:
     assert result == []
 
 
+# ─── E-1: Bottle Reader with Content ────────────────────────────────
+
+
+async def test_get_bottles_with_content(service: MemoryService) -> None:
+    """E-1: include_content=True returns bottles with observation text."""
+    from unittest.mock import MagicMock
+
+    from claude_memory.schema import BottleQueryParams
+
+    # Repo returns bottles
+    service.repo.get_bottles.return_value = [
+        {"id": "bottle-1", "name": "Bottle: Remember this"},
+        {"id": "bottle-2", "name": "Bottle: Future note"},
+    ]
+
+    # Mock execute_cypher to return observation results per entity
+    obs_results_1 = MagicMock()
+    obs_results_1.result_set = [["This is the bottle message body"]]
+    obs_results_2 = MagicMock()
+    obs_results_2.result_set = [["Second bottle body"], ["PS: extra note"]]
+    service.repo.execute_cypher.side_effect = [obs_results_1, obs_results_2]
+
+    params = BottleQueryParams(include_content=True)
+    result = await service.get_bottles(params)
+
+    assert len(result) == 2
+
+    # First bottle should have its observation content
+    assert "observations" in result[0]
+    assert result[0]["observations"] == ["This is the bottle message body"]
+
+    # Second bottle should have both observations
+    assert "observations" in result[1]
+    assert result[1]["observations"] == ["Second bottle body", "PS: extra note"]
+
+
+async def test_get_bottles_backward_compat(service: MemoryService) -> None:
+    """E-1: Default include_content=False returns bottles WITHOUT observations key."""
+    from claude_memory.schema import BottleQueryParams
+
+    service.repo.get_bottles.return_value = [
+        {"id": "bottle-1", "name": "Bottle: Remember this"},
+    ]
+
+    params = BottleQueryParams()  # include_content defaults to False
+    result = await service.get_bottles(params)
+
+    assert len(result) == 1
+    assert result[0]["id"] == "bottle-1"
+    # No observations key when include_content is False
+    assert "observations" not in result[0]
+    # execute_cypher should NOT have been called for observation lookup
+    service.repo.execute_cypher.assert_not_called()
+
+
 # ─── Phase 15A: Graph Health Metrics Tests ──────────────────────────
 
 
