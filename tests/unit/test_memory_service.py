@@ -311,6 +311,53 @@ async def test_add_observation_entity_not_found(service: MemoryService) -> None:
     assert result == {"error": "Entity not found"}
 
 
+# ─── E-3: Observation Vectorization ─────────────────────────────────
+
+
+async def test_add_observation_creates_vector(service: MemoryService) -> None:
+    """E-3: add_observation should embed content and upsert to vector store."""
+    mock_obs_node = MagicMock()
+    mock_obs_node.properties = {
+        "id": "obs-002",
+        "content": "GPU needs 16GB VRAM for fine-tuning",
+        "project_id": "proj-1",
+    }
+    service.repo.execute_cypher.return_value = _make_cypher_result([[mock_obs_node]])
+    service.embedder.encode.return_value = [0.1] * 1024
+
+    params = ObservationParams(
+        entity_id=ENTITY_ID,
+        content="GPU needs 16GB VRAM for fine-tuning",
+        certainty=CERTAINTY_CONFIRMED,
+    )
+    result = await service.add_observation(params)
+    assert result["id"] == "obs-002"
+
+    # Verify embedding was computed
+    service.embedder.encode.assert_called_once()
+    # Verify vector was upserted with observation metadata
+    service.vector_store.upsert.assert_called_once()
+    call_kwargs = service.vector_store.upsert.call_args
+    assert call_kwargs.kwargs["id"] == "obs-002"
+    assert call_kwargs.kwargs["payload"]["node_type"] == "Observation"
+    assert call_kwargs.kwargs["payload"]["entity_id"] == ENTITY_ID
+
+
+async def test_add_observation_skip_embed_on_entity_not_found(service: MemoryService) -> None:
+    """E-3: No embedding when entity not found."""
+    service.repo.execute_cypher.return_value = _make_cypher_result([])
+
+    params = ObservationParams(
+        entity_id=ENTITY_ID,
+        content="This should not be embedded",
+        certainty=CERTAINTY_CONFIRMED,
+    )
+    result = await service.add_observation(params)
+    assert "error" in result
+    service.embedder.encode.assert_not_called()
+    service.vector_store.upsert.assert_not_called()
+
+
 # ─── end_session Tests ─────────────────────────────────────────────
 
 

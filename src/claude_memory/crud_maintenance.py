@@ -71,4 +71,25 @@ class CrudMaintenanceMixin:
         res = self.repo.execute_cypher(query, params_dict)
         if not res.result_set:
             return {"error": "Entity not found"}
-        return cast(dict[str, Any], res.result_set[0][0].properties)
+
+        obs_props = cast(dict[str, Any], res.result_set[0][0].properties)
+
+        # E-3: Embed observation content into vector store
+        try:
+            embedding = self.embedder.encode(params.content)
+            payload = {
+                "name": params.content[:80],
+                "node_type": "Observation",
+                "entity_id": params.entity_id,
+                "project_id": obs_props.get("project_id"),
+            }
+            await self.vector_store.upsert(
+                id=str(obs_props["id"]), vector=embedding, payload=payload
+            )
+        except Exception:
+            logger.error(
+                "observation_vector_upsert_failed for %s — graph write succeeded",
+                obs_props.get("id"),
+            )
+
+        return obs_props
