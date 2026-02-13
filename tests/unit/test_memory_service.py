@@ -1175,8 +1175,8 @@ async def test_create_entity_no_preceded_by_when_first(service: MemoryService) -
         assert call[0][2] != "PRECEDED_BY"
 
 
-async def test_create_entity_preceded_by_error_silent(service: MemoryService) -> None:
-    """PRECEDED_BY link failure doesn't block entity creation."""
+async def test_create_entity_preceded_by_error_surfaced(service: MemoryService) -> None:
+    """PRECEDED_BY link failure doesn't block entity creation but surfaces warning."""
     service.repo.create_node.return_value = {
         "id": "new-id",
         "name": "Entity",
@@ -1194,6 +1194,9 @@ async def test_create_entity_preceded_by_error_silent(service: MemoryService) ->
     # Should not raise despite PRECEDED_BY failure
     receipt = await service.create_entity(params)
     assert receipt.id == "new-id"
+    # But the warning MUST be surfaced in the receipt
+    assert len(receipt.warnings) == 1
+    assert "PRECEDED_BY" in receipt.warnings[0]
 
 
 # ─── Phase 11D: Message in a Bottle Tests ──────────────────────────

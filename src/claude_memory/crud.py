@@ -96,6 +96,7 @@ class CrudMixin:
                 raise
 
             # 3. Link to most recent entity in same project via PRECEDED_BY
+            warnings: list[str] = []
             try:
                 prev = self.repo.get_most_recent_entity(project_id)
                 if prev and prev.get("id") != node_id:
@@ -106,7 +107,9 @@ class CrudMixin:
                         {"created_at": datetime.now(UTC).isoformat()},
                     )
             except Exception:
-                logger.warning("PRECEDED_BY link failed — entity created without temporal link")
+                msg = "PRECEDED_BY link failed — entity created without temporal link"
+                logger.error(msg, exc_info=True)
+                warnings.append(msg)
 
             result = node_props
 
@@ -124,7 +127,7 @@ class CrudMixin:
                 operation_time_ms=duration,
                 total_memory_count=total_count,
                 message=f"Successfully {status} '{params.name}' in the Infinite Graph.",
-                warnings=[],
+                warnings=warnings,
             )
 
     async def create_relationship(self, params: "RelationshipCreateParams") -> dict[str, Any]:
