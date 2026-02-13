@@ -232,3 +232,10 @@ class RepositoryQueryMixin:
         return [
             {"source": row[0], "target": row[1], "type": row[2]} for row in result.result_set if row
         ]
+
+    @retry_on_transient()
+    def get_all_node_ids(self, limit: int = 10000) -> list[str]:
+        """Return all Entity node IDs for diagnostics."""
+        graph = self.select_graph()  # type: ignore[attr-defined]
+        result = graph.query("MATCH (n:Entity) RETURN n.id LIMIT $limit", {"limit": limit})
+        return [row[0] for row in result.result_set if row]

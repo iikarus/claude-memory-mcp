@@ -52,6 +52,46 @@ class AnalysisMixin:
         health["community_count"] = community_count
         return health  # type: ignore[no-any-return]
 
+    async def system_diagnostics(self) -> dict[str, Any]:
+        """E-5: Unified system diagnostics — graph, vector, and split-brain."""
+        result: dict[str, Any] = {}
+
+        # Graph section
+        result["graph"] = self.repo.get_graph_health()
+
+        # Vector section
+        vector_section: dict[str, Any] = {}
+        try:
+            vector_section["count"] = await self.vector_store.count()
+            vector_section["error"] = None
+        except Exception as exc:
+            vector_section["count"] = None
+            vector_section["error"] = str(exc)
+        result["vector"] = vector_section
+
+        # Split-brain detection
+        split: dict[str, Any] = {}
+        if vector_section["error"] is not None:
+            split["status"] = "unavailable"
+            split["graph_only_count"] = 0
+            split["graph_only_ids"] = []
+        else:
+            try:
+                graph_ids = set(self.repo.get_all_node_ids())
+                vector_ids = set(await self.vector_store.list_ids())
+                graph_only = graph_ids - vector_ids
+                split["status"] = "ok" if not graph_only else "drift"
+                split["graph_only_count"] = len(graph_only)
+                split["graph_only_ids"] = sorted(graph_only)
+            except Exception as exc:
+                split["status"] = "error"
+                split["graph_only_count"] = 0
+                split["graph_only_ids"] = []
+                logger.error("split_brain_check_failed: %s", exc)
+        result["split_brain"] = split
+
+        return result
+
     async def detect_structural_gaps(self, params: "GapDetectionParams") -> list[dict[str, Any]]:
         """Detect structural gaps between knowledge clusters.
 

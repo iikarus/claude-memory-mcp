@@ -233,3 +233,30 @@ class QdrantVectorStore:
         await self.client.delete(
             collection_name=self.collection, points_selector=models.PointIdsList(points=[id])
         )
+
+    @retry_on_transient()
+    async def count(self) -> int:
+        """Return total number of vectors in the collection."""
+        await self._ensure_collection()
+        info = await self.client.get_collection(collection_name=self.collection)
+        return info.points_count or 0
+
+    @retry_on_transient()
+    async def list_ids(self, limit: int = 10000) -> list[str]:
+        """Return all point IDs from the collection via scroll."""
+        await self._ensure_collection()
+        ids: list[str] = []
+        offset = None
+        while True:
+            records, next_offset = await self.client.scroll(
+                collection_name=self.collection,
+                limit=min(limit - len(ids), 100),
+                offset=offset,
+                with_payload=False,
+                with_vectors=False,
+            )
+            ids.extend(str(r.id) for r in records)
+            if next_offset is None or len(ids) >= limit:
+                break
+            offset = next_offset
+        return ids

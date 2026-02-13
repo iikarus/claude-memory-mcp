@@ -1630,3 +1630,67 @@ async def test_search_associative_returns_empty_on_vector_store_failure(
 
     result = await service.search_associative(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert result == []
+
+
+# ─── E-5: System Diagnostics ───────────────────────────────────────
+
+
+async def test_system_diagnostics_returns_all_sections(service: MemoryService) -> None:
+    """E-5: system_diagnostics returns graph, vector, and split_brain sections."""
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 100,
+        "total_edges": 200,
+        "density": 0.04,
+        "orphan_count": 5,
+        "avg_degree": 4.0,
+    }
+    service.vector_store.count.return_value = 95
+    service.repo.get_all_node_ids.return_value = [f"id-{i}" for i in range(100)]
+    service.vector_store.list_ids.return_value = [f"id-{i}" for i in range(95)]
+
+    result = await service.system_diagnostics()
+
+    assert "graph" in result
+    assert "vector" in result
+    assert "split_brain" in result
+    assert result["graph"]["total_nodes"] == 100
+    assert result["vector"]["count"] == 95
+
+
+async def test_system_diagnostics_detects_split_brain(service: MemoryService) -> None:
+    """E-5: Detects entities in graph but missing from vector store."""
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 5,
+        "total_edges": 3,
+        "density": 0.3,
+        "orphan_count": 0,
+        "avg_degree": 1.2,
+    }
+    service.vector_store.count.return_value = 3
+    # IDs in graph: 1..5; IDs in vector: 1..3 → missing: 4, 5
+    service.repo.get_all_node_ids.return_value = ["id-1", "id-2", "id-3", "id-4", "id-5"]
+    service.vector_store.list_ids.return_value = ["id-1", "id-2", "id-3"]
+
+    result = await service.system_diagnostics()
+
+    assert result["split_brain"]["graph_only_count"] == 2
+    assert set(result["split_brain"]["graph_only_ids"]) == {"id-4", "id-5"}
+
+
+async def test_system_diagnostics_handles_backend_failure(service: MemoryService) -> None:
+    """E-5: Graceful degradation when vector store is unreachable."""
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 10,
+        "total_edges": 5,
+        "density": 0.1,
+        "orphan_count": 1,
+        "avg_degree": 1.0,
+    }
+    service.vector_store.count.side_effect = ConnectionError("Qdrant down")
+    service.repo.get_all_node_ids.return_value = [f"id-{i}" for i in range(10)]
+
+    result = await service.system_diagnostics()
+
+    assert result["graph"]["total_nodes"] == 10
+    assert result["vector"]["error"] is not None
+    assert result["split_brain"]["status"] == "unavailable"
