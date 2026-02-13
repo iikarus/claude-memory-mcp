@@ -22,7 +22,7 @@ High-performance vector similarity search.
 
 - **Collection**: `memory_embeddings`
 - **Payload**: Stores `entity_id` and embedding vector (1024d, BAAI/bge-m3).
-- **Features**: MMR diversity search, HNSW optimized threshold (5000), full-text payload index on `name`.
+- **Features**: MMR diversity search, HNSW optimized threshold (500), full-text payload index on `name`.
 - **Env**: `QDRANT_HOST` (default `localhost`, set to `qdrant` in Docker).
 
 ### Relationships
@@ -127,7 +127,7 @@ All ports are bound to `127.0.0.1` — no external access.
 
 | Tier   | What                                                           |
 | ------ | -------------------------------------------------------------- |
-| pulse  | Ruff lint + format check + Mypy strict + Pytest (437 tests)    |
+| pulse  | Ruff lint + format check + Mypy strict + Pytest (460 tests)    |
 | gate   | Hypothesis property tests + diff-cover (changed-line coverage) |
 | forge  | Mutation testing (mutatest — fault injection)                  |
 | hammer | Security scanning (bandit, pip-audit, detect-secrets)          |
