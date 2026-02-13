@@ -43,6 +43,8 @@ def configure(mcp: FastMCP, service: MemoryService, librarian: LibrarianAgent) -
     mcp.tool()(get_bottles)
     mcp.tool()(graph_health)
     mcp.tool()(find_knowledge_gaps)
+    mcp.tool()(reconnect)
+    mcp.tool()(system_diagnostics)
 
 
 async def search_associative(  # noqa: PLR0913
@@ -164,3 +166,19 @@ async def find_knowledge_gaps(
         limit=limit,
     )
     return await _service.detect_structural_gaps(params)  # type: ignore[union-attr]
+
+
+async def reconnect(
+    project_id: str | None = None,
+    limit: int = 10,
+) -> dict[str, Any]:
+    """Session reconnect — structured briefing for a returning agent.
+
+    Returns recent entities (last 24h), graph health summary, and time window.
+    """
+    return await _service.reconnect(project_id=project_id, limit=limit)  # type: ignore[union-attr]
+
+
+async def system_diagnostics() -> dict[str, Any]:
+    """Unified system diagnostics — graph stats, vector stats, and split-brain check."""
+    return await _service.system_diagnostics()  # type: ignore[union-attr]
