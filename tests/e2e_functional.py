@@ -1008,8 +1008,8 @@ async def test_observation_content(service: Any, ids: dict[str, str]) -> None:
         # Fetch observations for alpha (written in phase 4)
         obs_query = "MATCH (n:Entity {id: $eid})-[:HAS_OBSERVATION]->(o) RETURN o.content"
         obs_result = service.repo.execute_cypher(obs_query, {"eid": ids["alpha"]})
-        if obs_result and obs_result[0]:
-            content = obs_result[0][0]
+        if obs_result.result_set and obs_result.result_set[0]:
+            content = obs_result.result_set[0][0]
             expected = "This entity was validated during E2E testing"
             if content == expected:
                 results.ok("Observation content matches written text")
@@ -1340,13 +1340,13 @@ async def test_point_in_time(service: Any) -> None:
 
     try:
         # Query as of now — should return results
-        as_of = datetime.now(UTC).isoformat()
-        pit_results = await service.point_in_time_query("test entity", as_of=as_of)
+        as_of = datetime.now(UTC).timestamp()
+        pit_results = await service.point_in_time_query("test entity", as_of=str(as_of))
         results.ok(f"Point-in-time (now) -> {len(pit_results)} results")
 
         # Query as of very old date — should return 0 or few results
-        old_date = datetime(2020, 1, 1, tzinfo=UTC).isoformat()
-        pit_old = await service.point_in_time_query("test entity", as_of=old_date)
+        old_date = datetime(2020, 1, 1, tzinfo=UTC).timestamp()
+        pit_old = await service.point_in_time_query("test entity", as_of=str(old_date))
         results.ok(f"Point-in-time (2020) -> {len(pit_old)} results")
 
     except Exception as e:

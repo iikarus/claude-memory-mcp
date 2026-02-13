@@ -2,6 +2,7 @@
 
 import logging
 import os
+from datetime import datetime as _dt
 from typing import Any
 
 from qdrant_client import AsyncQdrantClient
@@ -99,8 +100,15 @@ class QdrantVectorStore:
         must_conditions = []
         for k, v in filter.items():
             if k == "created_at_lt":
+                # Qdrant Range requires numeric values; convert ISO strings to timestamps
+                range_val = v
+                if isinstance(v, str):
+                    try:
+                        range_val = float(v)
+                    except ValueError:
+                        range_val = _dt.fromisoformat(v).timestamp()
                 must_conditions.append(
-                    models.FieldCondition(key="created_at", range=models.Range(lt=v))
+                    models.FieldCondition(key="created_at", range=models.Range(lt=range_val))
                 )
             elif isinstance(v, (str, int, float, bool)):
                 must_conditions.append(
