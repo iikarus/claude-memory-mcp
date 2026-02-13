@@ -1,6 +1,8 @@
 services:
   graphdb:
     image: falkordb/falkordb:v4.14.11
+    environment:
+      - REDIS_ARGS=--maxmemory 1073741824 --maxmemory-policy noeviction
     ports:
       - "127.0.0.1:6379:6379"
       - "127.0.0.1:3000:3000"
