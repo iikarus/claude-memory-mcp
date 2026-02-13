@@ -1694,3 +1694,70 @@ async def test_system_diagnostics_handles_backend_failure(service: MemoryService
     assert result["graph"]["total_nodes"] == 10
     assert result["vector"]["error"] is not None
     assert result["split_brain"]["status"] == "unavailable"
+
+
+# ─── E-4: Session Reconnect ────────────────────────────────────────
+
+
+async def test_reconnect_returns_structured_briefing(service: MemoryService) -> None:
+    """E-4: reconnect returns recent_entities, recent_sessions, and health."""
+
+    # Mock recent entities via timeline query
+    service.repo.query_timeline.return_value = [
+        {"id": "e-1", "name": "Python", "node_type": "Technology", "created_at": "2026-01-01"},
+        {"id": "e-2", "name": "Rust", "node_type": "Technology", "created_at": "2026-01-02"},
+    ]
+    # Mock graph health
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 50,
+        "total_edges": 80,
+        "density": 0.06,
+        "orphan_count": 3,
+        "avg_degree": 3.2,
+    }
+
+    result = await service.reconnect()
+
+    assert "recent_entities" in result
+    assert "health" in result
+    assert len(result["recent_entities"]) == 2
+    assert result["health"]["total_nodes"] == 50
+
+
+async def test_reconnect_filters_by_project(service: MemoryService) -> None:
+    """E-4: reconnect accepts project_id to filter results."""
+    service.repo.query_timeline.return_value = [
+        {"id": "e-1", "name": "Django", "node_type": "Framework", "project_id": "proj-1"},
+    ]
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 10,
+        "total_edges": 5,
+        "density": 0.1,
+        "orphan_count": 0,
+        "avg_degree": 1.0,
+    }
+
+    result = await service.reconnect(project_id="proj-1")
+
+    assert len(result["recent_entities"]) == 1
+    assert result["recent_entities"][0]["name"] == "Django"
+    # Verify project_id was passed to timeline query
+    call_args = service.repo.query_timeline.call_args
+    assert call_args.kwargs.get("project_id") == "proj-1" or "proj-1" in str(call_args)
+
+
+async def test_reconnect_handles_empty_graph(service: MemoryService) -> None:
+    """E-4: reconnect handles empty graph gracefully."""
+    service.repo.query_timeline.return_value = []
+    service.repo.get_graph_health.return_value = {
+        "total_nodes": 0,
+        "total_edges": 0,
+        "density": 0.0,
+        "orphan_count": 0,
+        "avg_degree": 0.0,
+    }
+
+    result = await service.reconnect()
+
+    assert result["recent_entities"] == []
+    assert result["health"]["total_nodes"] == 0

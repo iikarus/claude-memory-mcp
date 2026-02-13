@@ -92,6 +92,31 @@ class AnalysisMixin:
 
         return result
 
+    async def reconnect(
+        self,
+        project_id: str | None = None,
+        limit: int = 10,
+    ) -> dict[str, Any]:
+        """E-4: Session reconnect — structured briefing for a returning agent."""
+        now = datetime.now(UTC)
+        since = (now - timedelta(days=1)).isoformat()
+        until = now.isoformat()
+
+        recent = self.repo.query_timeline(
+            start=since,
+            end=until,
+            limit=limit,
+            project_id=project_id,
+        )
+
+        health = self.repo.get_graph_health()
+
+        return {
+            "recent_entities": recent,
+            "health": health,
+            "window": {"start": since, "end": until},
+        }
+
     async def detect_structural_gaps(self, params: "GapDetectionParams") -> list[dict[str, Any]]:
         """Detect structural gaps between knowledge clusters.
 
