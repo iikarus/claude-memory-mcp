@@ -52,19 +52,23 @@ The system exposes the following tools via the Model Context Protocol (stdio tra
 - **`get_temporal_neighbors(entity_id, direction, limit)`**
   - Finds entities connected by `PRECEDED_BY` / `CONCURRENT_WITH` edges.
   - **Direction**: `before`, `after`, or `both`.
-- **`get_bottles(limit, search_text, before_date, after_date, project_id)`**
+- **`get_bottles(limit, search_text, before_date, after_date, project_id, include_content)`**
   - Queries "Message in a Bottle" entities — timestamped notes to your future self.
+  - **`include_content=True`** hydrates bottles with observation text (E-1).
 
 ### Session Management
 
 - **`start_session(project_id, focus)`** — Opens a session context (also creates temporal anchor).
 - **`end_session(session_id, summary, outcomes)`** — Closes and records.
 - **`record_breakthrough(name, moment, session_id)`** — Captures learning moments.
+- **`reconnect(project_id)`** — Returns a structured briefing for returning agents (E-4): recent entities, graph health, time window.
 
 ### Analysis Tools
 
 - **`graph_health()`**
   - Returns graph metrics: node/edge counts, density, orphan nodes, community count, avg degree.
+- **`system_diagnostics()`** (E-5)
+  - Unified backend health: graph stats, vector store count, split-brain detection, and per-service status.
 - **`find_knowledge_gaps(min_similarity, max_edges, limit)`**
   - Detects structural gaps — clusters that are semantically similar but poorly connected.
   - Returns gap details + auto-generated research prompts.

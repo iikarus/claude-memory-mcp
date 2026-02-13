@@ -149,3 +149,21 @@
 - **Gotcha**: The original pure-Python Louvain implementation in `graph_algorithms.py` had O(n²) complexity inside a loop.
 - **Risk**: E2E tests hang for 15+ minutes on real-world graphs (695 nodes).
 - **Fix**: Replaced with NetworkX's C-optimized `louvain_communities()`. Execution dropped from 15+ min to < 1 second. (Fixed in commit `54dcaec`.)
+
+## 26. Observation Vectors Are Separate Qdrant Points
+
+- **Gotcha**: E-3 stores observation embeddings as **separate** Qdrant points (payload `node_type: "Observation"`), not merged with the parent entity's vector.
+- **Risk**: Qdrant collection grows ~2x. `search()` excludes observations by default. Use `deep=True` to include them.
+- **Fix**: This is by design. The `embed_observations.py` backfill script handles pre-E-3 observations. Run `validate_brain.py` to check for missing vectors.
+
+## 27. E2E Test Cleanup Is Order-Sensitive
+
+- **Gotcha**: `e2e_functional.py` Phase 18 (Cleanup) hard-deletes test entities. Phases 19-31 run **after** cleanup.
+- **Risk**: Phases that query test entity data (e.g., PRECEDED_BY chain) must tolerate missing entities post-cleanup.
+- **Fix**: Post-cleanup phases use `warn()` instead of `fail()` for missing test data. Phase 29 explicitly verifies zero orphans.
+
+## 28. Qdrant HNSW Threshold
+
+- **Gotcha**: We set `hnsw_index.on_disk_threshold` to 1000 via `vector_store.py`'s `_ensure_collection()`.
+- **Risk**: Collections with fewer than 1000 points use brute-force search (slower for large collections, but avoids index-building overhead for small ones).
+- **Fix**: This threshold is appropriate for brain sizes up to ~5000 entities. For larger brains, increase or remove the threshold.

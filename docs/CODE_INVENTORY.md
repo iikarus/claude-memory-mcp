@@ -92,11 +92,11 @@ A manifest of the project structure. Last updated: February 13, 2026.
 
 ### E2E / UAT (`tests/`)
 
-| File                | Coverage                                                                                                                                                                                                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `e2e_functional.py` | **Exhaustive UAT**. 18-phase, 53-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup). |
+| File                | Coverage                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `e2e_functional.py` | **Exhaustive UAT**. 31-phase, 60+ check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, point-in-time). |
 
-**Total: 437 tests across 42 files, ~99% coverage.**
+**Total: 460 tests across 42 files, ~99% coverage.**
 
 ## Configuration
 
@@ -112,50 +112,53 @@ A manifest of the project structure. Last updated: February 13, 2026.
 
 ## Operations & Scripts (`scripts/`)
 
-| File                        | Purpose                                                                                             |
-| --------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Backup & Ops**            |                                                                                                     |
-| `backup_restore.py`         | **Snapshot Tool**. "Git-style" Save/Load for full database state.                                   |
-| `scheduled_backup.py`       | **Automated Backup**. Daily backup → Google Drive + rolling 7-day retention.                        |
-| `nuke_data.py`              | **Reset Tool**. Wipes FalkorDB and Qdrant completely.                                               |
-| `reset_db.py`               | **Soft Reset**. Database reset without full nuke.                                                   |
-| `seed.py`                   | **Seeding**. Populates DB with test data.                                                           |
-| `start.ps1`                 | **Startup**. Helper to resume Docker containers without rebuilding.                                 |
-| `docker_cleanup.ps1`        | **Hygiene**. Aggressive disk cleanup for Docker artifacts.                                          |
-| `clean_tox.py`              | **Hygiene**. Cleans tox environments.                                                               |
-| `healthcheck.ps1`           | **Health Probe**. Checks FalkorDB, Qdrant, Embedding server status, and MCP process.                |
-| `run_mcp_server.ps1`        | **Auto-Recovery**. Resilient MCP server wrapper with restart loop and cooldown.                     |
-| `cold_run.ps1`              | **Cold Start**. Full cold startup script.                                                           |
-| `cold_test.ps1`             | **Cold Test**. Cold test runner after fresh environment.                                            |
-| **Verification**            |                                                                                                     |
-| `red_team.py`               | **Chaos Testing**. Fuzzing, Concurrency, and Cycle detection.                                       |
-| `e2e_test.py`               | **Legacy E2E**. 14-check lifecycle against running stack (CRUD, search, sessions, graph traversal). |
-| `verify_mcp_server.py`      | **Protocol Test**. Simulates an MCP Client (JSON-RPC) to verify tools.                              |
-| `final_check.py`            | **E2E Verification**. The "Golden Master" test for system health.                                   |
-| `verify.py`                 | **Quick Verify**. Lightweight verification script.                                                  |
-| `verify_phase4.py`          | **Phase 4 Verify**. Phase-specific regression check.                                                |
-| `verify_dedup.py`           | **Dedup Verify**. Checks for duplicate entities.                                                    |
-| `verify_native_search.py`   | **Search Verify**. Tests native search functionality.                                               |
-| `verify_read.py`            | **Read Verify**. Tests read operations.                                                             |
-| `verify_receipt.py`         | **Receipt Verify**. Tests transaction receipts.                                                     |
-| `debug_data_status.py`      | **Diagnostic**. Counts nodes in FalkorDB directly.                                                  |
-| `debug_qdrant_count.py`     | **Diagnostic**. Counts vectors in Qdrant directly.                                                  |
-| `debug_pagerank.py`         | **Diagnostic**. Tests PageRank algorithm on graph.                                                  |
-| `debug_tar.py`              | **Diagnostic**. Tests tar archive operations.                                                       |
-| **Evaluation**              |                                                                                                     |
-| `embedding_eval.py`         | **Benchmark**. 3-stage embedding model evaluation harness (export/bench/report).                    |
-| **Migration**               |                                                                                                     |
-| `backfill_temporal.py`      | **Migration**. Backfills `occurred_at` and `PRECEDED_BY` edges.                                     |
-| `migrate_vectors.py`        | **Migration**. Migrates vectors between collections.                                                |
-| `heal_graph.py`             | **Repair**. Fixes graph inconsistencies.                                                            |
-| `recover_graph.py`          | **Repair**. Recovers graph from backup data.                                                        |
-| **Utils**                   |                                                                                                     |
-| `download_model.py`         | Pre-downloads ML models during Docker build.                                                        |
-| `generate_config.py`        | Utils for config generation.                                                                        |
-| `simulate_lazy_import.py`   | Tests lazy import behavior.                                                                         |
-| `simulate_day.py`           | Simulates a day of operations.                                                                      |
-| `operations.py`             | Operational utilities.                                                                              |
-| `setup_scheduled_tasks.ps1` | **Task Scheduler**. Idempotent registration of ExocortexBackup + ExocortexHealthCheck tasks.        |
-| `bunker_protocol.bat`       | **Emergency**. Batch script for emergency backup.                                                   |
-| `run_mutatest.py`           | **Compat Wrapper**. Monkey-patches `random.sample()` for mutatest + Python 3.12 compatibility.      |
-| `reembed_all.py`            | **Bulk Re-embed**. Re-embeds all FalkorDB nodes into Qdrant (for model changes).                    |
+| File                        | Purpose                                                                                                                                       |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Backup & Ops**            |                                                                                                                                               |
+| `backup_restore.py`         | **Snapshot Tool**. "Git-style" Save/Load for full database state.                                                                             |
+| `scheduled_backup.py`       | **Automated Backup**. Daily backup → Google Drive + rolling 7-day retention.                                                                  |
+| `nuke_data.py`              | **Reset Tool**. Wipes FalkorDB and Qdrant completely.                                                                                         |
+| `reset_db.py`               | **Soft Reset**. Database reset without full nuke.                                                                                             |
+| `seed.py`                   | **Seeding**. Populates DB with test data.                                                                                                     |
+| `start.ps1`                 | **Startup**. Helper to resume Docker containers without rebuilding.                                                                           |
+| `docker_cleanup.ps1`        | **Hygiene**. Aggressive disk cleanup for Docker artifacts.                                                                                    |
+| `clean_tox.py`              | **Hygiene**. Cleans tox environments.                                                                                                         |
+| `healthcheck.ps1`           | **Health Probe**. Checks FalkorDB, Qdrant, Embedding server status, and MCP process.                                                          |
+| `run_mcp_server.ps1`        | **Auto-Recovery**. Resilient MCP server wrapper with restart loop and cooldown.                                                               |
+| `cold_run.ps1`              | **Cold Start**. Full cold startup script.                                                                                                     |
+| `cold_test.ps1`             | **Cold Test**. Cold test runner after fresh environment.                                                                                      |
+| **Verification**            |                                                                                                                                               |
+| `red_team.py`               | **Chaos Testing**. Fuzzing, Concurrency, and Cycle detection.                                                                                 |
+| `e2e_test.py`               | **Legacy E2E**. 14-check lifecycle against running stack (CRUD, search, sessions, graph traversal).                                           |
+| `verify_mcp_server.py`      | **Protocol Test**. Simulates an MCP Client (JSON-RPC) to verify tools.                                                                        |
+| `final_check.py`            | **E2E Verification**. The "Golden Master" test for system health.                                                                             |
+| `verify.py`                 | **Quick Verify**. Lightweight verification script.                                                                                            |
+| `verify_phase4.py`          | **Phase 4 Verify**. Phase-specific regression check.                                                                                          |
+| `verify_dedup.py`           | **Dedup Verify**. Checks for duplicate entities.                                                                                              |
+| `verify_native_search.py`   | **Search Verify**. Tests native search functionality.                                                                                         |
+| `verify_read.py`            | **Read Verify**. Tests read operations.                                                                                                       |
+| `verify_receipt.py`         | **Receipt Verify**. Tests transaction receipts.                                                                                               |
+| `debug_data_status.py`      | **Diagnostic**. Counts nodes in FalkorDB directly.                                                                                            |
+| `debug_qdrant_count.py`     | **Diagnostic**. Counts vectors in Qdrant directly.                                                                                            |
+| `debug_pagerank.py`         | **Diagnostic**. Tests PageRank algorithm on graph.                                                                                            |
+| `debug_tar.py`              | **Diagnostic**. Tests tar archive operations.                                                                                                 |
+| **Evaluation**              |                                                                                                                                               |
+| `embedding_eval.py`         | **Benchmark**. 3-stage embedding model evaluation harness (export/bench/report).                                                              |
+| **Migration**               |                                                                                                                                               |
+| `backfill_temporal.py`      | **Migration**. Backfills `occurred_at` and `PRECEDED_BY` edges.                                                                               |
+| `migrate_vectors.py`        | **Migration**. Migrates vectors between collections.                                                                                          |
+| `heal_graph.py`             | **Repair**. Fixes graph inconsistencies.                                                                                                      |
+| `recover_graph.py`          | **Repair**. Recovers graph from backup data.                                                                                                  |
+| **Utils**                   |                                                                                                                                               |
+| `download_model.py`         | Pre-downloads ML models during Docker build.                                                                                                  |
+| `generate_config.py`        | Utils for config generation.                                                                                                                  |
+| `simulate_lazy_import.py`   | Tests lazy import behavior.                                                                                                                   |
+| `simulate_day.py`           | Simulates a day of operations.                                                                                                                |
+| `operations.py`             | Operational utilities.                                                                                                                        |
+| `setup_scheduled_tasks.ps1` | **Task Scheduler**. Idempotent registration of ExocortexBackup + ExocortexHealthCheck tasks.                                                  |
+| `bunker_protocol.bat`       | **Emergency**. Batch script for emergency backup.                                                                                             |
+| `run_mutatest.py`           | **Compat Wrapper**. Monkey-patches `random.sample()` for mutatest + Python 3.12 compatibility.                                                |
+| `reembed_all.py`            | **Bulk Re-embed**. Re-embeds all FalkorDB nodes into Qdrant (for model changes).                                                              |
+| `embed_observations.py`     | **Backfill**. Embeds existing observation content into Qdrant (E-3 retroactive). Idempotent, `--dry-run` support.                             |
+| `validate_brain.py`         | **Health Check**. 9-check live brain validator (split-brain, bottle chain, temporal, obs vectors, maxmemory, ghosts, orphans, indices, HNSW). |
+| `purge_ghost_vectors.py`    | **Repair**. Removes orphan Qdrant vectors with no matching graph entity.                                                                      |
