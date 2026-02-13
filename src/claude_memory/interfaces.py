@@ -47,3 +47,11 @@ class VectorStore(Protocol):
     async def delete(self, id: str) -> None:
         """Delete a vector by ID."""
         ...
+
+    async def count(self) -> int:
+        """Return total number of vectors in the collection."""
+        ...
+
+    async def list_ids(self, limit: int = 10000) -> list[str]:
+        """Return all point IDs from the collection."""
+        ...

@@ -29,7 +29,7 @@ except ImportError:  # pragma: no cover
 
 # Add Qdrant-specific transient exceptions
 try:
-    from grpc import RpcError  # type: ignore[import-untyped]
+    from grpc import RpcError
     from qdrant_client.http.exceptions import UnexpectedResponse
 
     _TRANSIENT_EXCEPTIONS = (*_TRANSIENT_EXCEPTIONS, UnexpectedResponse, RpcError)
