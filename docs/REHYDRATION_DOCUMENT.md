@@ -1,170 +1,95 @@
-# REHYDRATION DOCUMENT: The Dragon Brain Protocol
+# SESSION REHYDRATION — Code Literacy Session 042 (continued)
 
-> **"If this system is a dragon, here is how to wake it up without getting burned."**
+**Date**: 2026-02-22 → 2026-02-23
+**Session Entity**: `4089f058-c8ff-47eb-ab2e-8634a887f09f`
+**Bottle**: #58 (`f99d47aa-e0cb-4e27-bf77-623b09dc788f`)
 
-## 1. Mission Overview
+---
 
-This project, **Claude Memory MCP**, is a persistent "External Brain" for LLMs (specifically Claude and Gemini). It solves the context window limit by storing knowledge in a **Hybrid Architecture**:
+## What Was Completed (S042 — full session)
 
-- **FalkorDB (Graph Database)**: Stores semantic relationships (`Entity` → `PART_OF` → `Concept`). Port `6379`.
-- **Qdrant (Vector Database)**: Stores high-dimensional embeddings for fuzzy search. Port `6333`.
-- **Embedding Microservice**: A dedicated container running `BAAI/bge-m3` (1024d) for GPU-accelerated embedding generation. Port `8001`.
-- **MCP Server (Python)**: The API layer using **stdio** transport to connect the LLM to these databases.
-- **Dashboard (Streamlit)**: Visual graph explorer and diagnostics. Port `8501`.
+### M08 Validated + Closed
+- 50 class files validated, Gemini fixed all issues in one iteration
+- Task `task-cl-016` done, Roadmap M08 → DONE
 
-## 2. Quick Start (Wake the Dragon)
+### M06 Director's Operational Toolkit — Validated + Closed
+- 5 deliverables: Pre-Flight.base, Spellbook.canvas, Red-Board.canvas, Context Injectors (5), Archive cleanup
+- 2 validation rounds, Gemini fixed canvases
+- Task `task-cl-017` done, Roadmap M06 → DONE
 
-If you are landing here fresh (new machine, new agent):
+### Phase 2 Activation — ALL 8 MILESTONES COMPLETE (M01-M08, S033-S042)
 
-### Prerequisites
+### /learn Skill Rewritten
+- Full Class Launcher Protocol in `.claude/skills/learn/SKILL.md`
 
-- Docker & Docker Compose
-- Python 3.12+
-- Git
+### task-cl-005: Bulk Wiring — DONE
+- Gemini wrote `bulk_wiring.py` from Claude's brief
+- Claude found 2 bugs (wrong graph name `memory_graph` → `claude_memory`, broken path replace)
+- Claude rewrote with safety-first Phase 0 (load existing) → Phase 1 (create missing) → Phase 2 (wire edges)
+- **Results**: 308 existing entities preserved, 22 new entities created, 1095 edges already existed from M01 organic wiring
+- Script at: `07-Code-Literacy/PM/bulk_wiring.py` — reusable template for future projects
+- Task `task-cl-005` marked done
 
-### Startup Sequence
+### Key Discoveries
+- Gemini now has its own Dragon Brain (airgapped, same architecture, different containers)
+- Two-Student Teaching Model: Gemini = intern (builds), Tabish = student (directs), Claude = teacher (architects/validates)
+- Industrial pipeline: conversations → extraction → bulk script → graph wiring (scales to Pickaxe, Tesseract)
 
-1.  **Boot Infrastructure**:
+---
 
-    ```powershell
-    docker compose up -d
-    ```
+## NEXT SESSION: DIAGNOSTICS
 
-    _Wait for all healthchecks to pass (~30 seconds)._
+Tabish explicitly requested a diagnostic session. Claude flagged uncertainty about the bulk wiring results. **Do NOT skip this — verify before moving on.**
 
-2.  **Verify Health**:
+### Diagnostic Checklist
+1. **Edge type audit**: Sample 20-30 existing edges between block entities. Are the relationship types semantically correct, or are they all generic RELATED_TO from M01 organic wiring?
+2. **22 new orphan entities**: Cross-reference against `orphan_blocks` list in `cross-references.json`. Verify they're genuinely blocks with zero cross-references (not a script bug).
+3. **Qdrant consistency**: Search for 3-5 of the 22 new entities by name via `search_memory`. Verify embeddings return results.
+4. **Phantom `memory_graph` cleanup**: 311 nodes + 979 edges in wrong graph. Decision: delete it? Command: `python -c "from falkordb import FalkorDB; FalkorDB().select_graph('memory_graph').delete()"`
+5. **9 corrupted CL files**: CL-017, CL-018, CL-033-039 have broken YAML frontmatter from M06 Gemini injection. Assess scope and decide: fix via Gemini brief or manual repair?
+6. **Graph health post-injection**: Run `graph_health()`. Expected: ~1243 nodes, ~846 entities, ~2660 edges. Compare to pre-injection baseline (1214/824/2652).
+7. **Overall graph integrity**: Run `system_diagnostics()`. Check for split-brain, vector/graph sync issues.
 
-    ```powershell
-    docker compose ps
-    ```
+### Diagnostic Entity for Tracking
+- `1ab8bd86-642c-4fec-ab2d-8d38e0a9047b` — "S042 Diagnostic Concerns" (has full item list)
 
-    All 4 containers (graphdb, qdrant, embeddings, dashboard) should show `healthy`.
+---
 
-3.  **Install Dependencies** (for local dev/testing):
+## Outstanding (Non-Blocking, from earlier milestones)
 
-    ```powershell
-    pip install -e .
-    ```
+- Pre-Flight.base: `urgency`/`artifact_type` still incomplete on most CL/TP files
+- Context Injectors: raw block dumps, not compressed; Operations at ~32K tokens
+- These can be addressed in a future polish pass via Gemini brief
 
-4.  **Run End-to-End Verification (UAT)**:
+---
 
-    ```powershell
-    python tests/e2e_functional.py
-    ```
+## Key Files
 
-    _74-check exhaustive lifecycle test across 31 phases against the live stack. If this passes, the system is 100% operational._
+| File | Purpose |
+|------|---------|
+| `07-Code-Literacy/PM/01_ROADMAP.md` | Roadmap — ALL MILESTONES COMPLETE |
+| `07-Code-Literacy/PM/bulk_wiring.py` | Reusable bulk injection script |
+| `07-Code-Literacy/PM/cross-references.json` | 1099 cross-reference edges |
+| `07-Code-Literacy/PM/03_TASKS/task-cl-005.md` | Bulk wiring task (done) |
+| `07-Code-Literacy/PM/gemini-brief-cl005-bulk-wiring.md` | Gemini brief for the script |
+| `07-Code-Literacy/Curriculum/Classes/Trail-3/T3-C01_who-are-you.md` | First class (after diagnostics) |
+| `00-Dashboard/Class-Progress.base` | Class progress dashboard |
+| `.claude/skills/learn/SKILL.md` | /learn skill with Class Launcher Protocol |
 
-5.  **Connect Client**:
-    Add the configuration from `mcp_config.json` to your MCP Client (Claude Desktop or VS Code).
+---
 
-## 3. The Architecture (Mental Map)
+## Key Patterns
 
-Do not treat this as a simple CRUD app. It is a **Synchronized Dual-Store**.
+- **"Two Students"**: Gemini is Claude's intern, Tabish is Claude's student
+- **"NO BOOKS"**: 30-second usability test for all artifacts
+- **"Why you?"**: Claude architects/validates, Gemini builds
+- **Safety-first for Dragon Brain**: Nobody touches Claude's memories except Claude. Phase 0 pattern: load existing → protect → only create missing.
+- **Canvas paths**: Always forward slashes, never backslashes
+- **Mermaid diagrams**: Maximize in all Gemini deliverables
 
-```mermaid
-graph TD
-    User[LLM / User] -->|stdio| Server[MCP Server]
-    Server -->|HTTP| Embedder[Embedding Service :8001]
-    Server -->|Cypher| Graph[FalkorDB :6379]
-    Server -->|gRPC| Vector[Qdrant :6333]
+## Gotchas
 
-    subgraph "The Dual-Store Contract"
-    Graph -- Source of Truth --> Structure
-    Vector -- Source of Truth --> Search
-    end
-
-    Dashboard[Streamlit :8501] -->|imports library| Server
-```
-
-### Critical Rules
-
-1.  **Never Write to One DB Only**: Use `MemoryService.create_entity`. It writes to BOTH.
-2.  **Embeddings Live in Qdrant Only**: Embeddings are NOT stored on FalkorDB graph nodes.
-    - The `get_all_nodes` query has NO `WHERE n.embedding IS NOT NULL` filter.
-    - **CRITICAL**: The API strips embeddings from responses to prevent flooding the LLM context window.
-3.  **Strict Consistency (W3)**: Qdrant write failures **always raise exceptions** (no toggle). This prevents split-brain. The env var `EXOCORTEX_STRICT_CONSISTENCY` has been removed.
-
-## 3b. Enhancement Features (E-1 through E-6)
-
-All shipped February 2026. These extend the V2 Intelligence Layer:
-
-| Feature                            | Tool / Method                       | What It Does                                                                 |
-| ---------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------- |
-| **E-1: Bottle Reader**             | `get_bottles(include_content=true)` | Hydrates Message in a Bottle entities with full observation text             |
-| **E-2: Deep Search**               | `search_memory(depth="full")`       | Returns entities + top 3 observations + relationships in one call            |
-| **E-3: Observation Vectorization** | Automatic on `add_observation`      | Observations are auto-embedded and upserted to Qdrant on creation            |
-| **E-4: Session Reconnect**         | `reconnect()`                       | Structured briefing: recent entities, bottles, health snapshot               |
-| **E-5: System Diagnostics**        | `system_diagnostics()`              | Unified health check across graph, vectors, embeddings, integrity            |
-| **E-6: Procedural Memory**         | `Procedure` entity type             | Step-based procedural knowledge stored as entities with ordered observations |
-
-All features are code-complete, MCP-registered, and covered by E2E tests (phases 19-24).
-
-## 4. Operational Drills (Maintenance)
-
-### Backup (Automated)
-
-Backups run daily at 3:00 AM via Windows Task Scheduler → Google Drive.
-
-```powershell
-# Manual backup
-python scripts/backup_restore.py save --tag my_backup
-
-# Check automated backup status
-schtasks /query /tn "ExocortexBackup"
-```
-
-- **Local**: `backups/daily_YYYY_MM_DD/` (rolling 7-day)
-- **Cloud**: `G:\My Drive\exocortex_backups\daily_YYYY_MM_DD/` (rolling 7-day)
-
-### Restore
-
-```powershell
-python scripts/backup_restore.py load "my_backup"
-# Then restart containers:
-docker compose down && docker compose up -d
-```
-
-### Emergency Data Wipe (Nuke)
-
-```powershell
-python scripts/nuke_data.py --force
-```
-
-## 5. The Quality Stack (CI/CD)
-
-**Do not commit code without running these.**
-
-Run `tox -e pulse` — this executes all checks in one command:
-
-1.  **Ruff**: Linting + import sorting.
-2.  **Ruff Format**: Code formatting.
-3.  **Mypy**: Static type checking (30 source files, strict mode).
-4.  **Pytest**: 463+ unit tests, ~98% coverage (≥30% threshold).
-
-Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e forge` (mutation), `tox -e hammer` (security), `tox -e polish` (docs+typos).
-
-**E2E UAT**: `python tests/e2e_functional.py` — 74-check lifecycle across 31 phases against the live Docker stack.
-
-## 6. Known "Gotchas" for Future Agents
-
-See `docs/GOTCHAS.md` for the full list. Top 3:
-
-1.  **QDRANT_HOST**: Must be `qdrant` inside Docker, `localhost` locally. If missing, vector search silently fails.
-2.  **No curl in Qdrant image**: Healthcheck uses `bash /dev/tcp`, not curl.
-3.  **cp1252 Encoding**: Headless Windows scripts need `PYTHONUTF8=1` for unicode output.
-
-## 7. Directives for the Next Agent
-
-Hello, future intelligence. 👋
-If you are reading this to fix a bug or add a feature:
-
-1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
-2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
-3.  **Trust `tests/e2e_functional.py`**: It is your UAT ground truth. 74 checks across 31 phases. If it fails, the system is broken.
-4.  **Run `tox -e pulse` before committing**: 463+ tests must pass.
-5.  **Never add `WHERE n.embedding IS NOT NULL`**: Embeddings are in Qdrant, not on graph nodes.
-6.  **Read `docs/UPGRADE_LOG.md`**: Understand what V2 added before making changes.
-7.  **Read `docs/GOTCHAS.md`**: 28 known traps that will burn you if ignored.
-
-_Signed,_
-_Project Antigravity (Feb 2026)_
+- MCP may need manual handshake at session start
+- Subagents (Task tool) have NO access to MCP tools
+- FalkorDB graph name is `claude_memory` NOT `memory_graph`
+- bulk_wiring.py needs `PYTHONIOENCODING=utf-8` on Windows for Unicode block titles

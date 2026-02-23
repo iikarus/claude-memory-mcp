@@ -529,15 +529,19 @@ def test_get_graph_health_empty_graph(repo: Any, mock_graph: MagicMock) -> None:
 
 def test_get_graph_health_single_orphan(repo: Any, mock_graph: MagicMock) -> None:
     """Single node with no edges is an orphan."""
-    # node count=1, edge count=0, orphan count=1
+    # total=1, entity=1, observation=0, edges=0, orphans=1
     mock_graph.query.side_effect = [
         _make_mock_result([[1]]),
+        _make_mock_result([[1]]),
+        _make_mock_result([[0]]),
         _make_mock_result([[0]]),
         _make_mock_result([[1]]),
     ]
 
     result = repo.get_graph_health()
     assert result["total_nodes"] == 1
+    assert result["entity_count"] == 1
+    assert result["observation_count"] == 0
     assert result["total_edges"] == 0
     assert result["orphan_count"] == 1
     assert result["density"] == 0.0
@@ -546,15 +550,19 @@ def test_get_graph_health_single_orphan(repo: Any, mock_graph: MagicMock) -> Non
 
 def test_get_graph_health_with_edges(repo: Any, mock_graph: MagicMock) -> None:
     """Graph with nodes and edges computes correct density and avg_degree."""
-    # 5 nodes, 4 edges, 0 orphans
+    # total=5, entity=3, observation=2, edges=4, orphans=0
     mock_graph.query.side_effect = [
         _make_mock_result([[5]]),
+        _make_mock_result([[3]]),
+        _make_mock_result([[2]]),
         _make_mock_result([[4]]),
         _make_mock_result([[0]]),
     ]
 
     result = repo.get_graph_health()
     assert result["total_nodes"] == 5
+    assert result["entity_count"] == 3
+    assert result["observation_count"] == 2
     assert result["total_edges"] == 4
     assert result["orphan_count"] == 0
     # density = 4 / (5*4) = 0.2

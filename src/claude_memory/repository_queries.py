@@ -193,20 +193,28 @@ class RepositoryQueryMixin:
         """Compute basic graph health metrics.
 
         Returns a dict with node count, edge count, density, orphan count, and avg degree.
+        Counts ALL nodes (Entity + Observation) with a breakdown.
         Community count is excluded — computed at the service layer via ClusteringService.
         """
         graph = self.select_graph()  # type: ignore[attr-defined]
 
-        # Node count
-        node_result = graph.query("MATCH (n:Entity) RETURN count(n)")
+        # Total node count (all labels)
+        node_result = graph.query("MATCH (n) RETURN count(n)")
         total_nodes: int = int(node_result.result_set[0][0]) if node_result.result_set else 0
 
-        # Edge count
-        edge_result = graph.query("MATCH (:Entity)-[r]->(:Entity) RETURN count(r)")
+        # Breakdown: Entity vs Observation nodes
+        entity_result = graph.query("MATCH (n:Entity) RETURN count(n)")
+        entity_count: int = int(entity_result.result_set[0][0]) if entity_result.result_set else 0
+
+        obs_result = graph.query("MATCH (n:Observation) RETURN count(n)")
+        observation_count: int = int(obs_result.result_set[0][0]) if obs_result.result_set else 0
+
+        # Total edge count (all relationships)
+        edge_result = graph.query("MATCH ()-[r]->() RETURN count(r)")
         total_edges: int = int(edge_result.result_set[0][0]) if edge_result.result_set else 0
 
-        # Orphan count (nodes with zero relationships)
-        orphan_result = graph.query("MATCH (n:Entity) WHERE NOT (n)--() RETURN count(n)")
+        # Orphan count (nodes with zero relationships — any label)
+        orphan_result = graph.query("MATCH (n) WHERE NOT (n)--() RETURN count(n)")
         orphan_count: int = int(orphan_result.result_set[0][0]) if orphan_result.result_set else 0
 
         # Density: edges / max_possible_edges  (directed graph)
@@ -218,6 +226,8 @@ class RepositoryQueryMixin:
 
         return {
             "total_nodes": total_nodes,
+            "entity_count": entity_count,
+            "observation_count": observation_count,
             "total_edges": total_edges,
             "density": round(density, 6),
             "orphan_count": orphan_count,

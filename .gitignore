@@ -122,3 +122,8 @@ failure.log
 # Embedding eval outputs (Phase 14)
 scripts/eval_dataset.json
 scripts/eval_results.json
+
+# One-off utility scripts (not part of the project)
+delete_phantom.py
+diagnostic_check.py
+fix_split_brain.py
