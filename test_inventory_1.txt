@@ -1,0 +1,5 @@
+        <Coroutine test_ensure_collection_creates_with_hnsw_config>
+        <Coroutine test_ensure_collection_creates_payload_index>
+        <Function test_cosine_similarity_non_list_input>
+
+========================= 465 tests collected in 5.32s =========================

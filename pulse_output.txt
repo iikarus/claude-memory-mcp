@@ -1,0 +1,136 @@
+pulse: install_deps> python -I -m pip install mypy pre-commit pytest pytest-asyncio pytest-cov pytest-randomly ruff
+.pkg: install_requires> python -I -m pip install 'setuptools>=40.8.0'
+.pkg: _optional_hooks> python /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pyproject_api/_backend.py True setuptools.build_meta __legacy__
+.pkg: get_requires_for_build_sdist> python /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pyproject_api/_backend.py True setuptools.build_meta __legacy__
+.pkg: build_sdist> python /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pyproject_api/_backend.py True setuptools.build_meta __legacy__
+pulse: install_package_deps> python -I -m pip install 'falkordb>=1.0.0' 'fastapi>=0.100.0' 'httpx>=0.26.0' 'mcp>=0.1.0' 'nest-asyncio>=1.6.0' 'numpy>=1.24.0' 'pydantic>=2.0.0' 'pyvis>=0.3.2' 'qdrant-client>=1.7.0' 'redis>=5.0.0' 'scikit-learn>=1.3.0' 'sentence-transformers>=2.2.0' 'streamlit>=1.30.0' 'uvicorn>=0.20.0'
+pulse: install_package> python -I -m pip install --force-reinstall --no-deps /app/.tox/.tmp/package/1/claude_memory_mcp-0.1.0.tar.gz
+pulse: commands[0]> python -c 'print('"'"'\n[1/4] Ruff lint...'"'"')'
+
+[1/4] Ruff lint...
+pulse: commands[1]> ruff check src tests
+All checks passed!
+pulse: commands[2]> python -c 'print('"'"'\n[2/4] Ruff format...'"'"')'
+
+[2/4] Ruff format...
+pulse: commands[3]> ruff format --check src tests
+75 files already formatted
+pulse: commands[4]> python -c 'print('"'"'\n[3/4] Mypy...'"'"')'
+
+[3/4] Mypy...
+pulse: commands[5]> mypy src
+Success: no issues found in 29 source files
+pulse: commands[6]> python -c 'print('"'"'\n[4/4] Pytest + coverage...'"'"')'
+
+[4/4] Pytest + coverage...
+pulse: commands[7]> pytest -m 'not slow' --cov=claude_memory --cov=dashboard --cov-report=term-missing --cov-fail-under=90
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /app/.tox/pulse/bin/python
+cachedir: .tox/pulse/.pytest_cache
+Using --randomly-seed=2677019592
+rootdir: /app
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.0.0, randomly-4.0.1, asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 465 items
+
+tests/unit/test_validation.py::test_relationship_validation PASSED       [  0%]
+tests/unit/test_validation.py::test_observation_validation PASSED        [  0%]
+tests/unit/test_validation.py::test_entity_creation_validation PASSED    [  0%]
+tests/unit/test_activation.py::test_activate_empty_seeds PASSED          [  0%]
+tests/unit/test_activation.py::test_rank_composite_score PASSED          [  1%]
+tests/unit/test_activation.py::test_spread_one_hop PASSED                [  1%]
+tests/unit/test_activation.py::test_spread_edge_with_none_fields PASSED  [  1%]
+tests/unit/test_activation.py::test_recency_score_invalid_timestamp PASSED [  1%]
+tests/unit/test_activation.py::test_spread_empty_activation PASSED       [  1%]
+tests/unit/test_activation.py::test_recency_score_old_entity PASSED      [  2%]
+tests/unit/test_activation.py::test_spread_accumulation PASSED           [  2%]
+tests/unit/test_activation.py::test_recency_score_naive_datetime PASSED  [  2%]
+tests/unit/test_activation.py::test_recency_score_recent_entity PASSED   [  2%]
+tests/unit/test_activation.py::test_rank_empty_candidates PASSED         [  3%]
+tests/unit/test_activation.py::test_spread_reverse_direction_flow PASSED [  3%]
+tests/unit/test_activation.py::test_activate_single_seed PASSED          [  3%]
+tests/unit/test_activation.py::test_rank_missing_scores_default_to_zero PASSED [  3%]
+tests/unit/test_activation.py::test_spread_no_neighbors PASSED           [  3%]
+tests/unit/test_activation.py::test_activate_multiple_seeds PASSED       [  4%]
+tests/unit/test_activation.py::test_activate_custom_energy PASSED        [  4%]
+tests/unit/test_activation.py::test_spread_lateral_inhibition PASSED     [  4%]
+tests/unit/test_activation.py::test_spread_two_hops_decay_compounds PASSED [  4%]
+tests/unit/test_activation.py::test_recency_score_no_timestamp PASSED    [  4%]
+tests/unit/test_hologram.py::test_get_hologram_orchestration PASSED      [  5%]
+tests/unit/test_hologram.py::test_repository_get_subgraph_parsing PASSED [  5%]
+tests/unit/test_logging_config.py::TestJSONFormatter::test_formats_basic_log_record PASSED [  5%]
+tests/unit/test_logging_config.py::TestJSONFormatter::test_formats_exception_info PASSED [  5%]
+tests/unit/test_logging_config.py::TestJSONFormatter::test_includes_extra_data PASSED [  6%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_level_override PASSED [  6%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_default_text_format PASSED [  6%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_level_from_env PASSED [  6%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_clears_existing_handlers PASSED [  6%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_json_format_when_env_set PASSED [  7%]
+tests/unit/test_embedding_filter.py::test_get_hologram_strips_embedding ERROR [  7%]
+tests/unit/test_embedding_filter.py::test_get_neighbors_strips_embedding ERROR [  7%]
+tests/unit/test_embedding_filter.py::test_create_entity_does_not_return_embedding_in_receipt SKIPPED [  7%]
+tests/unit/test_embedding_filter.py::test_search_memory_strips_embedding SKIPPED [  7%]
+tests/unit/test_dashboard_app.py::test_get_graph_data_global PASSED      [  8%]
+tests/unit/test_dashboard_app.py::test_main_unknown_menu PASSED          [  8%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_docker_exception PASSED [  8%]
+tests/unit/test_dashboard_app.py::test_main_search_mode_no_query PASSED  [  8%]
+tests/unit/test_dashboard_app.py::test_get_graph_data_focused PASSED     [  9%]
+tests/unit/test_dashboard_app.py::test_main_explorer_mode PASSED         [  9%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_no_containers PASSED [  9%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_backup_success PASSED [  9%]
+tests/unit/test_dashboard_app.py::test_get_graph_data_injection_safe PASSED [  9%]
+tests/unit/test_dashboard_app.py::test_main_maintenance_scan PASSED      [ 10%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_backup_exception PASSED [ 10%]
+tests/unit/test_dashboard_app.py::test_get_stats PASSED                  [ 10%]
+tests/unit/test_dashboard_app.py::test_main_search_mode_with_query PASSED [ 10%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_backup_failure PASSED [ 10%]
+tests/unit/test_dashboard_app.py::test_main_maintenance_mode PASSED      [ 11%]
+tests/unit/test_librarian.py::test_librarian_cycle_success PASSED        [ 11%]
+tests/unit/test_librarian.py::test_librarian_cycle_no_nodes PASSED       [ 11%]
+tests/unit/test_librarian.py::test_librarian_cycle_gap_detection PASSED  [ 11%]
+tests/unit/test_crud_split_brain.py::test_create_entity_qdrant_up_no_warnings PASSED [ 12%]
+tests/unit/test_crud_split_brain.py::test_strict_consistency_env_var_has_no_effect PASSED [ 12%]
+tests/unit/test_crud_split_brain.py::test_create_entity_qdrant_down_always_raises PASSED [ 12%]
+tests/unit/test_temporal.py::test_archive_entity PASSED                  [ 12%]
+tests/unit/test_temporal.py::test_prune_stale PASSED                     [ 12%]
+tests/unit/test_temporal.py::test_point_in_time_query PASSED             [ 13%]
+tests/unit/test_temporal.py::test_get_evolution PASSED                   [ 13%]
+tests/test_schema.py::test_entity_creation_valid PASSED                  [ 13%]
+tests/test_schema.py::test_relationship_creation PASSED                  [ 13%]
+tests/test_schema.py::test_breakthrough_params PASSED                    [ 13%]
+tests/test_schema.py::test_entity_creation_invalid_type PASSED           [ 14%]
+tests/unit/test_full_workflow.py::test_day_in_the_life PASSED            [ 14%]
+tests/unit/test_clustering.py::test_detect_gaps_well_connected PASSED    [ 14%]
+tests/unit/test_clustering.py::test_detect_gaps_disconnected_similar PASSED [ 14%]
+tests/unit/test_clustering.py::test_detect_gaps_dissimilar PASSED        [ 15%]
+tests/unit/test_clustering.py::test_detect_gaps_single_cluster PASSED    [ 15%]
+tests/unit/test_clustering.py::test_clustering_dbscan PASSED             [ 15%]
+tests/unit/test_archive_vector_cleanup.py::test_archive_entity_qdrant_failure_propagates PASSED [ 15%]
+tests/unit/test_archive_vector_cleanup.py::test_archive_entity_vector_deleted_before_graph_update PASSED [ 15%]
+tests/unit/test_archive_vector_cleanup.py::test_archive_entity_deletes_qdrant_vector PASSED [ 16%]
+tests/unit/test_backfill_temporal.py::test_backfill_occurred_at_all_set PASSED [ 16%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_zero_edges PASSED [ 16%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_execute PASSED [ 16%]
+tests/unit/test_backfill_temporal.py::test_get_project_ids_empty PASSED  [ 16%]
+tests/unit/test_backfill_temporal.py::test_get_project_ids PASSED        [ 17%]
+tests/unit/test_backfill_temporal.py::test_backfill_occurred_at_dry_run PASSED [ 17%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_dry_run PASSED [ 17%]
+tests/unit/test_backfill_temporal.py::test_main_execute_flag PASSED      [ 17%]
+tests/unit/test_backfill_temporal.py::test_main_dry_run_default PASSED   [ 18%]
+tests/unit/test_backfill_temporal.py::test_backfill_occurred_at_execute PASSED [ 18%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_no_projects PASSED [ 18%]
+tests/unit/test_embedding_server.py::test_main_block PASSED              [ 18%]
+tests/unit/test_embedding_server.py::test_startup_event PASSED           [ 18%]
+tests/unit/test_embedding_server.py::test_embed_empty_texts PASSED       [ 19%]
+tests/unit/test_embedding_server.py::test_embed_request_model PASSED     [ 19%]
+tests/unit/test_embedding_server.py::test_health_with_service PASSED     [ 19%]
+tests/unit/test_embedding_server.py::test_health_without_service PASSED  [ 19%]
+tests/unit/test_embedding_server.py::test_embed_service_error PASSED     [ 20%]
+tests/unit/test_embedding_server.py::test_embed_texts_success PASSED     [ 20%]
+tests/unit/test_embedding_server.py::test_embed_response_model PASSED    [ 20%]
+tests/unit/test_embedding_server.py::test_embed_service_not_initialized PASSED [ 20%]
+tests/unit/test_phase4.py::test_consolidate_memories PASSED              [ 20%]
+tests/unit/test_phase4.py::test_analyze_graph_pagerank PASSED            [ 21%]
+tests/unit/test_graph_traversal.py::test_get_neighbors

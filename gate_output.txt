@@ -1,0 +1,1191 @@
+gate: install_deps> python -I -m pip install diff-cover hypothesis pytest pytest-asyncio pytest-cov pytest-randomly
+.pkg: _optional_hooks> python /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pyproject_api/_backend.py True setuptools.build_meta __legacy__
+.pkg: get_requires_for_build_sdist> python /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pyproject_api/_backend.py True setuptools.build_meta __legacy__
+.pkg: build_sdist> python /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pyproject_api/_backend.py True setuptools.build_meta __legacy__
+gate: install_package_deps> python -I -m pip install 'falkordb>=1.0.0' 'fastapi>=0.100.0' 'httpx>=0.26.0' 'mcp>=0.1.0' 'nest-asyncio>=1.6.0' 'numpy>=1.24.0' 'pydantic>=2.0.0' 'pyvis>=0.3.2' 'qdrant-client>=1.7.0' 'redis>=5.0.0' 'scikit-learn>=1.3.0' 'sentence-transformers>=2.2.0' 'streamlit>=1.30.0' 'uvicorn>=0.20.0'
+gate: install_package> python -I -m pip install --force-reinstall --no-deps /app/.tox/.tmp/package/2/claude_memory_mcp-0.1.0.tar.gz
+gate: commands[0]> python -c 'print('"'"'\n[1/2] Pytest + Hypothesis...'"'"')'
+
+[1/2] Pytest + Hypothesis...
+gate: commands[1]> pytest -m 'not slow' --hypothesis-profile=ci --cov=claude_memory --cov=dashboard --cov-report=xml
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /app/.tox/gate/bin/python
+cachedir: .tox/gate/.pytest_cache
+Using --randomly-seed=826790597
+hypothesis profile 'ci' -> database=None, deadline=None, print_blob=True, derandomize=True, suppress_health_check=(HealthCheck.too_slow,)
+rootdir: /app
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.0.0, randomly-4.0.1, asyncio-1.3.0, hypothesis-6.151.9, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 465 items
+
+tests/unit/test_search_associative.py::test_rank_default_weights_no_env PASSED [  0%]
+tests/unit/test_search_associative.py::test_search_associative_empty_query PASSED [  0%]
+tests/unit/test_search_associative.py::test_rank_env_var_override PASSED [  0%]
+tests/unit/test_search_associative.py::test_search_associative_per_query_weights PASSED [  0%]
+tests/unit/test_search_associative.py::test_mcp_search_associative_no_results PASSED [  1%]
+tests/unit/test_search_associative.py::test_search_associative_project_filter PASSED [  1%]
+tests/unit/test_search_associative.py::test_search_associative_no_vector_hits PASSED [  1%]
+tests/unit/test_search_associative.py::test_rank_per_query_overrides_env_var PASSED [  1%]
+tests/unit/test_search_associative.py::test_mcp_search_associative_with_results PASSED [  1%]
+tests/unit/test_search_associative.py::test_search_associative_full_pipeline PASSED [  2%]
+tests/unit/test_embedding_coverage.py::test_encoder_loads_model PASSED   [  2%]
+tests/unit/test_embedding_coverage.py::test_init_custom_model PASSED     [  2%]
+tests/unit/test_embedding_coverage.py::test_device_cuda PASSED           [  2%]
+tests/unit/test_embedding_coverage.py::test_device_cpu PASSED            [  3%]
+tests/unit/test_embedding_coverage.py::test_encode_batch_remote PASSED   [  3%]
+tests/unit/test_embedding_coverage.py::test_encode_local PASSED          [  3%]
+tests/unit/test_embedding_coverage.py::test_encode_batch_empty PASSED    [  3%]
+tests/unit/test_embedding_coverage.py::test_encoder_raises_when_api_url_set PASSED [  3%]
+tests/unit/test_embedding_coverage.py::test_device_caches_result PASSED  [  4%]
+tests/unit/test_embedding_coverage.py::test_init_model_from_env PASSED   [  4%]
+tests/unit/test_embedding_coverage.py::test_encoder_caches_model PASSED  [  4%]
+tests/unit/test_embedding_coverage.py::test_encode_batch_local PASSED    [  4%]
+tests/unit/test_embedding_coverage.py::test_encode_remote PASSED         [  4%]
+tests/unit/test_embedding_coverage.py::test_init_default_model PASSED    [  5%]
+tests/unit/test_embedding_client.py::TestEmbeddingClient::test_init_remote PASSED [  5%]
+tests/unit/test_dynamic_validation.py::test_create_entity_invalid_type_rejection ERROR [  5%]
+tests/unit/test_dynamic_validation.py::test_create_entity_valid_dynamic_type ERROR [  5%]
+tests/unit/test_vector_store.py::test_init_from_env PASSED               [  6%]
+tests/unit/test_vector_store.py::test_init_defaults PASSED               [  6%]
+tests/unit/test_vector_store.py::test_init_with_custom_params PASSED     [  6%]
+tests/unit/test_vector_store.py::test_search_with_match_filter PASSED    [  6%]
+tests/unit/test_vector_store.py::test_upsert PASSED                      [  6%]
+tests/unit/test_vector_store.py::test_search_with_unsupported_filter_type PASSED [  7%]
+tests/unit/test_vector_store.py::test_qdrant_implements_vector_store_protocol PASSED [  7%]
+tests/unit/test_vector_store.py::test_delete PASSED                      [  7%]
+tests/unit/test_vector_store.py::test_cosine_similarity_non_list_input PASSED [  7%]
+tests/unit/test_vector_store.py::test_search_mmr_single_result PASSED    [  7%]
+tests/unit/test_vector_store.py::test_ensure_collection_creates_when_missing PASSED [  8%]
+tests/unit/test_vector_store.py::test_ensure_collection_creates_with_hnsw_config PASSED [  8%]
+tests/unit/test_vector_store.py::test_search_empty_results PASSED        [  8%]
+tests/unit/test_vector_store.py::test_ensure_collection_handles_error PASSED [  8%]
+tests/unit/test_vector_store.py::test_search_with_range_filter PASSED    [  9%]
+tests/unit/test_vector_store.py::test_search_mmr_fewer_than_limit PASSED [  9%]
+tests/unit/test_vector_store.py::test_ensure_collection_already_exists PASSED [  9%]
+tests/unit/test_vector_store.py::test_search_mmr_returns_diverse_results PASSED [  9%]
+tests/unit/test_vector_store.py::test_search_no_filter PASSED            [  9%]
+tests/unit/test_vector_store.py::test_search_with_all_unsupported_filters PASSED [ 10%]
+tests/unit/test_vector_store.py::test_search_mmr_empty_results PASSED    [ 10%]
+tests/unit/test_vector_store.py::test_ensure_collection_creates_payload_index PASSED [ 10%]
+tests/unit/test_vector_store.py::test_search_mmr_lambda_one_equals_similarity PASSED [ 10%]
+tests/unit/test_vector_store.py::test_search_mmr_with_filter PASSED      [ 10%]
+tests/unit/test_vector_store.py::test_search_null_payload PASSED         [ 11%]
+tests/unit/test_vector_store.py::test_ensure_collection_skips_if_initialized PASSED [ 11%]
+tests/unit/test_librarian.py::test_librarian_cycle_no_nodes PASSED       [ 11%]
+tests/unit/test_librarian.py::test_librarian_cycle_gap_detection PASSED  [ 11%]
+tests/unit/test_librarian.py::test_librarian_cycle_success PASSED        [ 12%]
+tests/unit/test_consolidate_errors.py::test_all_succeed_no_errors PASSED [ 12%]
+tests/unit/test_consolidate_errors.py::test_partial_failure_still_archives_others PASSED [ 12%]
+tests/unit/test_server.py::test_traverse_path PASSED                     [ 12%]
+tests/unit/test_server.py::test_run_librarian_cycle PASSED               [ 12%]
+tests/unit/test_server.py::test_end_session_with_outcomes PASSED         [ 13%]
+tests/unit/test_server.py::test_find_cross_domain_patterns PASSED        [ 13%]
+tests/unit/test_server.py::test_create_memory_type_with_required_props PASSED [ 13%]
+tests/unit/test_server.py::test_start_session PASSED                     [ 13%]
+tests/unit/test_server.py::test_end_session_defaults PASSED              [ 13%]
+tests/unit/test_server.py::test_create_memory_type_defaults PASSED       [ 14%]
+tests/unit/test_server.py::test_query_timeline_with_project PASSED       [ 14%]
+tests/unit/test_server.py::test_create_entity_with_all_params PASSED     [ 14%]
+tests/unit/test_server.py::test_main_stdio_transport PASSED              [ 14%]
+tests/unit/test_server.py::test_update_entity PASSED                     [ 15%]
+tests/unit/test_server.py::test_graph_health_mcp_tool PASSED             [ 15%]
+tests/unit/test_server.py::test_create_relationship_with_all_params PASSED [ 15%]
+tests/unit/test_server.py::test_get_evolution PASSED                     [ 15%]
+tests/unit/test_server.py::test_get_neighbors PASSED                     [ 15%]
+tests/unit/test_server.py::test_prune_stale PASSED                       [ 16%]
+tests/unit/test_server.py::test_query_timeline_mcp_tool PASSED           [ 16%]
+tests/unit/test_server.py::test_delete_entity PASSED                     [ 16%]
+tests/unit/test_server.py::test_find_knowledge_gaps_mcp_tool PASSED      [ 16%]
+tests/unit/test_server.py::test_search_memory_with_results PASSED        [ 16%]
+tests/unit/test_server.py::test_add_observation_defaults PASSED          [ 17%]
+tests/unit/test_server.py::test_create_relationship_defaults PASSED      [ 17%]
+tests/unit/test_server.py::test_point_in_time_query PASSED               [ 17%]
+tests/unit/test_server.py::test_record_breakthrough_defaults PASSED      [ 17%]
+tests/unit/test_server.py::test_record_breakthrough_with_all_params PASSED [ 18%]
+tests/unit/test_server.py::test_delete_relationship PASSED               [ 18%]
+tests/unit/test_server.py::test_get_temporal_neighbors_mcp_tool PASSED   [ 18%]
+tests/unit/test_server.py::test_search_memory_no_results PASSED          [ 18%]
+tests/unit/test_server.py::test_get_bottles_mcp_tool PASSED              [ 18%]
+tests/unit/test_server.py::test_archive_entity PASSED                    [ 19%]
+tests/unit/test_server.py::test_create_entity_defaults PASSED            [ 19%]
+tests/unit/test_server.py::test_add_observation_with_evidence PASSED     [ 19%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_execute PASSED [ 19%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_no_projects PASSED [ 20%]
+tests/unit/test_backfill_temporal.py::test_main_execute_flag PASSED      [ 20%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_zero_edges PASSED [ 20%]
+tests/unit/test_backfill_temporal.py::test_backfill_occurred_at_execute PASSED [ 20%]
+tests/unit/test_backfill_temporal.py::test_create_preceded_by_dry_run PASSED [ 20%]
+tests/unit/test_backfill_temporal.py::test_backfill_occurred_at_all_set PASSED [ 21%]
+tests/unit/test_backfill_temporal.py::test_get_project_ids PASSED        [ 21%]
+tests/unit/test_backfill_temporal.py::test_backfill_occurred_at_dry_run PASSED [ 21%]
+tests/unit/test_backfill_temporal.py::test_main_dry_run_default PASSED   [ 21%]
+tests/unit/test_backfill_temporal.py::test_get_project_ids_empty PASSED  [ 21%]
+tests/unit/test_memory_service.py::test_search_with_project_id_filter PASSED [ 22%]
+tests/unit/test_memory_service.py::test_get_bottles_empty PASSED         [ 22%]
+tests/unit/test_memory_service.py::test_delete_entity_soft PASSED        [ 22%]
+tests/unit/test_memory_service.py::test_traverse_path_no_nodes_attr PASSED [ 22%]
+tests/unit/test_memory_service.py::test_consolidate_memories_edge_error PASSED [ 23%]
+tests/unit/test_memory_service.py::test_create_temporal_edge_success PASSED [ 23%]
+tests/unit/test_memory_service.py::test_service_query_timeline_with_project PASSED [ 23%]
+tests/unit/test_memory_service.py::test_search_with_results PASSED       [ 23%]
+tests/unit/test_memory_service.py::test_base_node_occurred_at_default PASSED [ 23%]
+tests/unit/test_memory_service.py::test_get_graph_health_few_nodes PASSED [ 24%]
+tests/unit/test_memory_service.py::test_get_bottles_with_content PASSED  [ 24%]
+tests/unit/test_memory_service.py::test_create_entity_initializes_salience PASSED [ 24%]
+tests/unit/test_memory_service.py::test_record_breakthrough_without_session PASSED [ 24%]
+tests/unit/test_memory_service.py::test_delete_entity_hard_vector_failure_always_raises PASSED [ 24%]
+tests/unit/test_memory_service.py::test_create_entity_initializes_occurred_at PASSED [ 25%]
+tests/unit/test_memory_service.py::test_add_observation_success PASSED   [ 25%]
+tests/unit/test_memory_service.py::test_temporal_query_params_with_project PASSED [ 25%]
+tests/unit/test_memory_service.py::test_temporal_query_params_defaults PASSED [ 25%]
+tests/unit/test_memory_service.py::test_create_relationship_without_project PASSED [ 26%]
+tests/unit/test_memory_service.py::test_update_entity_vector_failure_always_raises PASSED [ 26%]
+tests/unit/test_memory_service.py::test_create_entity_no_preceded_by_when_first PASSED [ 26%]
+tests/unit/test_memory_service.py::test_delete_entity_hard_vector_delete_raises PASSED [ 26%]
+tests/unit/test_memory_service.py::test_query_timeline_with_project PASSED [ 26%]
+tests/unit/test_memory_service.py::test_add_observation_creates_vector PASSED [ 27%]
+tests/unit/test_memory_service.py::test_analyze_graph_pagerank_error PASSED [ 27%]
+tests/unit/test_memory_service.py::test_traverse_path_with_nodes PASSED  [ 27%]
+tests/unit/test_memory_service.py::test_create_relationship_edge_creation_fails PASSED [ 27%]
+tests/unit/test_memory_service.py::test_delete_entity_no_project PASSED  [ 27%]
+tests/unit/test_memory_service.py::test_create_memory_type_defaults PASSED [ 28%]
+tests/unit/test_memory_service.py::test_search_deep_returns_relationships PASSED [ 28%]
+tests/unit/test_memory_service.py::test_create_entity_preceded_by_error_surfaced PASSED [ 28%]
+tests/unit/test_memory_service.py::test_analyze_graph_unsupported_algorithm PASSED [ 28%]
+tests/unit/test_memory_service.py::test_consolidate_memories PASSED      [ 29%]
+tests/unit/test_memory_service.py::test_reconnect_handles_empty_graph PASSED [ 29%]
+tests/unit/test_memory_service.py::test_create_relationship_with_project_lock PASSED [ 29%]
+tests/unit/test_memory_service.py::test_traverse_path_no_path_found PASSED [ 29%]
+tests/unit/test_memory_service.py::test_create_memory_type PASSED        [ 29%]
+tests/unit/test_memory_service.py::test_get_temporal_neighbors_both PASSED [ 30%]
+tests/unit/test_memory_service.py::test_analyze_graph_louvain_success PASSED [ 30%]
+tests/unit/test_memory_service.py::test_base_node_occurred_at_set PASSED [ 30%]
+tests/unit/test_memory_service.py::test_concurrent_with_edge_type PASSED [ 30%]
+tests/unit/test_memory_service.py::test_search_salience_fallback_default PASSED [ 30%]
+tests/unit/test_memory_service.py::test_create_entity_respects_user_occurred_at PASSED [ 31%]
+tests/unit/test_memory_service.py::test_search_result_salience_default PASSED [ 31%]
+tests/unit/test_memory_service.py::test_create_entity_links_preceded_by PASSED [ 31%]
+tests/unit/test_memory_service.py::test_create_relationship_source_not_found PASSED [ 31%]
+tests/unit/test_memory_service.py::test_add_observation_skip_embed_on_entity_not_found PASSED [ 32%]
+tests/unit/test_memory_service.py::test_service_query_timeline PASSED    [ 32%]
+tests/unit/test_memory_service.py::test_search_no_vector_results PASSED  [ 32%]
+tests/unit/test_memory_service.py::test_get_stale_entities PASSED        [ 32%]
+tests/unit/test_memory_service.py::test_point_in_time_query_no_results PASSED [ 32%]
+tests/unit/test_memory_service.py::test_create_entity_vector_failure_always_raises PASSED [ 33%]
+tests/unit/test_memory_service.py::test_delete_entity_soft_vector_failure_always_raises PASSED [ 33%]
+tests/unit/test_memory_service.py::test_search_fires_salience_async PASSED [ 33%]
+tests/unit/test_memory_service.py::test_delete_entity_hard PASSED        [ 33%]
+tests/unit/test_memory_service.py::test_end_session_not_found PASSED     [ 33%]
+tests/unit/test_memory_service.py::test_search_empty_query PASSED        [ 34%]
+tests/unit/test_memory_service.py::test_delete_relationship PASSED       [ 34%]
+tests/unit/test_memory_service.py::test_system_diagnostics_handles_backend_failure PASSED [ 34%]
+tests/unit/test_memory_service.py::test_analyze_graph_louvain_error PASSED [ 34%]
+tests/unit/test_memory_service.py::test_service_get_temporal_neighbors PASSED [ 35%]
+tests/unit/test_memory_service.py::test_search_node_not_in_graph PASSED  [ 35%]
+tests/unit/test_memory_service.py::test_add_observation_vector_upsert_failure_raises PASSED [ 35%]
+tests/unit/test_memory_service.py::test_create_relationship_with_existing_id_in_props PASSED [ 35%]
+tests/unit/test_memory_service.py::test_add_observation_entity_not_found PASSED [ 35%]
+tests/unit/test_memory_service.py::test_update_entity_not_found PASSED   [ 36%]
+tests/unit/test_memory_service.py::test_reconnect_filters_by_project PASSED [ 36%]
+tests/unit/test_memory_service.py::test_detect_structural_gaps_with_gaps PASSED [ 36%]
+tests/unit/test_memory_service.py::test_get_temporal_neighbors_after PASSED [ 36%]
+tests/unit/test_memory_service.py::test_delete_entity_soft_vector_delete_raises PASSED [ 36%]
+tests/unit/test_memory_service.py::test_record_breakthrough_with_session PASSED [ 37%]
+tests/unit/test_memory_service.py::test_delete_entity_not_found PASSED   [ 37%]
+tests/unit/test_memory_service.py::test_get_hologram_with_non_dict_nodes PASSED [ 37%]
+tests/unit/test_memory_service.py::test_search_returns_empty_on_embedder_failure PASSED [ 37%]
+tests/unit/test_memory_service.py::test_search_shallow_backward_compat PASSED [ 38%]
+tests/unit/test_memory_service.py::test_search_with_mmr_flag PASSED      [ 38%]
+tests/unit/test_memory_service.py::test_detect_structural_gaps_no_clusters PASSED [ 38%]
+tests/unit/test_memory_service.py::test_get_bottles_backward_compat PASSED [ 38%]
+tests/unit/test_memory_service.py::test_reconnect_returns_structured_briefing PASSED [ 38%]
+tests/unit/test_memory_service.py::test_create_temporal_edge_not_found PASSED [ 39%]
+tests/unit/test_memory_service.py::test_base_node_salience_defaults PASSED [ 39%]
+tests/unit/test_memory_service.py::test_system_diagnostics_returns_all_sections PASSED [ 39%]
+tests/unit/test_memory_service.py::test_analyze_graph_pagerank_only_entity_label PASSED [ 39%]
+tests/unit/test_memory_service.py::test_search_associative_returns_empty_on_embedder_failure PASSED [ 40%]
+tests/unit/test_memory_service.py::test_search_returns_empty_on_vector_store_failure PASSED [ 40%]
+tests/unit/test_memory_service.py::test_update_entity_with_project_lock PASSED [ 40%]
+tests/unit/test_memory_service.py::test_system_diagnostics_detects_split_brain PASSED [ 40%]
+tests/unit/test_memory_service.py::test_search_associative_returns_empty_on_vector_store_failure PASSED [ 40%]
+tests/unit/test_memory_service.py::test_search_salience_background_error_silent PASSED [ 41%]
+tests/unit/test_memory_service.py::test_search_deep_returns_observations PASSED [ 41%]
+tests/unit/test_memory_service.py::test_get_temporal_neighbors_before PASSED [ 41%]
+tests/unit/test_memory_service.py::test_point_in_time_query_with_results PASSED [ 41%]
+tests/unit/test_memory_service.py::test_get_bottles_basic PASSED         [ 41%]
+tests/unit/test_memory_service.py::test_get_hologram_no_anchors PASSED   [ 42%]
+tests/unit/test_memory_service.py::test_analyze_graph_pagerank_success PASSED [ 42%]
+tests/unit/test_memory_service.py::test_get_graph_health_basic PASSED    [ 42%]
+tests/unit/test_router.py::TestSearchStrategy::test_search_strategy_explicit_semantic PASSED [ 42%]
+tests/unit/test_router.py::TestSearchStrategy::test_search_strategy_auto_routes_to_semantic PASSED [ 43%]
+tests/unit/test_router.py::TestSearchStrategy::test_search_strategy_none_skips_router PASSED [ 43%]
+tests/unit/test_router.py::TestSearchStrategy::test_search_strategy_coerces_dict_results PASSED [ 43%]
+tests/unit/test_router.py::TestSearchStrategy::test_search_strategy_empty_query_returns_empty PASSED [ 43%]
+tests/unit/test_router.py::TestClassify::test_empty_query_returns_semantic PASSED [ 43%]
+tests/unit/test_router.py::TestClassify::test_associative_queries[in the context of microservices] PASSED [ 44%]
+tests/unit/test_router.py::TestClassify::test_temporal_queries[what's the chronological order] PASSED [ 44%]
+tests/unit/test_router.py::TestClassify::test_temporal_queries[when did we discuss authentication] PASSED [ 44%]
+tests/unit/test_router.py::TestClassify::test_temporal_takes_priority_over_relational PASSED [ 44%]
+tests/unit/test_router.py::TestClassify::test_relational_queries[what is the relationship between X and Y] PASSED [ 44%]
+tests/unit/test_router.py::TestClassify::test_associative_queries[what is associated with the auth module] PASSED [ 45%]
+tests/unit/test_router.py::TestClassify::test_temporal_queries[history of the project] PASSED [ 45%]
+tests/unit/test_router.py::TestClassify::test_plain_query_returns_semantic PASSED [ 45%]
+tests/unit/test_router.py::TestClassify::test_relational_takes_priority_over_associative PASSED [ 45%]
+tests/unit/test_router.py::TestClassify::test_temporal_queries[show me the timeline of changes] PASSED [ 46%]
+tests/unit/test_router.py::TestClassify::test_associative_queries[things related to Python patterns] PASSED [ 46%]
+tests/unit/test_router.py::TestClassify::test_temporal_queries[show recent memory] PASSED [ 46%]
+tests/unit/test_router.py::TestClassify::test_temporal_queries[what happened last week] PASSED [ 46%]
+tests/unit/test_router.py::TestClassify::test_associative_queries[similar to the caching design] PASSED [ 46%]
+tests/unit/test_router.py::TestClassify::test_relational_queries[what connects "auth" to "database"] PASSED [ 47%]
+tests/unit/test_router.py::TestClassify::test_relational_queries[path between the two modules] PASSED [ 47%]
+tests/unit/test_router.py::TestRoute::test_route_relational_fallback_to_search PASSED [ 47%]
+tests/unit/test_router.py::TestRoute::test_route_passes_limit_and_project PASSED [ 47%]
+tests/unit/test_router.py::TestRoute::test_route_semantic PASSED         [ 47%]
+tests/unit/test_router.py::TestRoute::test_route_associative PASSED      [ 48%]
+tests/unit/test_router.py::TestRoute::test_explicit_intent_override PASSED [ 48%]
+tests/unit/test_router.py::TestRoute::test_route_relational_with_quoted_entities PASSED [ 48%]
+tests/unit/test_router.py::TestRoute::test_route_empty_query PASSED      [ 48%]
+tests/unit/test_router.py::TestRoute::test_route_temporal_passes_project PASSED [ 49%]
+tests/unit/test_router.py::TestRoute::test_route_temporal PASSED         [ 49%]
+tests/unit/test_router.py::TestQueryIntent::test_values PASSED           [ 49%]
+tests/unit/test_router.py::TestQueryIntent::test_from_string PASSED      [ 49%]
+tests/unit/test_coverage_gaps.py::TestQueryBottlesFilters::test_before_date_filter PASSED [ 49%]
+tests/unit/test_coverage_gaps.py::TestQueryBottlesFilters::test_project_id_filter PASSED [ 50%]
+tests/unit/test_coverage_gaps.py::TestQueryBottlesFilters::test_all_filters_combined PASSED [ 50%]
+tests/unit/test_coverage_gaps.py::TestQueryBottlesFilters::test_after_date_filter PASSED [ 50%]
+tests/unit/test_coverage_gaps.py::TestPageRankEdgeCases::test_empty_node_list_returns_empty PASSED [ 50%]
+tests/unit/test_coverage_gaps.py::TestLouvainEdgeCases::test_nodes_with_no_edges_each_own_community PASSED [ 50%]
+tests/unit/test_coverage_gaps.py::TestLouvainEdgeCases::test_empty_node_list_returns_empty PASSED [ 51%]
+tests/unit/test_coverage_gaps.py::TestLouvainEdgeCases::test_nodes_with_no_edges_caps_at_five PASSED [ 51%]
+tests/unit/test_embedding_retry.py::TestEncodeBatchRetry::test_encode_batch_retries_on_runtime_error PASSED [ 51%]
+tests/unit/test_embedding_retry.py::TestEncodeBatchRetry::test_encode_batch_empty_skips_encoder PASSED [ 51%]
+tests/unit/test_embedding_retry.py::TestEncodeRetry::test_encode_propagates_on_double_failure PASSED [ 52%]
+tests/unit/test_embedding_retry.py::TestEncodeRetry::test_encode_retries_on_runtime_error PASSED [ 52%]
+tests/unit/test_lock_fallback.py::TestLockFallback::test_file_acquire_release PASSED [ 52%]
+tests/unit/test_lock_fallback.py::TestLockFallback::test_context_manager PASSED [ 52%]
+tests/unit/test_lock_fallback.py::TestLockFallback::test_fallback_initialization PASSED [ 52%]
+tests/unit/test_ontology.py::test_defaults_loaded PASSED                 [ 53%]
+tests/unit/test_ontology.py::test_persistence PASSED                     [ 53%]
+tests/unit/test_ontology.py::test_overwrite_warning PASSED               [ 53%]
+tests/unit/test_ontology.py::test_procedure_type_in_defaults PASSED      [ 53%]
+tests/unit/test_ontology.py::test_invalid_load_fallback PASSED           [ 53%]
+tests/unit/test_ontology.py::test_add_type PASSED                        [ 54%]
+tests/unit/test_ontology.py::test_procedure_entity_with_steps PASSED     [ 54%]
+tests/unit/test_edge_cases.py::TestLockManagerBranchGaps::test_file_lock_stale_value_error PASSED [ 54%]
+tests/unit/test_edge_cases.py::TestLockManagerBranchGaps::test_release_redis_no_client PASSED [ 54%]
+tests/unit/test_edge_cases.py::TestClusteringGaps::test_cluster_nodes_no_embeddings PASSED [ 55%]
+tests/unit/test_edge_cases.py::TestClusteringGaps::test_cluster_nodes_filters_invalid_embeddings PASSED [ 55%]
+tests/unit/test_edge_cases.py::TestLibrarianAgent::test_run_cycle_prune_error PASSED [ 55%]
+tests/unit/test_edge_cases.py::TestLibrarianAgent::test_run_cycle_successful_consolidation PASSED [ 55%]
+tests/unit/test_edge_cases.py::TestLibrarianAgent::test_run_cycle_consolidation_error PASSED [ 55%]
+tests/unit/test_edge_cases.py::TestLibrarianAgent::test_run_cycle_fetch_exception PASSED [ 56%]
+tests/unit/test_edge_cases.py::TestContextManagerGaps::test_token_budget_reset PASSED [ 56%]
+tests/unit/test_edge_cases.py::TestContextManagerGaps::test_optimize_truncates_description PASSED [ 56%]
+tests/unit/test_edge_cases.py::TestLockManager::test_file_lock_stale_cleanup PASSED [ 56%]
+tests/unit/test_edge_cases.py::TestLockManager::test_release_file_not_found PASSED [ 56%]
+tests/unit/test_edge_cases.py::TestLockManager::test_acquire_redis_timeout PASSED [ 57%]
+tests/unit/test_edge_cases.py::TestLockManager::test_project_lock_enter_timeout PASSED [ 57%]
+tests/unit/test_edge_cases.py::TestLockManager::test_lock_manager_custom_port PASSED [ 57%]
+tests/unit/test_edge_cases.py::TestLibrarianBranchGaps::test_consolidation_no_id_in_result PASSED [ 57%]
+tests/unit/test_edge_cases.py::TestOntologyGaps::test_add_type_without_required_properties PASSED [ 58%]
+tests/unit/test_edge_cases.py::TestOntologyGaps::test_add_type_overwrite_existing PASSED [ 58%]
+tests/unit/test_edge_cases.py::TestOntologyGaps::test_load_failure_uses_defaults PASSED [ 58%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_context_manager_success PASSED [ 58%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_file_lock_stale_cleanup PASSED [ 58%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_acquire_redis_timeout PASSED [ 59%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_acquire_redis_success PASSED [ 59%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_file_lock_timeout PASSED [ 59%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_file_lock_stale_value_error PASSED [ 59%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_context_manager_timeout PASSED [ 60%]
+tests/unit/test_edge_cases.py::TestAsyncLockManager::test_async_acquire_file_success PASSED [ 60%]
+tests/unit/test_graph_traversal.py::test_find_cross_domain_patterns PASSED [ 60%]
+tests/unit/test_graph_traversal.py::test_get_neighbors PASSED            [ 60%]
+tests/unit/test_graph_traversal.py::test_traverse_path PASSED            [ 60%]
+tests/test_schema.py::test_entity_creation_invalid_type PASSED           [ 61%]
+tests/test_schema.py::test_entity_creation_valid PASSED                  [ 61%]
+tests/test_schema.py::test_breakthrough_params PASSED                    [ 61%]
+tests/test_schema.py::test_relationship_creation PASSED                  [ 61%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_level_override PASSED [ 61%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_level_from_env PASSED [ 62%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_json_format_when_env_set PASSED [ 62%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_default_text_format PASSED [ 62%]
+tests/unit/test_logging_config.py::TestConfigureLogging::test_clears_existing_handlers PASSED [ 62%]
+tests/unit/test_logging_config.py::TestJSONFormatter::test_formats_basic_log_record PASSED [ 63%]
+tests/unit/test_logging_config.py::TestJSONFormatter::test_includes_extra_data PASSED [ 63%]
+tests/unit/test_logging_config.py::TestJSONFormatter::test_formats_exception_info PASSED [ 63%]
+tests/unit/test_session.py::test_start_session PASSED                    [ 63%]
+tests/unit/test_session.py::test_end_session PASSED                      [ 63%]
+tests/unit/test_analyze_graph.py::test_louvain_returns_communities PASSED [ 64%]
+tests/unit/test_analyze_graph.py::test_louvain_cypher_error_is_loud PASSED [ 64%]
+tests/unit/test_analyze_graph.py::test_pagerank_cypher_error_is_loud PASSED [ 64%]
+tests/unit/test_analyze_graph.py::test_louvain_empty_graph PASSED        [ 64%]
+tests/unit/test_analyze_graph.py::test_pagerank_returns_ranked_entities PASSED [ 64%]
+tests/unit/test_analyze_graph.py::test_pagerank_empty_graph PASSED       [ 65%]
+tests/unit/test_entity_lifecycle.py::test_hard_delete_entity PASSED      [ 65%]
+tests/unit/test_entity_lifecycle.py::test_update_entity_success PASSED   [ 65%]
+tests/unit/test_entity_lifecycle.py::test_add_observation PASSED         [ 65%]
+tests/unit/test_entity_lifecycle.py::test_soft_delete_entity PASSED      [ 66%]
+tests/unit/test_interfaces.py::test_embedding_service_implementation PASSED [ 66%]
+tests/unit/test_interfaces.py::test_mock_implementation PASSED           [ 66%]
+tests/unit/test_prune_stale_vectors.py::test_prune_stale_no_stale_entities PASSED [ 66%]
+tests/unit/test_prune_stale_vectors.py::test_prune_stale_qdrant_failure_propagates PASSED [ 66%]
+tests/unit/test_prune_stale_vectors.py::test_prune_stale_vectors_deleted_before_graph PASSED [ 67%]
+tests/unit/test_prune_stale_vectors.py::test_prune_stale_deletes_qdrant_vectors PASSED [ 67%]
+tests/unit/test_context.py::TestContextManager::test_optimize_pruning PASSED [ 67%]
+tests/unit/test_context.py::TestContextManager::test_optimize_preserves_order PASSED [ 67%]
+tests/unit/test_context.py::TestTokenBudget::test_estimation PASSED      [ 67%]
+tests/unit/test_context.py::TestTokenBudget::test_check_and_consume PASSED [ 68%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_max_delay_cap PASSED [ 68%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_retries_on_timeout_error PASSED [ 68%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_custom_exceptions PASSED [ 68%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_succeeds_first_try PASSED [ 69%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_raises_after_max_retries PASSED [ 69%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_non_retryable_error_not_caught PASSED [ 69%]
+tests/unit/test_retry.py::TestRetryOnTransientSync::test_retries_on_connection_error PASSED [ 69%]
+tests/unit/test_retry.py::TestRetryQdrantExceptions::test_retry_on_grpc_error PASSED [ 69%]
+tests/unit/test_retry.py::TestRetryQdrantExceptions::test_retry_on_qdrant_unexpected_response PASSED [ 70%]
+tests/unit/test_retry.py::TestRetryOnTransientAsync::test_async_non_retryable_not_caught PASSED [ 70%]
+tests/unit/test_retry.py::TestRetryOnTransientAsync::test_async_os_error_retried PASSED [ 70%]
+tests/unit/test_retry.py::TestRetryOnTransientAsync::test_async_succeeds_first_try PASSED [ 70%]
+tests/unit/test_retry.py::TestRetryOnTransientAsync::test_async_retries_on_connection_error PASSED [ 70%]
+tests/unit/test_retry.py::TestRetryOnTransientAsync::test_async_raises_after_max_retries PASSED [ 71%]
+tests/unit/test_dashboard.py::test_get_graph_data PASSED                 [ 71%]
+tests/unit/test_dashboard.py::test_get_stats PASSED                      [ 71%]
+tests/unit/test_phase4.py::test_consolidate_memories PASSED              [ 71%]
+tests/unit/test_phase4.py::test_analyze_graph_pagerank PASSED            [ 72%]
+tests/unit/test_hologram.py::test_get_hologram_orchestration PASSED      [ 72%]
+tests/unit/test_hologram.py::test_repository_get_subgraph_parsing PASSED [ 72%]
+tests/unit/test_clustering.py::test_clustering_dbscan PASSED             [ 72%]
+tests/unit/test_clustering.py::test_detect_gaps_disconnected_similar PASSED [ 72%]
+tests/unit/test_clustering.py::test_detect_gaps_single_cluster PASSED    [ 73%]
+tests/unit/test_clustering.py::test_detect_gaps_dissimilar PASSED        [ 73%]
+tests/unit/test_clustering.py::test_detect_gaps_well_connected PASSED    [ 73%]
+tests/unit/test_embedding_server.py::test_embed_request_model PASSED     [ 73%]
+tests/unit/test_embedding_server.py::test_health_with_service PASSED     [ 73%]
+tests/unit/test_embedding_server.py::test_health_without_service PASSED  [ 74%]
+tests/unit/test_embedding_server.py::test_embed_texts_success PASSED     [ 74%]
+tests/unit/test_embedding_server.py::test_embed_service_not_initialized PASSED [ 74%]
+tests/unit/test_embedding_server.py::test_embed_response_model PASSED    [ 74%]
+tests/unit/test_embedding_server.py::test_embed_service_error PASSED     [ 75%]
+tests/unit/test_embedding_server.py::test_startup_event PASSED           [ 75%]
+tests/unit/test_embedding_server.py::test_main_block PASSED              [ 75%]
+tests/unit/test_embedding_server.py::test_embed_empty_texts PASSED       [ 75%]
+tests/unit/test_dashboard_app.py::test_main_maintenance_scan PASSED      [ 75%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_backup_failure PASSED [ 76%]
+tests/unit/test_dashboard_app.py::test_get_stats PASSED                  [ 76%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_docker_exception PASSED [ 76%]
+tests/unit/test_dashboard_app.py::test_main_maintenance_mode PASSED      [ 76%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_backup_success PASSED [ 76%]
+tests/unit/test_dashboard_app.py::test_main_unknown_menu PASSED          [ 77%]
+tests/unit/test_dashboard_app.py::test_main_search_mode_no_query PASSED  [ 77%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_no_containers PASSED [ 77%]
+tests/unit/test_dashboard_app.py::test_main_shutdown_backup_exception PASSED [ 77%]
+tests/unit/test_dashboard_app.py::test_get_graph_data_injection_safe PASSED [ 78%]
+tests/unit/test_dashboard_app.py::test_get_graph_data_global PASSED      [ 78%]
+tests/unit/test_dashboard_app.py::test_get_graph_data_focused PASSED     [ 78%]
+tests/unit/test_dashboard_app.py::test_main_explorer_mode PASSED         [ 78%]
+tests/unit/test_dashboard_app.py::test_main_search_mode_with_query PASSED [ 78%]
+tests/unit/test_temporal.py::test_prune_stale PASSED                     [ 79%]
+tests/unit/test_temporal.py::test_point_in_time_query PASSED             [ 79%]
+tests/unit/test_temporal.py::test_get_evolution PASSED                   [ 79%]
+tests/unit/test_temporal.py::test_archive_entity PASSED                  [ 79%]
+tests/unit/test_activation.py::test_rank_missing_scores_default_to_zero PASSED [ 80%]
+tests/unit/test_activation.py::test_spread_no_neighbors PASSED           [ 80%]
+tests/unit/test_activation.py::test_spread_two_hops_decay_compounds PASSED [ 80%]
+tests/unit/test_activation.py::test_spread_empty_activation PASSED       [ 80%]
+tests/unit/test_activation.py::test_rank_empty_candidates PASSED         [ 80%]
+tests/unit/test_activation.py::test_activate_custom_energy PASSED        [ 81%]
+tests/unit/test_activation.py::test_recency_score_naive_datetime PASSED  [ 81%]
+tests/unit/test_activation.py::test_activate_single_seed PASSED          [ 81%]
+tests/unit/test_activation.py::test_recency_score_no_timestamp PASSED    [ 81%]
+tests/unit/test_activation.py::test_spread_reverse_direction_flow PASSED [ 81%]
+tests/unit/test_activation.py::test_spread_lateral_inhibition PASSED     [ 82%]
+tests/unit/test_activation.py::test_activate_multiple_seeds PASSED       [ 82%]
+tests/unit/test_activation.py::test_recency_score_recent_entity PASSED   [ 82%]
+tests/unit/test_activation.py::test_spread_one_hop PASSED                [ 82%]
+tests/unit/test_activation.py::test_recency_score_invalid_timestamp PASSED [ 83%]
+tests/unit/test_activation.py::test_recency_score_old_entity PASSED      [ 83%]
+tests/unit/test_activation.py::test_rank_composite_score PASSED          [ 83%]
+tests/unit/test_activation.py::test_spread_edge_with_none_fields PASSED  [ 83%]
+tests/unit/test_activation.py::test_activate_empty_seeds PASSED          [ 83%]
+tests/unit/test_activation.py::test_spread_accumulation PASSED           [ 84%]
+tests/unit/test_embedding_filter.py::test_get_neighbors_strips_embedding ERROR [ 84%]
+tests/unit/test_embedding_filter.py::test_search_memory_strips_embedding SKIPPED [ 84%]
+tests/unit/test_embedding_filter.py::test_create_entity_does_not_return_embedding_in_receipt SKIPPED [ 84%]
+tests/unit/test_embedding_filter.py::test_get_hologram_strips_embedding ERROR [ 84%]
+tests/unit/test_validation.py::test_observation_validation PASSED        [ 85%]
+tests/unit/test_validation.py::test_relationship_validation PASSED       [ 85%]
+tests/unit/test_validation.py::test_entity_creation_validation PASSED    [ 85%]
+tests/unit/test_librarian_repro.py::test_create_node_signature_produces_error_in_report PASSED [ 85%]
+tests/unit/test_crud_split_brain.py::test_create_entity_qdrant_down_always_raises PASSED [ 86%]
+tests/unit/test_crud_split_brain.py::test_strict_consistency_env_var_has_no_effect PASSED [ 86%]
+tests/unit/test_crud_split_brain.py::test_create_entity_qdrant_up_no_warnings PASSED [ 86%]
+tests/unit/test_full_workflow.py::test_day_in_the_life PASSED            [ 86%]
+tests/unit/test_backup_restore.py::test_backup_dir_is_absolute PASSED    [ 86%]
+tests/unit/test_backup_restore.py::test_no_emoji_in_source PASSED        [ 87%]
+tests/unit/test_backup_restore.py::test_no_non_ascii_in_string_literals PASSED [ 87%]
+tests/unit/test_backup_restore.py::test_pythonutf8_safety_net PASSED     [ 87%]
+tests/unit/test_backup_restore.py::TestBackupRestore::test_backup_container_mode PASSED [ 87%]
+tests/unit/test_backup_restore.py::TestBackupRestore::test_backup_host_mode PASSED [ 87%]
+tests/unit/test_archive_vector_cleanup.py::test_archive_entity_qdrant_failure_propagates PASSED [ 88%]
+tests/unit/test_archive_vector_cleanup.py::test_archive_entity_deletes_qdrant_vector PASSED [ 88%]
+tests/unit/test_archive_vector_cleanup.py::test_archive_entity_vector_deleted_before_graph_update PASSED [ 88%]
+tests/unit/test_repository.py::test_get_bottles_with_text_filter PASSED  [ 88%]
+tests/unit/test_repository.py::test_query_timeline_empty PASSED          [ 89%]
+tests/unit/test_repository.py::test_update_node_success PASSED           [ 89%]
+tests/unit/test_repository.py::test_get_graph_health_single_orphan PASSED [ 89%]
+tests/unit/test_repository.py::test_get_subgraph_with_depth_empty_result PASSED [ 89%]
+tests/unit/test_repository.py::test_query_timeline_no_project PASSED     [ 89%]
+tests/unit/test_repository.py::test_execute_cypher_with_params PASSED    [ 90%]
+tests/unit/test_repository.py::test_get_subgraph_depth_zero_empty PASSED [ 90%]
+tests/unit/test_repository.py::test_get_most_recent_entity_not_found PASSED [ 90%]
+tests/unit/test_repository.py::test_increment_salience_empty_ids PASSED  [ 90%]
+tests/unit/test_repository.py::test_get_total_node_count PASSED          [ 90%]
+tests/unit/test_repository.py::test_get_most_recent_entity_found PASSED  [ 91%]
+tests/unit/test_repository.py::test_get_bottles_empty PASSED             [ 91%]
+tests/unit/test_repository.py::test_get_graph_health_empty_graph PASSED  [ 91%]
+tests/unit/test_repository.py::test_create_temporal_edge_with_properties PASSED [ 91%]
+tests/unit/test_repository.py::test_increment_salience_returns_updated_scores PASSED [ 92%]
+tests/unit/test_repository.py::test_create_temporal_edge_not_found PASSED [ 92%]
+tests/unit/test_repository.py::test_get_temporal_neighbors_after PASSED  [ 92%]
+tests/unit/test_repository.py::test_get_temporal_neighbors_both PASSED   [ 92%]
+tests/unit/test_repository.py::test_delete_node_hard PASSED              [ 92%]
+tests/unit/test_repository.py::test_get_all_nodes PASSED                 [ 93%]
+tests/unit/test_repository.py::test_constructor_raises_after_max_retries PASSED [ 93%]
+tests/unit/test_repository.py::test_delete_node_soft_not_found PASSED    [ 93%]
+tests/unit/test_repository.py::test_get_subgraph_with_depth_completely_empty PASSED [ 93%]
+tests/unit/test_repository.py::test_ensure_indices_is_noop PASSED        [ 93%]
+tests/unit/test_repository.py::test_get_subgraph_empty_ids PASSED        [ 94%]
+tests/unit/test_repository.py::test_constructor_retries_on_connection_error PASSED [ 94%]
+tests/unit/test_repository.py::test_query_timeline_with_project PASSED   [ 94%]
+tests/unit/test_repository.py::test_get_bottles_basic PASSED             [ 94%]
+tests/unit/test_repository.py::test_create_temporal_edge_success PASSED  [ 95%]
+tests/unit/test_repository.py::test_create_edge_success PASSED           [ 95%]
+tests/unit/test_repository.py::test_get_subgraph_with_depth PASSED       [ 95%]
+tests/unit/test_repository.py::test_delete_node_soft PASSED              [ 95%]
+tests/unit/test_repository.py::test_get_temporal_neighbors_before PASSED [ 95%]
+tests/unit/test_repository.py::test_execute_cypher_without_params PASSED [ 96%]
+tests/unit/test_repository.py::test_get_all_edges PASSED                 [ 96%]
+tests/unit/test_repository.py::test_get_graph_health_with_edges PASSED   [ 96%]
+tests/unit/test_repository.py::test_create_node PASSED                   [ 96%]
+tests/unit/test_repository.py::test_get_subgraph_depth_zero PASSED       [ 96%]
+tests/unit/test_repository.py::test_create_edge_nodes_not_found PASSED   [ 97%]
+tests/unit/test_repository.py::test_get_node_not_found PASSED            [ 97%]
+tests/unit/test_repository.py::test_delete_edge PASSED                   [ 97%]
+tests/unit/test_repository.py::test_update_node_not_found PASSED         [ 97%]
+tests/unit/test_repository.py::test_get_total_node_count_empty PASSED    [ 98%]
+tests/unit/test_repository.py::test_get_node_found PASSED                [ 98%]
+tests/unit/test_locking.py::TestLockManager::test_acquire_success PASSED [ 98%]
+tests/unit/test_locking.py::TestLockManager::test_release PASSED         [ 98%]
+tests/unit/test_locking.py::TestLockManager::test_acquire_failure PASSED [ 98%]
+tests/unit/test_locking.py::TestLockManager::test_context_manager PASSED [ 99%]
+tests/unit/test_locking.py::test_update_entity_locks_project PASSED      [ 99%]
+tests/unit/test_locking.py::test_falkordb_host_fallback PASSED           [ 99%]
+tests/unit/test_locking.py::test_create_entity_locks_project PASSED      [ 99%]
+/app/.tox/gate/lib/python3.12/site-packages/coverage/inorout.py:577: CoverageWarning: Module claude_memory was previously imported, but not measured (module-not-measured); see https://coverage.readthedocs.io/en/7.13.4/messages.html#warning-module-not-measured
+  self.warn(msg, slug="module-not-measured")
+tests/unit/test_locking.py::test_redis_host_takes_precedence PASSED      [100%]
+
+==================================== ERRORS ====================================
+_________ ERROR at setup of test_create_entity_invalid_type_rejection __________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+>               sock = self._connect()
+                       ^^^^^^^^^^^^^^^
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:998:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1512: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1496: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    @pytest.fixture
+    def service_with_ontology() -> Generator[Any, None, None]:
+        # Mock dependencies
+        repo_mock = MagicMock()
+        repo_mock.create_node.return_value = {"id": "123"}
+        repo_mock.get_total_node_count.return_value = 1
+
+        embedder_mock = MagicMock()
+        embedder_mock.encode.return_value = [0.1] * 1024
+
+        vector_mock = MagicMock()
+        vector_mock.upsert = AsyncMock()
+
+        # Use real ontology but with temp file
+        # We can patch the init of OntologyManager in tools.py, OR inject it if refactored.
+        # tools.py instantiates OntologyManager() inside __init__.
+        # We should patch 'claude_memory.tools.OntologyManager' to return a controlled instance
+
+        real_ontology = OntologyManager(config_path="test_dynamic_ontology.json")
+        # Reset for test
+        real_ontology._ontology = {"Entity": {}, "Concept": {}}
+
+        with patch("claude_memory.ontology.OntologyManager", return_value=real_ontology):
+>           service = MemoryService(embedding_service=embedder_mock, vector_store=vector_mock)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_dynamic_validation.py:50:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/claude_memory/tools.py:69: in __init__
+    self.repo = MemoryRepository(host, port, password)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:34: in __init__
+    self.client = self._connect_with_retry()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:41: in _connect_with_retry
+    return FalkorDB(
+.tox/gate/lib/python3.12/site-packages/falkordb/falkordb.py:123: in __init__
+    if Is_Sentinel(conn):
+       ^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/falkordb/sentinel.py:6: in Is_Sentinel
+    info = conn.info(section="server")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/commands/core.py:1027: in info
+    return self.execute_command("INFO", section, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:716: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:722: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/utils.py:236: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:2958: in get_connection
+    connection.connect()
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:976: in connect
+    self.retry.call_with_retry(
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:132: in call_with_retry
+    raise error
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:977: in <lambda>
+    lambda: self.connect_check_health(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+                sock = self._connect()
+        except socket.timeout:
+            e = TimeoutError("Timeout connecting to server")
+            record_error_count(
+                server_address=self.host,
+                server_port=self.port,
+                network_peer_address=self.host,
+                network_peer_port=self.port,
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+            raise e
+        except OSError as e:
+            e = ConnectionError(self._error_message(e))
+            record_error_count(
+                server_address=getattr(self, "host", None),
+                server_port=getattr(self, "port", None),
+                network_peer_address=getattr(self, "host", None),
+                network_peer_port=getattr(self, "port", None),
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+>           raise e
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1022: ConnectionError
+___________ ERROR at setup of test_create_entity_valid_dynamic_type ____________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+>               sock = self._connect()
+                       ^^^^^^^^^^^^^^^
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:998:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1512: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1496: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    @pytest.fixture
+    def service_with_ontology() -> Generator[Any, None, None]:
+        # Mock dependencies
+        repo_mock = MagicMock()
+        repo_mock.create_node.return_value = {"id": "123"}
+        repo_mock.get_total_node_count.return_value = 1
+
+        embedder_mock = MagicMock()
+        embedder_mock.encode.return_value = [0.1] * 1024
+
+        vector_mock = MagicMock()
+        vector_mock.upsert = AsyncMock()
+
+        # Use real ontology but with temp file
+        # We can patch the init of OntologyManager in tools.py, OR inject it if refactored.
+        # tools.py instantiates OntologyManager() inside __init__.
+        # We should patch 'claude_memory.tools.OntologyManager' to return a controlled instance
+
+        real_ontology = OntologyManager(config_path="test_dynamic_ontology.json")
+        # Reset for test
+        real_ontology._ontology = {"Entity": {}, "Concept": {}}
+
+        with patch("claude_memory.ontology.OntologyManager", return_value=real_ontology):
+>           service = MemoryService(embedding_service=embedder_mock, vector_store=vector_mock)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_dynamic_validation.py:50:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/claude_memory/tools.py:69: in __init__
+    self.repo = MemoryRepository(host, port, password)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:34: in __init__
+    self.client = self._connect_with_retry()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:41: in _connect_with_retry
+    return FalkorDB(
+.tox/gate/lib/python3.12/site-packages/falkordb/falkordb.py:123: in __init__
+    if Is_Sentinel(conn):
+       ^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/falkordb/sentinel.py:6: in Is_Sentinel
+    info = conn.info(section="server")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/commands/core.py:1027: in info
+    return self.execute_command("INFO", section, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:716: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:722: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/utils.py:236: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:2958: in get_connection
+    connection.connect()
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:976: in connect
+    self.retry.call_with_retry(
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:132: in call_with_retry
+    raise error
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:977: in <lambda>
+    lambda: self.connect_check_health(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+                sock = self._connect()
+        except socket.timeout:
+            e = TimeoutError("Timeout connecting to server")
+            record_error_count(
+                server_address=self.host,
+                server_port=self.port,
+                network_peer_address=self.host,
+                network_peer_port=self.port,
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+            raise e
+        except OSError as e:
+            e = ConnectionError(self._error_message(e))
+            record_error_count(
+                server_address=getattr(self, "host", None),
+                server_port=getattr(self, "port", None),
+                network_peer_address=getattr(self, "host", None),
+                network_peer_port=getattr(self, "port", None),
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+>           raise e
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1022: ConnectionError
+---------------------------- Captured stderr setup -----------------------------
+2026-02-24 18:45:55 [INFO] claude_memory.ontology: Loaded 13 memory types from test_dynamic_ontology.json
+------------------------------ Captured log setup ------------------------------
+INFO     claude_memory.ontology:ontology.py:74 Loaded 13 memory types from test_dynamic_ontology.json
+____________ ERROR at setup of test_get_neighbors_strips_embedding _____________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+>               sock = self._connect()
+                       ^^^^^^^^^^^^^^^
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:998:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1512: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1496: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    @pytest.fixture
+    def mock_service():
+        # Mock dependencies
+        mock_embedder = MagicMock()
+        mock_repo = MagicMock()
+        mock_vector = MagicMock()
+
+        # Setup Service
+>       service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_embedding_filter.py:19:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/claude_memory/tools.py:69: in __init__
+    self.repo = MemoryRepository(host, port, password)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:34: in __init__
+    self.client = self._connect_with_retry()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:41: in _connect_with_retry
+    return FalkorDB(
+.tox/gate/lib/python3.12/site-packages/falkordb/falkordb.py:123: in __init__
+    if Is_Sentinel(conn):
+       ^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/falkordb/sentinel.py:6: in Is_Sentinel
+    info = conn.info(section="server")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/commands/core.py:1027: in info
+    return self.execute_command("INFO", section, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:716: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:722: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/utils.py:236: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:2958: in get_connection
+    connection.connect()
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:976: in connect
+    self.retry.call_with_retry(
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:132: in call_with_retry
+    raise error
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:977: in <lambda>
+    lambda: self.connect_check_health(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+                sock = self._connect()
+        except socket.timeout:
+            e = TimeoutError("Timeout connecting to server")
+            record_error_count(
+                server_address=self.host,
+                server_port=self.port,
+                network_peer_address=self.host,
+                network_peer_port=self.port,
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+            raise e
+        except OSError as e:
+            e = ConnectionError(self._error_message(e))
+            record_error_count(
+                server_address=getattr(self, "host", None),
+                server_port=getattr(self, "port", None),
+                network_peer_address=getattr(self, "host", None),
+                network_peer_port=getattr(self, "port", None),
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+>           raise e
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1022: ConnectionError
+_____________ ERROR at setup of test_get_hologram_strips_embedding _____________
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+>               sock = self._connect()
+                       ^^^^^^^^^^^^^^^
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:998:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1512: in _connect
+    raise err
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+
+    def _connect(self):
+        "Create a TCP socket connection"
+        # we want to mimic what socket.create_connection does to support
+        # ipv4/ipv6, but we want to set options prior to calling
+        # socket.connect()
+        err = None
+
+        for res in socket.getaddrinfo(
+            self.host, self.port, self.socket_type, socket.SOCK_STREAM
+        ):
+            family, socktype, proto, canonname, socket_address = res
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                # TCP_NODELAY
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+                # TCP_KEEPALIVE
+                if self.socket_keepalive:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    for k, v in self.socket_keepalive_options.items():
+                        sock.setsockopt(socket.IPPROTO_TCP, k, v)
+
+                # set the socket_connect_timeout before we connect
+                sock.settimeout(self.socket_connect_timeout)
+
+                # connect
+>               sock.connect(socket_address)
+E               ConnectionRefusedError: [Errno 111] Connection refused
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1496: ConnectionRefusedError
+
+During handling of the above exception, another exception occurred:
+
+    @pytest.fixture
+    def mock_service():
+        # Mock dependencies
+        mock_embedder = MagicMock()
+        mock_repo = MagicMock()
+        mock_vector = MagicMock()
+
+        # Setup Service
+>       service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_embedding_filter.py:19:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.tox/gate/lib/python3.12/site-packages/claude_memory/tools.py:69: in __init__
+    self.repo = MemoryRepository(host, port, password)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:34: in __init__
+    self.client = self._connect_with_retry()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/claude_memory/repository.py:41: in _connect_with_retry
+    return FalkorDB(
+.tox/gate/lib/python3.12/site-packages/falkordb/falkordb.py:123: in __init__
+    if Is_Sentinel(conn):
+       ^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/falkordb/sentinel.py:6: in Is_Sentinel
+    info = conn.info(section="server")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/commands/core.py:1027: in info
+    return self.execute_command("INFO", section, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:716: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/client.py:722: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/utils.py:236: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:2958: in get_connection
+    connection.connect()
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:976: in connect
+    self.retry.call_with_retry(
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:132: in call_with_retry
+    raise error
+.tox/gate/lib/python3.12/site-packages/redis/retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:977: in <lambda>
+    lambda: self.connect_check_health(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis.connection.Connection(host=localhost,port=6379,db=0)>
+check_health = True, retry_socket_connect = False
+
+    def connect_check_health(
+        self, check_health: bool = True, retry_socket_connect: bool = True
+    ):
+        if self._sock:
+            return
+        try:
+            if retry_socket_connect:
+                sock = self.retry.call_with_retry(
+                    self._connect,
+                    lambda error, failure_count: self.disconnect(
+                        error=error, failure_count=failure_count
+                    ),
+                    with_failure_count=True,
+                )
+            else:
+                sock = self._connect()
+        except socket.timeout:
+            e = TimeoutError("Timeout connecting to server")
+            record_error_count(
+                server_address=self.host,
+                server_port=self.port,
+                network_peer_address=self.host,
+                network_peer_port=self.port,
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+            raise e
+        except OSError as e:
+            e = ConnectionError(self._error_message(e))
+            record_error_count(
+                server_address=getattr(self, "host", None),
+                server_port=getattr(self, "port", None),
+                network_peer_address=getattr(self, "host", None),
+                network_peer_port=getattr(self, "port", None),
+                error_type=e,
+                retry_attempts=0,
+                is_internal=False,
+            )
+>           raise e
+E           redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+.tox/gate/lib/python3.12/site-packages/redis/connection.py:1022: ConnectionError
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.12-final-0 _______________
+
+Coverage XML written to file coverage.xml
+Required test coverage of 30.0% reached. Total coverage: 97.74%
+=========================== short test summary info ============================
+ERROR tests/unit/test_dynamic_validation.py::test_create_entity_invalid_type_rejection
+ERROR tests/unit/test_dynamic_validation.py::test_create_entity_valid_dynamic_type
+ERROR tests/unit/test_embedding_filter.py::test_get_neighbors_strips_embedding
+ERROR tests/unit/test_embedding_filter.py::test_get_hologram_strips_embedding
+============= 459 passed, 2 skipped, 4 errors in 188.89s (0:03:08) =============
+gate: exit 1 (193.57 seconds) /app> pytest -m 'not slow' --hypothesis-profile=ci --cov=claude_memory --cov=dashboard --cov-report=xml pid=3789
+  gate: FAIL code 1 (378.91=setup[185.31]+cmd[0.03,193.57] seconds)
+  evaluation failed :( (378.99 seconds)
