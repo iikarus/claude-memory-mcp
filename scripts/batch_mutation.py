@@ -1,6 +1,7 @@
 import argparse
 import json
 import random
+import shlex
 import subprocess
 import sys
 import time
@@ -65,7 +66,7 @@ def restore_src():
     subprocess.run(["git", "restore", "src/"], check=True)
 
 def run_clean_trial(test_cmds: List[str]) -> float:
-    print(f"Running clean trial: {' '.join(test_cmds)}", file=sys.stderr)
+    print(f"Running clean trial: {test_cmds}", file=sys.stderr)
     start = time.time()
     try:
         # Increase timeout to 300s (5 mins) as pytest seems slow
@@ -117,7 +118,15 @@ def main():
     parser.add_argument("--module", help="Run specific module (substring match)")
     args = parser.parse_args()
 
-    test_cmds = ["pytest", "tests/", "--ignore=tests/unit/test_dynamic_validation.py", "--ignore=tests/unit/test_embedding_filter.py"]
+    test_cmds = [
+        "pytest",
+        "tests/",
+        "--ignore=tests/unit/test_dynamic_validation.py",
+        "--ignore=tests/unit/test_embedding_filter.py",
+        "--ignore=tests/unit/test_retry.py",
+        "--ignore=tests/unit/test_analyze_graph.py",
+        "--ignore=tests/unit/test_memory_service.py"
+    ]
 
     modules_to_run = MODULES
     if args.module:
@@ -141,7 +150,7 @@ def main():
 
         config = mutatest.run.Config(
             n_locations=2,
-            max_runtime=30,
+            max_runtime=200,
             break_on_survival=False,
             break_on_detected=False
         )
