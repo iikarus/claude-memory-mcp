@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 67,
+  "total_runtime": "0:00:09.705401",
+  "results": [
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/lock_manager.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 63,
+          "col_offset": 67,
+          "op_type": "None",
+          "end_lineno": 63,
+          "end_col_offset": 71
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/lock_manager.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 63,
+          "col_offset": 67,
+          "op_type": "None",
+          "end_lineno": 63,
+          "end_col_offset": 71
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/lock_manager.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 63,
+          "col_offset": 60,
+          "op_type": "None",
+          "end_lineno": 63,
+          "end_col_offset": 64
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/lock_manager.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 63,
+          "col_offset": 60,
+          "op_type": "None",
+          "end_lineno": 63,
+          "end_col_offset": 64
+        },
+        "mutation": "True"
+      }
+    }
+  ]
+}

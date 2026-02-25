@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 55,
+  "total_runtime": "0:00:31.735329",
+  "results": [
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/server.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 173,
+          "col_offset": 64,
+          "op_type": "None",
+          "end_lineno": 173,
+          "end_col_offset": 68
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/server.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 173,
+          "col_offset": 64,
+          "op_type": "None",
+          "end_lineno": 173,
+          "end_col_offset": 68
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/server.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 176,
+          "col_offset": 4,
+          "op_type": "If_Statement",
+          "end_lineno": 177,
+          "end_col_offset": 21
+        },
+        "mutation": "If_False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/server.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 176,
+          "col_offset": 4,
+          "op_type": "If_Statement",
+          "end_lineno": 177,
+          "end_col_offset": 21
+        },
+        "mutation": "If_True"
+      }
+    }
+  ]
+}

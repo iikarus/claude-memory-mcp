@@ -1,0 +1,135 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 36,
+  "total_runtime": "0:00:33.654341",
+  "results": [
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOpBC",
+          "lineno": 155,
+          "col_offset": 21,
+          "op_type": "<class 'ast.BitOr'>",
+          "end_lineno": 155,
+          "end_col_offset": 31
+        },
+        "mutation": "<class 'ast.BitAnd'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOpBC",
+          "lineno": 155,
+          "col_offset": 21,
+          "op_type": "<class 'ast.BitOr'>",
+          "end_lineno": 155,
+          "end_col_offset": 31
+        },
+        "mutation": "<class 'ast.BitXor'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 225,
+          "col_offset": 21,
+          "op_type": "<class 'ast.Div'>",
+          "end_lineno": 225,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.Add'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 225,
+          "col_offset": 21,
+          "op_type": "<class 'ast.Div'>",
+          "end_lineno": 225,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.Pow'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 225,
+          "col_offset": 21,
+          "op_type": "<class 'ast.Div'>",
+          "end_lineno": 225,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.Mult'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 225,
+          "col_offset": 21,
+          "op_type": "<class 'ast.Div'>",
+          "end_lineno": 225,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.Mod'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 225,
+          "col_offset": 21,
+          "op_type": "<class 'ast.Div'>",
+          "end_lineno": 225,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.FloorDiv'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_queries.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 225,
+          "col_offset": 21,
+          "op_type": "<class 'ast.Div'>",
+          "end_lineno": 225,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.Sub'>"
+      }
+    }
+  ]
+}

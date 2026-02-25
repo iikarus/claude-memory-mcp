@@ -1,0 +1,119 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 37,
+  "total_runtime": "0:00:21.573135",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 54,
+          "col_offset": 24,
+          "op_type": "<class 'ast.Mult'>",
+          "end_lineno": 54,
+          "end_col_offset": 62
+        },
+        "mutation": "<class 'ast.Mod'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 54,
+          "col_offset": 24,
+          "op_type": "<class 'ast.Mult'>",
+          "end_lineno": 54,
+          "end_col_offset": 62
+        },
+        "mutation": "<class 'ast.Pow'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 54,
+          "col_offset": 24,
+          "op_type": "<class 'ast.Mult'>",
+          "end_lineno": 54,
+          "end_col_offset": 62
+        },
+        "mutation": "<class 'ast.FloorDiv'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 54,
+          "col_offset": 24,
+          "op_type": "<class 'ast.Mult'>",
+          "end_lineno": 54,
+          "end_col_offset": 62
+        },
+        "mutation": "<class 'ast.Div'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 54,
+          "col_offset": 24,
+          "op_type": "<class 'ast.Mult'>",
+          "end_lineno": 54,
+          "end_col_offset": 62
+        },
+        "mutation": "<class 'ast.Sub'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BinOp",
+          "lineno": 54,
+          "col_offset": 24,
+          "op_type": "<class 'ast.Mult'>",
+          "end_lineno": 54,
+          "end_col_offset": 62
+        },
+        "mutation": "<class 'ast.Add'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository.py",
+        "src_idx": {
+          "ast_class": "BoolOp",
+          "lineno": 31,
+          "col_offset": 20,
+          "op_type": "<class 'ast.Or'>",
+          "end_lineno": 31,
+          "end_col_offset": 67
+        },
+        "mutation": "<class 'ast.And'>"
+      }
+    }
+  ]
+}

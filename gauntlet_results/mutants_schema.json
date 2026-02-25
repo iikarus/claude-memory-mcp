@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 35,
+  "total_runtime": "0:00:04.531038",
+  "results": [
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/schema.py",
+        "src_idx": {
+          "ast_class": "BinOpBC",
+          "lineno": 187,
+          "col_offset": 13,
+          "op_type": "<class 'ast.BitOr'>",
+          "end_lineno": 187,
+          "end_col_offset": 23
+        },
+        "mutation": "<class 'ast.BitAnd'>"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/schema.py",
+        "src_idx": {
+          "ast_class": "BinOpBC",
+          "lineno": 187,
+          "col_offset": 13,
+          "op_type": "<class 'ast.BitOr'>",
+          "end_lineno": 187,
+          "end_col_offset": 23
+        },
+        "mutation": "<class 'ast.BitXor'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/schema.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 137,
+          "col_offset": 24,
+          "op_type": "True",
+          "end_lineno": 137,
+          "end_col_offset": 28
+        },
+        "mutation": "None"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/schema.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 137,
+          "col_offset": 24,
+          "op_type": "True",
+          "end_lineno": 137,
+          "end_col_offset": 28
+        },
+        "mutation": "False"
+      }
+    }
+  ]
+}

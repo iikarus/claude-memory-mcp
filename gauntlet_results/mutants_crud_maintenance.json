@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 6,
+  "total_runtime": "0:00:04.504110",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/crud_maintenance.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 33,
+          "col_offset": 34,
+          "op_type": "None",
+          "end_lineno": 33,
+          "end_col_offset": 38
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/crud_maintenance.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 33,
+          "col_offset": 34,
+          "op_type": "None",
+          "end_lineno": 33,
+          "end_col_offset": 38
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/crud_maintenance.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 13,
+          "col_offset": 0,
+          "op_type": "If_Statement",
+          "end_lineno": 16,
+          "end_col_offset": 41
+        },
+        "mutation": "If_True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/crud_maintenance.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 13,
+          "col_offset": 0,
+          "op_type": "If_Statement",
+          "end_lineno": 16,
+          "end_col_offset": 41
+        },
+        "mutation": "If_False"
+      }
+    }
+  ]
+}

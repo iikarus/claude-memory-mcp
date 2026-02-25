@@ -1,0 +1,103 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 39,
+  "total_runtime": "0:00:19.581133",
+  "results": [
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/clustering.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 197,
+          "col_offset": 15,
+          "op_type": "<class 'ast.Gt'>",
+          "end_lineno": 197,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.Eq'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/clustering.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 197,
+          "col_offset": 15,
+          "op_type": "<class 'ast.Gt'>",
+          "end_lineno": 197,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.LtE'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/clustering.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 197,
+          "col_offset": 15,
+          "op_type": "<class 'ast.Gt'>",
+          "end_lineno": 197,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.NotEq'>"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/clustering.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 197,
+          "col_offset": 15,
+          "op_type": "<class 'ast.Gt'>",
+          "end_lineno": 197,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.Lt'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/clustering.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 197,
+          "col_offset": 15,
+          "op_type": "<class 'ast.Gt'>",
+          "end_lineno": 197,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.GtE'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/clustering.py",
+        "src_idx": {
+          "ast_class": "BoolOp",
+          "lineno": 224,
+          "col_offset": 7,
+          "op_type": "<class 'ast.Or'>",
+          "end_lineno": 224,
+          "end_col_offset": 33
+        },
+        "mutation": "<class 'ast.And'>"
+      }
+    }
+  ]
+}

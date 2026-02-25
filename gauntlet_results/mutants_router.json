@@ -1,0 +1,55 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 27,
+  "total_runtime": "0:00:10.015628",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/router.py",
+        "src_idx": {
+          "ast_class": "CompareIn",
+          "lineno": 75,
+          "col_offset": 29,
+          "op_type": "<class 'ast.NotIn'>",
+          "end_lineno": 75,
+          "end_col_offset": 41
+        },
+        "mutation": "<class 'ast.In'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/router.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 119,
+          "col_offset": 30,
+          "op_type": "None",
+          "end_lineno": 119,
+          "end_col_offset": 34
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/router.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 119,
+          "col_offset": 30,
+          "op_type": "None",
+          "end_lineno": 119,
+          "end_col_offset": 34
+        },
+        "mutation": "True"
+      }
+    }
+  ]
+}

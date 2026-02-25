@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 40,
+  "total_runtime": "0:00:04.385043",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/analysis.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 44,
+          "col_offset": 8,
+          "op_type": "If_Statement",
+          "end_lineno": 50,
+          "end_col_offset": 93
+        },
+        "mutation": "If_False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/analysis.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 44,
+          "col_offset": 8,
+          "op_type": "If_Statement",
+          "end_lineno": 50,
+          "end_col_offset": 93
+        },
+        "mutation": "If_True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/analysis.py",
+        "src_idx": {
+          "ast_class": "SliceUS",
+          "lineno": 152,
+          "col_offset": 52,
+          "op_type": "Slice_UnboundLower",
+          "end_lineno": 152,
+          "end_col_offset": 64
+        },
+        "mutation": "Slice_Unbounded"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/analysis.py",
+        "src_idx": {
+          "ast_class": "SliceUS",
+          "lineno": 152,
+          "col_offset": 52,
+          "op_type": "Slice_UnboundLower",
+          "end_lineno": 152,
+          "end_col_offset": 64
+        },
+        "mutation": "Slice_UnboundUpper"
+      }
+    }
+  ]
+}

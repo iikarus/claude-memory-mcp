@@ -1,0 +1,55 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 21,
+  "total_runtime": "0:00:03.477183",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/embedding.py",
+        "src_idx": {
+          "ast_class": "CompareIs",
+          "lineno": 45,
+          "col_offset": 11,
+          "op_type": "<class 'ast.Is'>",
+          "end_lineno": 45,
+          "end_col_offset": 32
+        },
+        "mutation": "<class 'ast.IsNot'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/embedding.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 32,
+          "col_offset": 27,
+          "op_type": "None",
+          "end_lineno": 32,
+          "end_col_offset": 31
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/embedding.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 32,
+          "col_offset": 27,
+          "op_type": "None",
+          "end_lineno": 32,
+          "end_col_offset": 31
+        },
+        "mutation": "False"
+      }
+    }
+  ]
+}

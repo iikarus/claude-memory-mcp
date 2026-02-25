@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 17,
+  "total_runtime": "0:00:03.429523",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/ontology.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 93,
+          "col_offset": 83,
+          "op_type": "None",
+          "end_lineno": 93,
+          "end_col_offset": 87
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/ontology.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 93,
+          "col_offset": 83,
+          "op_type": "None",
+          "end_lineno": 93,
+          "end_col_offset": 87
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/ontology.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 80,
+          "col_offset": 23,
+          "op_type": "None",
+          "end_lineno": 80,
+          "end_col_offset": 27
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/ontology.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 80,
+          "col_offset": 23,
+          "op_type": "None",
+          "end_lineno": 80,
+          "end_col_offset": 27
+        },
+        "mutation": "True"
+      }
+    }
+  ]
+}

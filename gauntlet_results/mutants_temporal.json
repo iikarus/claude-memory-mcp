@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 7,
+  "total_runtime": "0:01:54.660862",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/temporal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 146,
+          "col_offset": 82,
+          "op_type": "None",
+          "end_lineno": 146,
+          "end_col_offset": 86
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/temporal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 146,
+          "col_offset": 82,
+          "op_type": "None",
+          "end_lineno": 146,
+          "end_col_offset": 86
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/temporal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 147,
+          "col_offset": 79,
+          "op_type": "None",
+          "end_lineno": 147,
+          "end_col_offset": 83
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/temporal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 147,
+          "col_offset": 79,
+          "op_type": "None",
+          "end_lineno": 147,
+          "end_col_offset": 83
+        },
+        "mutation": "False"
+      }
+    }
+  ]
+}

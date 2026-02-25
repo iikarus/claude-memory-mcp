@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 13,
+  "total_runtime": "0:00:59.924390",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_traversal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 190,
+          "col_offset": 19,
+          "op_type": "None",
+          "end_lineno": 190,
+          "end_col_offset": 23
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_traversal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 190,
+          "col_offset": 19,
+          "op_type": "None",
+          "end_lineno": 190,
+          "end_col_offset": 23
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_traversal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 179,
+          "col_offset": 74,
+          "op_type": "None",
+          "end_lineno": 179,
+          "end_col_offset": 78
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/repository_traversal.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 179,
+          "col_offset": 74,
+          "op_type": "None",
+          "end_lineno": 179,
+          "end_col_offset": 78
+        },
+        "mutation": "False"
+      }
+    }
+  ]
+}

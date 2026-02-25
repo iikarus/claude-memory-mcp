@@ -1,0 +1,119 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 32,
+  "total_runtime": "0:02:39.966783",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "SliceUS",
+          "lineno": 62,
+          "col_offset": 21,
+          "op_type": "Slice_UnboundLower",
+          "end_lineno": 62,
+          "end_col_offset": 33
+        },
+        "mutation": "Slice_UnboundUpper"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "SliceUS",
+          "lineno": 62,
+          "col_offset": 21,
+          "op_type": "Slice_UnboundLower",
+          "end_lineno": 62,
+          "end_col_offset": 33
+        },
+        "mutation": "Slice_Unbounded"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 33,
+          "col_offset": 7,
+          "op_type": "<class 'ast.Eq'>",
+          "end_lineno": 33,
+          "end_col_offset": 13
+        },
+        "mutation": "<class 'ast.NotEq'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 33,
+          "col_offset": 7,
+          "op_type": "<class 'ast.Eq'>",
+          "end_lineno": 33,
+          "end_col_offset": 13
+        },
+        "mutation": "<class 'ast.LtE'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 33,
+          "col_offset": 7,
+          "op_type": "<class 'ast.Eq'>",
+          "end_lineno": 33,
+          "end_col_offset": 13
+        },
+        "mutation": "<class 'ast.Gt'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 33,
+          "col_offset": 7,
+          "op_type": "<class 'ast.Eq'>",
+          "end_lineno": 33,
+          "end_col_offset": 13
+        },
+        "mutation": "<class 'ast.Lt'>"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/graph_algorithms.py",
+        "src_idx": {
+          "ast_class": "Compare",
+          "lineno": 33,
+          "col_offset": 7,
+          "op_type": "<class 'ast.Eq'>",
+          "end_lineno": 33,
+          "end_col_offset": 13
+        },
+        "mutation": "<class 'ast.GtE'>"
+      }
+    }
+  ]
+}

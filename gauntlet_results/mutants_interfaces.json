@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 8,
+  "total_runtime": "0:00:03.928030",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/interfaces.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 41,
+          "col_offset": 40,
+          "op_type": "None",
+          "end_lineno": 41,
+          "end_col_offset": 44
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/interfaces.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 41,
+          "col_offset": 40,
+          "op_type": "None",
+          "end_lineno": 41,
+          "end_col_offset": 44
+        },
+        "mutation": "False"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/interfaces.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 23,
+          "col_offset": 85,
+          "op_type": "None",
+          "end_lineno": 23,
+          "end_col_offset": 89
+        },
+        "mutation": "True"
+      }
+    },
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/interfaces.py",
+        "src_idx": {
+          "ast_class": "NameConstant",
+          "lineno": 23,
+          "col_offset": 85,
+          "op_type": "None",
+          "end_lineno": 23,
+          "end_col_offset": 89
+        },
+        "mutation": "False"
+      }
+    }
+  ]
+}

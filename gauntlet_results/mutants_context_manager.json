@@ -1,0 +1,87 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 18,
+  "total_runtime": "0:00:04.452086",
+  "results": [
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/context_manager.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 19,
+          "col_offset": 8,
+          "op_type": "If_Statement",
+          "end_lineno": 20,
+          "end_col_offset": 20
+        },
+        "mutation": "If_False"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/context_manager.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 19,
+          "col_offset": 8,
+          "op_type": "If_Statement",
+          "end_lineno": 20,
+          "end_col_offset": 20
+        },
+        "mutation": "If_True"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/context_manager.py",
+        "src_idx": {
+          "ast_class": "AugAssign",
+          "lineno": 31,
+          "col_offset": 8,
+          "op_type": "AugAssign_Add",
+          "end_lineno": 31,
+          "end_col_offset": 25
+        },
+        "mutation": "AugAssign_Sub"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/context_manager.py",
+        "src_idx": {
+          "ast_class": "AugAssign",
+          "lineno": 31,
+          "col_offset": 8,
+          "op_type": "AugAssign_Add",
+          "end_lineno": 31,
+          "end_col_offset": 25
+        },
+        "mutation": "AugAssign_Div"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/context_manager.py",
+        "src_idx": {
+          "ast_class": "AugAssign",
+          "lineno": 31,
+          "col_offset": 8,
+          "op_type": "AugAssign_Add",
+          "end_lineno": 31,
+          "end_col_offset": 25
+        },
+        "mutation": "AugAssign_Mult"
+      }
+    }
+  ]
+}

@@ -23,40 +23,40 @@ random.sample = _patched_sample
 import mutatest.run
 import mutatest.transformers
 
-MODULES = [
+MODULE_TEST_MAP = {
     # Batch 1
-    "src/claude_memory/analysis.py",
-    "src/claude_memory/search.py",
-    "src/claude_memory/crud.py",
+    "src/claude_memory/analysis.py": "tests/unit/test_analyze_graph.py",
+    "src/claude_memory/search.py": "tests/unit/test_search_associative.py",
+    "src/claude_memory/crud.py": "tests/unit/test_crud_split_brain.py",
     # Batch 2
-    "src/claude_memory/vector_store.py",
-    "src/claude_memory/repository.py",
-    "src/claude_memory/repository_queries.py",
-    "src/claude_memory/repository_traversal.py",
+    "src/claude_memory/vector_store.py": "tests/unit/test_vector_store.py",
+    "src/claude_memory/repository.py": "tests/unit/test_repository.py",
+    "src/claude_memory/repository_queries.py": "tests/unit/test_repository.py", # Fallback
+    "src/claude_memory/repository_traversal.py": "tests/unit/test_graph_traversal.py",
     # Batch 3
-    "src/claude_memory/clustering.py",
-    "src/claude_memory/activation.py",
-    "src/claude_memory/search_advanced.py",
-    "src/claude_memory/router.py",
+    "src/claude_memory/clustering.py": "tests/unit/test_clustering.py",
+    "src/claude_memory/activation.py": "tests/unit/test_activation.py",
+    "src/claude_memory/search_advanced.py": "tests/unit/test_search_associative.py",
+    "src/claude_memory/router.py": "tests/unit/test_router.py",
     # Batch 4
-    "src/claude_memory/schema.py",
-    "src/claude_memory/temporal.py",
-    "src/claude_memory/lock_manager.py",
-    "src/claude_memory/retry.py",
+    "src/claude_memory/schema.py": "tests/unit/test_validation.py", # Fallback
+    "src/claude_memory/temporal.py": "tests/unit/test_temporal.py",
+    "src/claude_memory/lock_manager.py": "tests/unit/test_locking.py",
+    "src/claude_memory/retry.py": "tests/unit/test_retry.py",
     # Batch 5
-    "src/claude_memory/embedding.py",
-    "src/claude_memory/ontology.py",
-    "src/claude_memory/librarian.py",
-    "src/claude_memory/crud_maintenance.py",
-    "src/claude_memory/context_manager.py",
-    "src/claude_memory/logging_config.py",
+    "src/claude_memory/embedding.py": "tests/unit/test_embedding_client.py",
+    "src/claude_memory/ontology.py": "tests/unit/test_ontology.py",
+    "src/claude_memory/librarian.py": "tests/unit/test_librarian.py",
+    "src/claude_memory/crud_maintenance.py": "tests/unit/test_crud_split_brain.py", # Fallback
+    "src/claude_memory/context_manager.py": "tests/unit/test_context.py",
+    "src/claude_memory/logging_config.py": "tests/unit/test_logging_config.py",
     # Batch 6
-    "src/claude_memory/server.py",
-    "src/claude_memory/tools.py",
-    "src/claude_memory/tools_extra.py",
-    "src/claude_memory/graph_algorithms.py",
-    "src/claude_memory/interfaces.py",
-]
+    "src/claude_memory/server.py": "tests/unit/test_server.py",
+    "src/claude_memory/tools.py": "tests/unit/test_memory_service.py",
+    "src/claude_memory/tools_extra.py": "tests/unit/test_memory_service.py", # Fallback
+    "src/claude_memory/graph_algorithms.py": "tests/unit/test_graph_traversal.py",
+    "src/claude_memory/interfaces.py": "tests/unit/test_interfaces.py",
+}
 
 OUTPUT_DIR = Path("gauntlet_results")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -69,12 +69,12 @@ def run_clean_trial(test_cmds: List[str]) -> float:
     print(f"Running clean trial: {test_cmds}", file=sys.stderr)
     start = time.time()
     try:
-        # Increase timeout to 300s (5 mins) as pytest seems slow
+        # Reduced timeout as these should be fast
         subprocess.run(
             test_cmds,
             check=True,
             capture_output=True,
-            timeout=300
+            timeout=60
         )
     except subprocess.TimeoutExpired:
         print("Clean trial timed out!", file=sys.stderr)
@@ -118,19 +118,9 @@ def main():
     parser.add_argument("--module", help="Run specific module (substring match)")
     args = parser.parse_args()
 
-    test_cmds = [
-        "pytest",
-        "tests/",
-        "--ignore=tests/unit/test_dynamic_validation.py",
-        "--ignore=tests/unit/test_embedding_filter.py",
-        "--ignore=tests/unit/test_retry.py",
-        "--ignore=tests/unit/test_analyze_graph.py",
-        "--ignore=tests/unit/test_memory_service.py"
-    ]
-
-    modules_to_run = MODULES
+    modules_to_run = list(MODULE_TEST_MAP.keys())
     if args.module:
-        modules_to_run = [m for m in MODULES if args.module in m]
+        modules_to_run = [m for m in MODULE_TEST_MAP.keys() if args.module in m]
         if not modules_to_run:
             print(f"No modules matched '{args.module}'", file=sys.stderr)
             return
@@ -140,6 +130,23 @@ def main():
 
         restore_src()
 
+        target_test_file = MODULE_TEST_MAP.get(module_path)
+        if not target_test_file or not Path(target_test_file).exists():
+             print(f"Target test file {target_test_file} for {module_path} not found! Skipping.", file=sys.stderr)
+             continue
+
+        # Construct specific test command for this module
+        test_cmds = [
+            "pytest",
+            target_test_file,
+            # Ignore problematic files even if target is specific, just in case of imports
+            "--ignore=tests/unit/test_dynamic_validation.py",
+            "--ignore=tests/unit/test_embedding_filter.py",
+            "--ignore=tests/unit/test_retry.py",
+            "--ignore=tests/unit/test_analyze_graph.py",
+            "--ignore=tests/unit/test_memory_service.py"
+        ]
+
         clean_time = run_clean_trial(test_cmds)
         if clean_time < 0:
             print(f"Skipping {module_path} due to clean trial failure/timeout.", file=sys.stderr)
@@ -148,6 +155,7 @@ def main():
                 json.dump({"error": "Clean trial failed"}, f)
             continue
 
+        # Use 200s timeout as requested, though ideally it should be much faster now
         config = mutatest.run.Config(
             n_locations=2,
             max_runtime=200,

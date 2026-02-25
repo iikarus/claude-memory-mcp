@@ -1,0 +1,55 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 67,
+  "total_runtime": "0:00:11.486314",
+  "results": [
+    {
+      "status": "SURVIVED",
+      "return_code": 0,
+      "mutant": {
+        "src_file": "src/claude_memory/vector_store.py",
+        "src_idx": {
+          "ast_class": "BoolOp",
+          "lineno": 220,
+          "col_offset": 27,
+          "op_type": "<class 'ast.Or'>",
+          "end_lineno": 220,
+          "end_col_offset": 46
+        },
+        "mutation": "<class 'ast.And'>"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/vector_store.py",
+        "src_idx": {
+          "ast_class": "BinOpBC",
+          "lineno": 126,
+          "col_offset": 16,
+          "op_type": "<class 'ast.BitOr'>",
+          "end_lineno": 126,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.BitXor'>"
+      }
+    },
+    {
+      "status": "ERROR",
+      "return_code": 2,
+      "mutant": {
+        "src_file": "src/claude_memory/vector_store.py",
+        "src_idx": {
+          "ast_class": "BinOpBC",
+          "lineno": 126,
+          "col_offset": 16,
+          "op_type": "<class 'ast.BitOr'>",
+          "end_lineno": 126,
+          "end_col_offset": 37
+        },
+        "mutation": "<class 'ast.BitAnd'>"
+      }
+    }
+  ]
+}

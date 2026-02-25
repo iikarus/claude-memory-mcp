@@ -1,0 +1,71 @@
+{
+  "n_locs_mutated": 2,
+  "n_locs_identified": 10,
+  "total_runtime": "0:00:08.086986",
+  "results": [
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/logging_config.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 23,
+          "col_offset": 8,
+          "op_type": "If_Statement",
+          "end_lineno": 24,
+          "end_col_offset": 48
+        },
+        "mutation": "If_True"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/logging_config.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 23,
+          "col_offset": 8,
+          "op_type": "If_Statement",
+          "end_lineno": 24,
+          "end_col_offset": 48
+        },
+        "mutation": "If_False"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/logging_config.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 47,
+          "col_offset": 4,
+          "op_type": "If_Statement",
+          "end_lineno": 55,
+          "end_col_offset": 9
+        },
+        "mutation": "If_False"
+      }
+    },
+    {
+      "status": "DETECTED",
+      "return_code": 1,
+      "mutant": {
+        "src_file": "src/claude_memory/logging_config.py",
+        "src_idx": {
+          "ast_class": "If",
+          "lineno": 47,
+          "col_offset": 4,
+          "op_type": "If_Statement",
+          "end_lineno": 55,
+          "end_col_offset": 9
+        },
+        "mutation": "If_True"
+      }
+    }
+  ]
+}
