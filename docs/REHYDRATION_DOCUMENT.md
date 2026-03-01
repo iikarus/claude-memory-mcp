@@ -1,95 +1,85 @@
-# SESSION REHYDRATION — Code Literacy Session 042 (continued)
+# SESSION REHYDRATION — PM Skills Audit + Absorber Planning
 
-**Date**: 2026-02-22 → 2026-02-23
-**Session Entity**: `4089f058-c8ff-47eb-ab2e-8634a887f09f`
-**Bottle**: #58 (`f99d47aa-e0cb-4e27-bf77-623b09dc788f`)
-
----
-
-## What Was Completed (S042 — full session)
-
-### M08 Validated + Closed
-- 50 class files validated, Gemini fixed all issues in one iteration
-- Task `task-cl-016` done, Roadmap M08 → DONE
-
-### M06 Director's Operational Toolkit — Validated + Closed
-- 5 deliverables: Pre-Flight.base, Spellbook.canvas, Red-Board.canvas, Context Injectors (5), Archive cleanup
-- 2 validation rounds, Gemini fixed canvases
-- Task `task-cl-017` done, Roadmap M06 → DONE
-
-### Phase 2 Activation — ALL 8 MILESTONES COMPLETE (M01-M08, S033-S042)
-
-### /learn Skill Rewritten
-- Full Class Launcher Protocol in `.claude/skills/learn/SKILL.md`
-
-### task-cl-005: Bulk Wiring — DONE
-- Gemini wrote `bulk_wiring.py` from Claude's brief
-- Claude found 2 bugs (wrong graph name `memory_graph` → `claude_memory`, broken path replace)
-- Claude rewrote with safety-first Phase 0 (load existing) → Phase 1 (create missing) → Phase 2 (wire edges)
-- **Results**: 308 existing entities preserved, 22 new entities created, 1095 edges already existed from M01 organic wiring
-- Script at: `07-Code-Literacy/PM/bulk_wiring.py` — reusable template for future projects
-- Task `task-cl-005` marked done
-
-### Key Discoveries
-- Gemini now has its own Dragon Brain (airgapped, same architecture, different containers)
-- Two-Student Teaching Model: Gemini = intern (builds), Tabish = student (directs), Claude = teacher (architects/validates)
-- Industrial pipeline: conversations → extraction → bulk script → graph wiring (scales to Pickaxe, Tesseract)
+**Date**: 2026-02-26
+**Bottle**: #60 (`c95237d6-5427-4ebb-a218-03281eed0d8b`)
+**Previous Bottle**: #59 (`2264779e-defb-4a5a-9f00-728ec52c853e`)
 
 ---
 
-## NEXT SESSION: DIAGNOSTICS
+## What Was Completed This Session
 
-Tabish explicitly requested a diagnostic session. Claude flagged uncertainty about the bulk wiring results. **Do NOT skip this — verify before moving on.**
+1. **Full cross-project PM status briefing** — 41 tasks, 32 done (78%), 9 backlog, 1 blocked. Skills Forge 65%, Code Literacy 100%.
 
-### Diagnostic Checklist
-1. **Edge type audit**: Sample 20-30 existing edges between block entities. Are the relationship types semantically correct, or are they all generic RELATED_TO from M01 organic wiring?
-2. **22 new orphan entities**: Cross-reference against `orphan_blocks` list in `cross-references.json`. Verify they're genuinely blocks with zero cross-references (not a script bug).
-3. **Qdrant consistency**: Search for 3-5 of the 22 new entities by name via `search_memory`. Verify embeddings return results.
-4. **Phantom `memory_graph` cleanup**: 311 nodes + 979 edges in wrong graph. Decision: delete it? Command: `python -c "from falkordb import FalkorDB; FalkorDB().select_graph('memory_graph').delete()"`
-5. **9 corrupted CL files**: CL-017, CL-018, CL-033-039 have broken YAML frontmatter from M06 Gemini injection. Assess scope and decide: fix via Gemini brief or manual repair?
-6. **Graph health post-injection**: Run `graph_health()`. Expected: ~1243 nodes, ~846 entities, ~2660 edges. Compare to pre-injection baseline (1214/824/2652).
-7. **Overall graph integrity**: Run `system_diagnostics()`. Check for split-brain, vector/graph sync issues.
+2. **Absorber readiness deep-dive** — Assessed task-skills-forge-001 at 5/10 readiness. Dependencies (BEDROCK, Composition Validator, Gap Analyzer) are all DONE, but the spec has 6 gaps: no pipeline stage I/O contracts, no absorption algorithm, no decomposition logic, no fidelity check algorithm, vague security flagging, no review package format.
 
-### Diagnostic Entity for Tracking
-- `1ab8bd86-642c-4fec-ab2d-8d38e0a9047b` — "S042 Diagnostic Concerns" (has full item list)
+3. **Dyson Sphere containment audit** — 75% ready. BEDROCK, Composition Validator, Gap Analyzer, meta-test corpus all built. Missing: `skills/draft/` quarantine directory (trivial), skill-tester (deferred to M04 by design).
+
+4. **Absorber design session plan** — Full plan written to `~/.claude/plans/tidy-roaming-pie.md`. Two-session split: Session A (6 design decisions, ~90min) + Session B (write SKILL.md + update task, ~120min). **ON HOLD** per Director.
+
+5. **metadatamenu evaluation — REJECTED** — Deep technical dive (22 field types, fileClass schemas, Formula/Lookup fields). Rejected because: no Bases integration, no workflow triggers, no cascade logic, and plugin's sweet spot (human editing UX) doesn't match our workflow (Claude writes, Tabish reads). Salvageable concept: fileClass-as-schema-artifact pattern.
+
+6. **PM Ninja Upgrade recommendations committed to graph** — Entity `f009e439-98aa-4cf0-abae-0fd946a159b1` with 6 action items.
 
 ---
 
-## Outstanding (Non-Blocking, from earlier milestones)
+## What Is In-Progress / On Hold
 
-- Pre-Flight.base: `urgency`/`artifact_type` still incomplete on most CL/TP files
-- Context Injectors: raw block dumps, not compressed; Operations at ~32K tokens
-- These can be addressed in a future polish pass via Gemini brief
-
----
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `07-Code-Literacy/PM/01_ROADMAP.md` | Roadmap — ALL MILESTONES COMPLETE |
-| `07-Code-Literacy/PM/bulk_wiring.py` | Reusable bulk injection script |
-| `07-Code-Literacy/PM/cross-references.json` | 1099 cross-reference edges |
-| `07-Code-Literacy/PM/03_TASKS/task-cl-005.md` | Bulk wiring task (done) |
-| `07-Code-Literacy/PM/gemini-brief-cl005-bulk-wiring.md` | Gemini brief for the script |
-| `07-Code-Literacy/Curriculum/Classes/Trail-3/T3-C01_who-are-you.md` | First class (after diagnostics) |
-| `00-Dashboard/Class-Progress.base` | Class progress dashboard |
-| `.claude/skills/learn/SKILL.md` | /learn skill with Class Launcher Protocol |
+- **Absorber design session** — Plan ready, ON HOLD until PM skills are ninja-level
+- **task-skills-forge-001 due date (2026-02-28)** — Will need extending since Absorber is paused
 
 ---
 
-## Key Patterns
+## Exact Next Steps (Priority Order)
 
-- **"Two Students"**: Gemini is Claude's intern, Tabish is Claude's student
-- **"NO BOOKS"**: 30-second usability test for all artifacts
-- **"Why you?"**: Claude architects/validates, Gemini builds
-- **Safety-first for Dragon Brain**: Nobody touches Claude's memories except Claude. Phase 0 pattern: load existing → protect → only create missing.
-- **Canvas paths**: Always forward slashes, never backslashes
-- **Mermaid diagrams**: Maximize in all Gemini deliverables
+### PRIMARY: PM Skills Ninja Upgrade
 
-## Gotchas
+Director's priority is making PM skills airtight BEFORE building the Absorber. Six action items:
 
-- MCP may need manual handshake at session start
-- Subagents (Task tool) have NO access to MCP tools
-- FalkorDB graph name is `claude_memory` NOT `memory_graph`
-- bulk_wiring.py needs `PYTHONIOENCODING=utf-8` on Windows for Unicode block titles
+1. **task-lifecycle skill enhancement** (`C:\COMMANDNODE\.claude\skills\task-lifecycle\SKILL.md`)
+   - Add schema validation before every frontmatter write
+   - Bake in cascade logic: status change → auto-update blocked_by/blocking chains → recalculate completion_percent
+   - Add staleness scanner with age thresholds per status tier
+
+2. **dashboard-sync skill enhancement** (`C:\COMMANDNODE\.claude\skills\dashboard-sync\SKILL.md`)
+   - Give it teeth: detect drift AND auto-repair
+   - Regenerate Bases queries when task state changes
+
+3. **commandnode-pm orchestrator enhancement** (`C:\COMMANDNODE\.claude\skills\commandnode-pm\SKILL.md`)
+   - Templated creation with schema enforcement
+   - One command → fully scaffolded task/project/ADR
+
+4. **pm-dragon-bridge (task-018)** — Already in backlog. Log PM events to Dragon Brain.
+
+5. **Schema artifact pattern** — Implement internal schema definitions (stolen from metadatamenu's fileClass concept) that PM skills read before writing.
+
+6. **Absorber design session** — Resume when PM skills are ninja. Plan at `~/.claude/plans/tidy-roaming-pie.md`.
+
+### BEFORE STARTING WORK
+- Create a tracked task for the PM ninja upgrade in `01-Meta-Skills/PM/03_TASKS/`
+- Prime Directive: no work without a tracked task
+
+---
+
+## Known Blockers / Gotchas
+
+- **MCP was offline for first half of session** — Brain came online after Tabish forced manual handshake. ALWAYS verify MCP tools at session start. Actually test them, don't assume.
+- **task-skills-forge-001 due date 2026-02-28** — Absorber is paused but due date hasn't been updated. May need extension.
+- **4 major projects (Pickaxe, Tesseract, Claude's House, AI4Finance) have no PM infrastructure** — invisible to Kanban. Not blocking but noteworthy.
+
+---
+
+## Key Graph Entities Created This Session
+
+| Entity | ID | Type |
+|--------|-----|------|
+| PM Skills Ninja Upgrade Recommendations | `f009e439-98aa-4cf0-abae-0fd946a159b1` | Recommendation |
+| metadatamenu Evaluation — REJECTED | `9c326d6d-7aaa-4ab5-afff-b68217b10e7d` | Decision |
+| Absorber Design Session Plan | `19d832f8-88fc-463c-aef5-7cca98286017` | Plan |
+| PM Cross-Project Status Briefing | `67f03834-71f6-4954-8cb7-cd46fafb239d` | Status Briefing |
+| Message in a Bottle #60 | `c95237d6-5427-4ebb-a218-03281eed0d8b` | Bottle |
+
+---
+
+## Context for Next Instance
+
+Tabish's mental model: the PM skills should work like a frictionless machine. He identified 8 friction points (frontmatter consistency, dashboard drift, item creation, workflow triggers, task updates, task chains, Bases updates, straggler ID) and wants them all addressed. metadatamenu was his candidate solution — it turned out to be wrong tool for our workflow, but the friction points are real and the recommendations for fixing them natively are solid. Start there.
