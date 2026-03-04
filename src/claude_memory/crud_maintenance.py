@@ -42,6 +42,14 @@ class CrudMaintenanceMixin:
         self._background_tasks.add(task)
         task.add_done_callback(self._background_tasks.discard)
 
+    async def flush_background_tasks(self) -> None:
+        """Await all pending background tasks (salience updates, etc.).
+
+        Useful for graceful shutdown and deterministic test assertions.
+        """
+        if self._background_tasks:
+            await asyncio.gather(*self._background_tasks)
+
     async def add_observation(self, params: "ObservationParams") -> dict[str, Any]:
         """Adds an observation node linked to an entity."""
         obs_id = str(uuid.uuid4())
