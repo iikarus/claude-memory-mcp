@@ -52,6 +52,14 @@ class AnalysisMixin:
         health["community_count"] = community_count
         return health  # type: ignore[no-any-return]
 
+    async def list_orphans(self, limit: int = 50) -> list[dict[str, Any]]:
+        """List graph nodes with zero relationships (orphans).
+
+        Delegates to repository-level Cypher query. Returns id, name,
+        node_type, project_id, focus, labels, and created_at.
+        """
+        return self.repo.list_orphans(limit=limit)
+
     async def system_diagnostics(self) -> dict[str, Any]:
         """E-5: Unified system diagnostics — graph, vector, and split-brain."""
         result: dict[str, Any] = {}

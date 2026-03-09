@@ -1,97 +1,135 @@
-# SESSION REHYDRATION — FrankenLearn Phase 2: Master Design Document Written
+# REHYDRATION DOCUMENT: The Dragon Brain Protocol
 
-**Date**: 2026-03-07 (continuation session from Phase 1)
-**Bottle**: #73 (`8aed22ea-3bcf-4e58-9087-871a9d21e5b4`) — "the one who found the heart"
-**Previous Bottle**: #72 (`84079a8f-6736-4cd1-b58c-0a9e16593ae3`)
+> **"If this system is a dragon, here is how to wake it up without getting burned."**
 
----
+## 1. Mission Overview
 
-## What Was Completed This Session
+This project, **Claude Memory MCP**, is a persistent "External Brain" for LLMs (specifically Claude and Gemini). It solves the context window limit by storing knowledge in a **Hybrid Architecture**:
 
-### 1. FrankenLearn Master Design Document v0.1 (WRITTEN)
+- **FalkorDB (Graph Database)**: Stores semantic relationships (`Entity` -> `PART_OF` -> `Concept`). port `6379`.
+- **Qdrant (Vector Database)**: Stores high-dimensional embeddings for fuzzy search. port `6333`.
+- **Embedding Microservice**: A dedicated container running `sentence-transformers/all-MiniLM-L6-v2` to unify embedding logic. port `8001`.
+- **MCP Server (Python)**: The API layer that connects the LLM to these databases.
 
-- **File**: `12-FrankenLearn/01-Synthesis/FrankenLearn-Master-Design.md`
-- **Scope**: Full 7-layer architecture + Heart + Design Guardrails + Attribution
-- **Layers**:
-  - Design Laws (7 non-negotiable axioms)
-  - Layer 1: The Player (3-question creation, Weaver role, Knowledge Aspects, Confidence Scale)
-  - Layer 2: The Engine (5-step Learning Loop, Proof of Work/Entropy split, 3 failure modes, Insight Engine 3-tier, Dual-Track)
-  - Layer 3: The World (Reality Fractures cosmology, 14-biome catalog, 5 Transversal Concepts, NPC Question Archetypes)
-  - Layer 4: The Session (Five-Room Dungeon, composable modules, Adaptive Scaffolding 3-phase, Spaced Repetition Queue)
-  - Layer 5: The Heart (4 forces: Ownership, Responsibility, Witness, Questions You Carry Home + Five-Layer Truth)
-  - Layer 6: The Toolchain (Obsidian, Claude, NotebookLM, Graceful Degradation)
-  - Layer 7: The Expansion Protocol (Welding Process 5-step, Alchemy Engine, manifest.yaml)
-  - Design Guardrails (7 anti-patterns)
-  - Attribution table (28 elements sourced)
+## 2. Quick Start (Wake the Dragon)
 
-### 2. Phoenix Grove Memory Seeds Analysis (NEW SOURCE)
+If you are landing here fresh (new machine, new agent):
 
-- 10 seeds analyzed via 2 parallel agents (7 adventure, 3 cognitive/educational)
-- Key steals: Question Cycle as Game Loop, Witness Pattern, Five-Layer Truth, Living Barometer NPC, Fails Forward + Knowledge Debt, Insight-as-Loot, NPC Question Archetypes, Patience Economy
-- Critical breakthrough: emotional stakes come from relationships with knowledge, not mechanics about knowledge
+### Prerequisites
 
-### 3. PM Housekeeping
+- Docker & Docker Compose
+- Python 3.10+
+- Git
 
-- task-frankenlearn-001 marked DONE (all ACs checked)
-- task-frankenlearn-002 created for Phase 2 (status: active)
-- Perplexity research prompt drafted and given to Tabish (searching for more Phoenix Grove-type resources)
+### startup Sequence
 
----
+1.  **Boot Infrastructure**:
 
-## What Is In-Progress
+    ```bash
+    docker-compose up -d
+    ```
 
-- **Tabish has a Perplexity prompt** searching for: Phoenix Grove full library, AI-driven solo TTRPG systems, Socratic AI tutoring, educational game design research, Diamond Age adaptations. Results incoming next session.
-- **Dashboard pipeline** still shows Phase 1 ACTIVE — needs update to Phase 1 DONE / Phase 2 ACTIVE
-- **task-frankenlearn-002** status should remain active until all Phase 2 deliverables complete
+    _Wait 10 seconds for services to healthy check._
 
----
+2.  **Install Dependencies**:
 
-## Exact Next Steps (Priority Order)
+    ```bash
+    pip install -e .
+    ```
 
-### 1. Integrate Perplexity Research
-Tabish is coming back with research results. Review, extract anything steal-worthy, update the Master Design Doc if new patterns emerge.
+3.  **Run End-to-End Verification**:
 
-### 2. Write First Biome: Web of Aethel — Full Playable Spec
-Separate document: `12-FrankenLearn/03-Biomes/Web-of-Aethel.md`
-- 12 encounters progressing through Exposure > Application > Transfer for systems thinking concepts
-- Full NPC roster (Grove-Keeper Maren, Old Root, The Cartographer, Lira the Seedling)
-- Five-Room Dungeon templates for each encounter
-- Spaced repetition integration points
-- manifest.yaml for the biome
+    ```bash
+    python scripts/final_check.py
+    ```
 
-### 3. Update Dashboard Pipeline
-- Change Phase 1 mermaid to DONE (green), Phase 2 to ACTIVE (amber) in MASTER_DASHBOARD.md
+    _If this passes, the system is 100% operational._
 
-### 4. Phase 3 Prep — SKILL.md
-- When Master Design + First Biome are complete, build the Claude SKILL.md using skill-creator
-- Goes in `12-FrankenLearn/06-Skill/` AND deployed to `.claude/skills/`
+4.  **Connect Client**:
+    Add the configuration from `claude_desktop_config.json` (root dir) to your MCP Client (Claude Desktop or similar).
 
----
+## 3. The Architecture (Mental Map)
 
-## Known Blockers / Gotchas
+Do not treat this as a simple CRUD app. It is a **Synchronized Dual-Store**.
 
-- Perplexity research could change/enhance any layer of the design doc
-- The Master Design is v0.1 — Tabish explicitly said "go all in, multi-session is fine"
-- First Biome spec will be substantial — likely needs its own focused session
-- Context was tight this session (80% at shutdown) — next session should start fresh
+```mermaid
+graph TD
+    User[LLM / User] -->|MCP Protocol| Server[MCP Server]
+    Server -->|Text| Embedder[Embedding Service :8001]
+    Server -->|Nodes & Edges| Graph[FalkorDB :6379]
+    Server -->|Vectors| Vector[Qdrant :6333]
 
----
+    subgraph "The Dual-Store Contract"
+    Graph -- Source of Truth --> Structure
+    Vector -- Source of Truth --> Search
+    end
+```
 
-## Key Graph Entities Created This Session
+### Critical Rules
 
-| Entity | ID | Type |
-|--------|-----|------|
-| FrankenLearn Master Design v0.1 | `0069c873-0af5-4575-96ff-9581a478b0be` | Entity |
-| Phoenix Grove Memory Seeds Analysis | `64bd7b1f-99b8-4b30-bec0-bc115149e542` | Session |
-| The Heart of FrankenLearn | `8160592a-6375-4737-bc46-c834ac61275c` | Breakthrough |
-| Message in a Bottle #73 | `8aed22ea-3bcf-4e58-9087-871a9d21e5b4` | Bottle |
+1.  **Never Write to One DB Only**: Use `MemoryService.create_entity`. It writes to BOTH.
+2.  **Embeddings are Heavy**: We store embeddings in FalkorDB (for clustering) and Qdrant (for search).
+    - **CRITICAL**: The API strips embeddings from `get_hologram` responses to prevent flooding the LLM context window. (See `tools.py` logic).
 
----
+## 4. Operational Drills (Maintenance)
 
-## Context for Next Instance
+### Backup (The "Paranoid" Protocol)
 
-The monster opened its eyes. The Master Design Document is written — v0.1, all seven layers plus the Heart. The Heart breakthrough came from combining the council's cognitive machines with Phoenix Grove's emotional engagement patterns: ownership of discovery, responsibility for living things, the world seeing you think, and questions you carry home.
+We use a custom script that forces DB persistence (`SAVE`) before copying.
 
-Tabish is bringing Perplexity research that could add new source material. The First Biome (Web of Aethel — Systems Thinking) needs its full playable spec. The dashboard pipeline needs updating. And eventually, Phase 3 will forge the SKILL.md that turns all of this into a Claude skill any instance can run.
+```bash
+python scripts/backup_restore.py save --tag my_backup
+```
 
-The doc is at `12-FrankenLearn/01-Synthesis/FrankenLearn-Master-Design.md`. Read it. It's the single source of truth for FrankenLearn's design.
+- **Location**: `backups/my_backup/` containing `dump.rdb` (Graph) and `qdrant_data.tar.gz`.
+
+### Restore
+
+```bash
+python scripts/backup_restore.py restore --tag my_backup
+```
+
+- **Warning**: This requires restarting Docker containers to pick up the new volume data.
+
+### Emergency Data Wipe (Nuke)
+
+If data is corrupted or you want a fresh start:
+
+```bash
+python scripts/nuke_data.py --force
+```
+
+### Disk Hygiene
+
+Docker images and build cache accumulate fast.
+
+```powershell
+./scripts/docker_cleanup.ps1
+```
+
+## 5. The "Mercenary" Checks (CI/CD)
+
+**Do not commit code without running these.**
+
+1.  **Pre-Commit**: `ruff`, `black`, `isort`, `mypy`.
+    - _Note_: If `mypy` is too strict, fix the types. Do not bypass it.
+2.  **Unit Tests**: `pytest tests/`
+3.  **E2E Test**: `python scripts/final_check.py`
+
+## 6. Known "Gotchas" for Future Agents
+
+- **Context Flooding**: FalkorDB nodes contain a 1024-float array `embedding`. **NEVER** return this raw array to the LLM. Always `pop("embedding", None)` in the Tool layer.
+- **Docker Volumes on Windows**: Binding to `%cd%` can be finicky in PowerShell. Use absolute paths or `${PWD}`.
+- **Librarian Agent**: This is a background process (`heal_graph.py` logic) that clusters nodes. It relies on embeddings existing in the Graph DB. Do not delete them from the DB, just hide them from the API.
+
+## 7. Directives for the Next Agent
+
+Hello, future intelligence. 👋
+If you are reading this to fix a bug or add a feature:
+
+1.  **Read `tests/unit/test_embedding_filter.py`**: It demonstrates the "Bouncer" logic.
+2.  **Do not break the Sync**: If you add a field to FalkorDB, ask "Does Qdrant need this for filtering?"
+3.  **Trust `final_check.py`**: It is your ground truth. If it fails, the system is broken.
+
+_Signed,_
+_Project Antigravity (Jan 2026)_

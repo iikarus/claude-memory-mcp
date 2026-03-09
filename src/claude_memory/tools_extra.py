@@ -45,6 +45,7 @@ def configure(mcp: FastMCP, service: MemoryService, librarian: LibrarianAgent) -
     mcp.tool()(find_knowledge_gaps)
     mcp.tool()(reconnect)
     mcp.tool()(system_diagnostics)
+    mcp.tool()(list_orphans)
 
 
 async def search_associative(  # noqa: PLR0913
@@ -182,3 +183,16 @@ async def reconnect(
 async def system_diagnostics() -> dict[str, Any]:
     """Unified system diagnostics — graph stats, vector stats, and split-brain check."""
     return await _service.system_diagnostics()  # type: ignore[union-attr]
+
+
+async def list_orphans(limit: int = 50) -> list[dict[str, Any]]:
+    """List graph nodes with zero relationships (orphans).
+
+    Returns id, name, node_type, project_id, focus, labels, and
+    created_at for each orphan so the caller can decide whether to
+    reconnect or delete them.
+
+    Args:
+        limit: Maximum nodes to return (default 50, safety cap).
+    """
+    return await _service.list_orphans(limit=limit)  # type: ignore[union-attr]

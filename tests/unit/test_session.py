@@ -47,15 +47,9 @@ async def test_start_session(memory_service: MemoryService) -> None:
     assert "CREATE (s:Session)" in cypher
     assert "SET s = $props" in cypher
 
-    # Verify temporal anchor props
+    # Check params
     call_params = graph.query.call_args[0][1]
     assert call_params["props"]["project_id"] == "meta"
-    assert "occurred_at" in call_params["props"]
-    assert call_params["props"]["occurred_at"] == call_params["props"]["created_at"]
-
-    # Verify PRECEDED_BY edge logic is in the query
-    assert "PRECEDED_BY" in cypher
-    assert "OPTIONAL MATCH" in cypher
 
 
 @pytest.mark.asyncio

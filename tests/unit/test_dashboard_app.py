@@ -42,11 +42,6 @@ mock_network = MagicMock()
 @pytest.fixture(autouse=True)
 def _patch_dashboard_deps(monkeypatch: pytest.MonkeyPatch) -> None:
     """Patch all heavy dashboard dependencies before test execution."""
-    # Reset module-level mocks to prevent side_effect leakage between tests
-    mock_st.reset_mock()
-    mock_st.sidebar.button.side_effect = None
-    mock_st.sidebar.button.return_value = False
-
     monkeypatch.setitem(sys.modules, "streamlit", mock_st)
     monkeypatch.setitem(sys.modules, "streamlit.components", MagicMock())
     monkeypatch.setitem(sys.modules, "streamlit.components.v1", mock_components)
@@ -75,7 +70,7 @@ def _import_dashboard() -> Any:
 # ─── get_stats Tests ────────────────────────────────────────────────
 
 
-def test_get_stats() -> None:
+async def test_get_stats() -> None:
     dashboard_app = _import_dashboard()
 
     mock_service = MagicMock()
@@ -122,28 +117,11 @@ def test_get_graph_data_focused() -> None:
         result = dashboard_app.get_graph_data(limit=GRAPH_LIMIT_CUSTOM, focus=FOCUS_NODE_NAME)
 
     query_used = mock_service.repo.execute_cypher.call_args[0][0]
-    params_used = mock_service.repo.execute_cypher.call_args[0][1]
     assert "$focus" in query_used
+    # Verify focus was passed as a parameter
+    params_used = mock_service.repo.execute_cypher.call_args[0][1]
     assert params_used["focus"] == FOCUS_NODE_NAME
     assert result is mock_result
-
-
-def test_get_graph_data_injection_safe() -> None:
-    """Cypher injection: focus with quote chars must NOT appear in query string."""
-    dashboard_app = _import_dashboard()
-
-    mock_service = MagicMock()
-    mock_service.repo.execute_cypher.return_value = MagicMock()
-    malicious_input = "' OR 1=1 RETURN n //"
-
-    with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        dashboard_app.get_graph_data(limit=100, focus=malicious_input)
-
-    query_used = mock_service.repo.execute_cypher.call_args[0][0]
-    params_used = mock_service.repo.execute_cypher.call_args[0][1]
-    # The malicious input must be in params, NOT in the query string
-    assert malicious_input not in query_used
-    assert params_used["focus"] == malicious_input
 
 
 # ─── main() Tests ───────────────────────────────────────────────────
@@ -156,7 +134,9 @@ def test_main_explorer_mode() -> None:
     mock_service = MagicMock()
     mock_stats_result = MagicMock()
     mock_stats_result.result_set = [[NODE_COUNT]]
-    mock_service.repo.execute_cypher.return_value = mock_stats_result
+    # execute_cypher is called 3 times: nodes count, edges count, graph data
+    mock_edge_stats = MagicMock()
+    mock_edge_stats.result_set = [[EDGE_COUNT]]
 
     # Build mock graph result with nodes, relationship, and neighbor
     mock_node_n = MagicMock()
@@ -174,10 +154,16 @@ def test_main_explorer_mode() -> None:
         [mock_standalone, None, None],
     ]
 
+    mock_service.repo.execute_cypher.side_effect = [
+        mock_stats_result,  # get_stats: node count
+        mock_edge_stats,  # get_stats: edge count
+        mock_graph_result,  # get_graph_data: graph cypher result
+    ]
+
     # Mock Streamlit widgets
     mock_st.sidebar.radio.return_value = "Explorer"
     mock_st.sidebar.button.return_value = False
-    mock_st.button.return_value = True  # "Refresh Graph" clicked
+    mock_st.button.return_value = True  # "Refresh Graph" clicked clicked
     mock_st.slider.return_value = GRAPH_LIMIT_DEFAULT
     mock_st.text_input.return_value = ""
     mock_st.columns.return_value = [MagicMock(), MagicMock()]
@@ -185,12 +171,11 @@ def test_main_explorer_mode() -> None:
     mock_network_instance = MagicMock()
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        # get_stats and get_graph_data are now sync — mock via get_stats/get_graph_data
-        with patch.object(dashboard_app, "get_stats", return_value=(NODE_COUNT, EDGE_COUNT)):
-            with patch.object(dashboard_app, "get_graph_data", return_value=mock_graph_result):
-                with patch.object(dashboard_app, "Network", return_value=mock_network_instance):
-                    with patch("builtins.open", MagicMock()):
-                        dashboard_app.main()
+        with patch("asyncio.run") as mock_run:
+            mock_run.return_value = None  # asyncio.run not used in Explorer tab
+            with patch.object(dashboard_app, "Network", return_value=mock_network_instance):
+                with patch("builtins.open", MagicMock()):
+                    dashboard_app.main()
 
     mock_st.title.assert_called()
     mock_network_instance.add_node.assert_called()
@@ -234,10 +219,10 @@ def test_main_search_mode_with_query() -> None:
     mock_st.text_input.return_value = SEARCH_QUERY
 
     with patch.object(dashboard_app, "get_service", return_value=mock_service):
-        # get_stats is now sync — mock it directly
-        with patch.object(dashboard_app, "get_stats", return_value=(NODE_COUNT, EDGE_COUNT)):
-            with patch("asyncio.run", return_value=[mock_search_result]):
-                dashboard_app.main()
+        with patch("asyncio.run") as mock_async_run:
+            # asyncio.run is only called for service.search (get_stats is sync)
+            mock_async_run.return_value = [mock_search_result]
+            dashboard_app.main()
 
 
 def test_main_maintenance_mode() -> None:

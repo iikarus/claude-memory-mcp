@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Custom MCP server for Claude's Hybrid Memory System"
 requires-python = ">=3.12"
 dependencies = [
+    "graphiti-core>=0.5.0,<1.0.0",
     "falkordb>=1.0.0",
     "mcp>=0.1.0",
     "pydantic>=2.0.0",
@@ -17,7 +18,6 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
     "httpx>=0.26.0",
-    "nest-asyncio>=1.6.0",
 ]
 
 [project.scripts]
@@ -120,22 +120,13 @@ exclude_lines = [
 ]
 fail_under = 30
 
-[tool.coverage.paths]
-source = [
-    "src/claude_memory",
-    "**/site-packages/claude_memory",
-]
-dashboard = [
-    "src/dashboard",
-    "**/site-packages/dashboard",
-]
-
 [[tool.mypy.overrides]]
 module = [
     "falkordb.*",
     "pyvis.*",
     "streamlit.*",
     "sentence_transformers.*",
+    "graphiti_core.*"
 ]
 ignore_missing_imports = true
 

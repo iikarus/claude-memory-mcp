@@ -27,10 +27,10 @@ os.environ.setdefault("QDRANT_HOST", "localhost")
 
 from falkordb import FalkorDB
 
-from src.claude_memory.embedding import EmbeddingService
-from src.claude_memory.vector_store import QdrantVectorStore
+from claude_memory.embedding import EmbeddingService
+from claude_memory.vector_store import QdrantVectorStore
 
-BATCH_SIZE = 20
+BATCH_SIZE = 5
 
 
 async def main(*, dry_run: bool = False) -> None:  # noqa: C901, PLR0912

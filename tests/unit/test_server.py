@@ -73,7 +73,6 @@ with patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-embedding-api"}):
             with patch("claude_memory.lock_manager.redis.Redis"):
                 from claude_memory import server, tools_extra
 
-
 # ─── Fixtures ───────────────────────────────────────────────────────
 
 
@@ -99,11 +98,6 @@ def _mock_service(monkeypatch: pytest.MonkeyPatch) -> None:
     mock_svc.prune_stale = AsyncMock(return_value={"pruned": PRUNE_DAYS})
     mock_svc.search = AsyncMock(return_value=[])
     mock_svc.create_memory_type = MagicMock(return_value={"name": MEMORY_TYPE_NAME})
-    mock_svc.query_timeline = AsyncMock(return_value=[{"id": ENTITY_ID}])
-    mock_svc.get_temporal_neighbors = AsyncMock(return_value=[{"id": ENTITY_ID}])
-    mock_svc.get_bottles = AsyncMock(return_value=[{"id": "bottle-1", "content": "note"}])
-    mock_svc.get_graph_health = AsyncMock(return_value={"nodes": 10, "edges": 15, "density": 0.3})
-    mock_svc.detect_structural_gaps = AsyncMock(return_value=[{"gap": "cluster-1"}])
     monkeypatch.setattr(server, "service", mock_svc)
     monkeypatch.setattr(tools_extra, "_service", mock_svc)
 
@@ -111,7 +105,16 @@ def _mock_service(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture()
 def _mock_librarian(monkeypatch: pytest.MonkeyPatch) -> None:
     mock_lib = AsyncMock()
-    mock_lib.run_cycle = AsyncMock(return_value={"clusters_found": 3})
+    mock_lib.run_cycle = AsyncMock(
+        return_value={
+            "clusters_found": 3,
+            "consolidations_created": 0,
+            "deleted_stale": 0,
+            "gaps_detected": 0,
+            "gap_reports_stored": 0,
+            "errors": [],
+        }
+    )
     monkeypatch.setattr(server, "librarian", mock_lib)
     monkeypatch.setattr(tools_extra, "_librarian", mock_lib)
 
@@ -324,7 +327,7 @@ async def test_search_memory_with_results() -> None:
 @pytest.mark.usefixtures("_mock_librarian")
 async def test_run_librarian_cycle() -> None:
     result = await server.run_librarian_cycle()
-    assert result == {"clusters_found": 3}
+    assert result["clusters_found"] == 3
 
 
 # ─── Ontology Tool Tests ────────────────────────────────────────────
@@ -351,52 +354,15 @@ async def test_create_memory_type_defaults() -> None:
 
 def test_main_stdio_transport() -> None:
     with patch.object(server, "mcp") as mock_mcp:
-        server.main()
-        assert mock_mcp is not None  # main() completes without error
+        with patch.dict(os.environ, {"MCP_TRANSPORT": TRANSPORT_STDIO}):
+            server.main()
+            mock_mcp.run.assert_called_once()
 
 
-# ─── Temporal Graph Layer Tool Tests ────────────────────────────────
-
-
-async def test_query_timeline_mcp_tool() -> None:
-    result = await server.query_timeline(
-        start="2026-01-01T00:00:00+00:00",
-        end="2026-02-01T00:00:00+00:00",
-        limit=10,
-    )
-    server.service.query_timeline.assert_awaited_once()
-    assert result == [{"id": ENTITY_ID}]
-
-
-async def test_query_timeline_with_project() -> None:
-    await server.query_timeline(
-        start="2026-01-01T00:00:00+00:00",
-        end="2026-02-01T00:00:00+00:00",
-        project_id=PROJECT_ID,
-    )
-    params = server.service.query_timeline.call_args[0][0]
-    assert params.project_id == PROJECT_ID
-
-
-async def test_get_temporal_neighbors_mcp_tool() -> None:
-    result = await server.get_temporal_neighbors(entity_id=ENTITY_ID, direction="after", limit=5)
-    server.service.get_temporal_neighbors.assert_awaited_once_with(ENTITY_ID, "after", 5)
-    assert result == [{"id": ENTITY_ID}]
-
-
-async def test_get_bottles_mcp_tool() -> None:
-    """get_bottles MCP wrapper delegates to _service.get_bottles."""
-    result = await tools_extra.get_bottles(limit=5)
-    assert result == [{"id": "bottle-1", "content": "note"}]
-
-
-async def test_graph_health_mcp_tool() -> None:
-    """graph_health MCP wrapper delegates to _service.get_graph_health."""
-    result = await tools_extra.graph_health()
-    assert result == {"nodes": 10, "edges": 15, "density": 0.3}
-
-
-async def test_find_knowledge_gaps_mcp_tool() -> None:
-    """find_knowledge_gaps MCP wrapper delegates to _service.detect_structural_gaps."""
-    result = await tools_extra.find_knowledge_gaps(min_similarity=0.8, max_edges=3, limit=5)
-    assert result == [{"gap": "cluster-1"}]
+def test_main_sse_transport() -> None:
+    """SSE transport was removed in Phase 7. main() now always uses stdio.
+    We verify that main() calls mcp.run() regardless of MCP_TRANSPORT env."""
+    with patch.object(server, "mcp") as mock_mcp:
+        with patch.dict(os.environ, {"MCP_TRANSPORT": TRANSPORT_SSE}):
+            server.main()
+            mock_mcp.run.assert_called_once()

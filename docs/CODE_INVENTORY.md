@@ -1,195 +1,120 @@
 # Code Inventory
 
-A manifest of the project structure. Last updated: March 7, 2026.
+> **Last Updated**: 2026-03-09 | **Source Modules**: 28 | **Test Files**: 33 | **MCP Tools**: 30 (19 decorator + 11 runtime) | **Scripts**: 42
+
+A manifest of the project structure.
 
 ## Core Logic (`src/claude_memory/`)
 
-| File                      | Purpose                                                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Data Access**           |                                                                                                                           |
-| `repository.py`           | **Data Access Layer**. FalkorDB connections, Cypher queries, Graph Algorithms, Temporal queries.                          |
-| `vector_store.py`         | **Vector Access Layer**. Qdrant client, collection management, similarity search, MMR. Re-raises init errors.             |
-| `schema.py`               | **Data Models**. Pydantic definitions for all inputs and outputs (30+ models).                                            |
-| **Services**              |                                                                                                                           |
-| `tools.py`                | **Business Facade**. `MemoryService` class — thin wrapper composing CrudMixin, SearchMixin, TemporalMixin, AnalysisMixin. |
-| `tools_extra.py`          | **Extra MCP Tools**. Additional tool registrations beyond the core set.                                                   |
-| `crud.py`                 | **CrudMixin**. Entity/relationship create, update, delete logic.                                                          |
-| `crud_maintenance.py`     | **CrudMaintenanceMixin**. Observation CRUD, background salience updates (fire-and-forget).                                |
-| `search.py`               | **SearchMixin**. Vector search, hologram retrieval, salience updates.                                                     |
-| `search_advanced.py`      | **Advanced Search**. Hologram subgraph expansion and spreading activation wiring.                                         |
-| `temporal.py`             | **TemporalMixin**. Sessions, breakthroughs, timeline queries, temporal neighbors.                                         |
-| `analysis.py`             | **AnalysisMixin**. Graph health, gap detection, stale pruning, consolidation.                                             |
-| `embedding.py`            | **ML Layer**. Wraps embedding API calls (remote) or local `SentenceTransformer`. Isolated.                                |
-| `embedding_server.py`     | **Embedding Microservice**. Standalone HTTP server for GPU-accelerated embedding generation.                              |
-| `clustering.py`           | **ML Layer**. `scikit-learn` DBSCAN clustering + structural gap detection (`detect_gaps`).                                |
-| `activation.py`           | **ML Layer**. `ActivationEngine` — spreading activation through graph edges for associative retrieval.                    |
-| `librarian.py`            | **Autonomous Agent**. Orchestrates maintenance loops (Fetch → Cluster → Consolidate → Gap Detect).                        |
-| `router.py`               | **Query Routing**. `QueryRouter` — rule-based intent classification (semantic/associative/temporal/relational).           |
-| `context_manager.py`      | **Session Management**. Context tracking for active sessions.                                                             |
-| `interfaces.py`           | **Protocols**. Abstract base classes (e.g., `Embedder`) for decoupling.                                                   |
-| `ontology.py`             | **Type System**. Runtime ontology management for custom memory types.                                                     |
-| **Infrastructure**        |                                                                                                                           |
-| `server.py`               | **MCP Server**. Wires services together, exposes 29 functions as MCP Tools. **stdio transport only.**                     |
-| `lock_manager.py`         | **Concurrency**. Redis-based distributed locking with file-based fallback. REDIS\_\* env vars take precedence.            |
-| `retry.py`                | **Resilience**. `@retry_on_transient` decorator for handling transient connection failures.                               |
-| `repository_queries.py`   | **Query Builder**. Cypher query construction helpers for repository.                                                      |
-| `repository_traversal.py` | **Graph Traversal**. Salience scoring (`log(x)/log(2)` for FalkorDB compat), cross-domain patterns.                       |
-| `graph_algorithms.py`     | **Graph Algorithms**. NetworkX Louvain for community detection + PageRank integration.                                    |
-| `logging_config.py`       | **Logging**. Structured logging configuration.                                                                            |
+| File | Purpose |
+|------|---------|
+| **Entry Points** | |
+| `__init__.py` | Package init. |
+| `server.py` | **MCP Server**. Wires services together, exposes 19 decorator-based MCP tools. |
+| `tools.py` | **MemoryService**. Primary service class composing all mixins. |
+| `tools_extra.py` | **Extra MCP Tools**. 11 runtime-registered tools (search variants, temporal, librarian, health, orphans). |
+| **Service Mixins** | |
+| `analysis.py` | **AnalysisMixin**. Graph health, diagnostics, reconnect, gap detection, orphan listing. |
+| `crud.py` | **CrudMixin**. Entity/relationship CRUD operations. |
+| `crud_maintenance.py` | **CrudMaintenanceMixin**. Archive, prune, consolidate, stale entity detection. |
+| `search.py` | **SearchMixin**. Core search and hologram retrieval. |
+| `search_advanced.py` | **SearchAdvancedMixin**. Associative search with spreading activation. |
+| `temporal.py` | **TemporalMixin**. Timeline queries, temporal neighbors, temporal edge creation. |
+| **Data Access** | |
+| `repository.py` | **MemoryRepository**. FalkorDB connection, graph selection, base persistence. |
+| `repository_queries.py` | **RepositoryQueryMixin**. Cypher queries for timeline, health, bottles, orphans, edges. |
+| `repository_traversal.py` | **RepositoryTraversalMixin**. Graph traversal, path finding, subgraph extraction. |
+| **ML & Intelligence** | |
+| `embedding.py` | **ML Layer**. SentenceTransformer embedding logic, strictly isolated. |
+| `embedding_server.py` | **Embedding Server**. FastAPI microservice for embedding generation. |
+| `clustering.py` | **ML Layer**. DBSCAN clustering via scikit-learn. |
+| `activation.py` | **Spreading Activation**. Energy propagation through knowledge graph for associative search. |
+| `graph_algorithms.py` | **Graph Algorithms**. PageRank, Louvain community detection wrappers. |
+| `librarian.py` | **Autonomous Agent**. Maintenance loops (Fetch -> Cluster -> Consolidate). |
+| **Infrastructure** | |
+| `context_manager.py` | **Session Management**. Context tracking and session lifecycle. |
+| `lock_manager.py` | **Concurrency Control**. Redis-based project locking with file-system fallback. |
+| `vector_store.py` | **Vector Persistence**. Async Qdrant client wrapper. |
+| `retry.py` | **Resilience**. Retry decorator for transient FalkorDB failures. |
+| `logging_config.py` | **Logging**. Structured logging configuration. |
+| **Schema & Config** | |
+| `schema.py` | **Data Models**. Pydantic definitions for all inputs and outputs. |
+| `ontology.py` | **Ontology Manager**. Dynamic memory type registration and validation. |
+| `interfaces.py` | **Protocols**. Abstract base classes (e.g., `Embedder`) for decoupling. |
+| `router.py` | **Router**. Request routing and tool dispatch logic. |
+
+## MCP Tools (30 Total)
+
+### Decorator-Registered (19) — `server.py`
+
+Core CRUD, search, session, and graph analysis tools.
+
+### Runtime-Registered (11) — `tools_extra.py`
+
+| Tool | Purpose |
+|------|---------|
+| `search_associative` | Spreading activation search through knowledge graph. |
+| `run_librarian_cycle` | Triggers autonomous maintenance loop. |
+| `create_memory_type` | Registers new memory types in ontology. |
+| `query_timeline` | Query entities within a time window. |
+| `get_temporal_neighbors` | Find temporally connected entities. |
+| `get_bottles` | Query "Message in a Bottle" entities. |
+| `graph_health` | Graph health metrics: nodes, edges, density, orphans, communities. |
+| `find_knowledge_gaps` | Detect structural gaps between semantically similar clusters. |
+| `reconnect` | Session reconnect briefing for returning agents. |
+| `system_diagnostics` | Unified diagnostics: graph stats, vector stats, split-brain check. |
+| `list_orphans` | **NEW**. List graph nodes with zero relationships for triage. |
 
 ## Dashboard (`src/dashboard/`)
 
-| File     | Purpose                                                                                         |
-| -------- | ----------------------------------------------------------------------------------------------- |
-| `app.py` | **Streamlit App**. Graph visualization, stats, diagnostics. Healthchecked on `/_stcore/health`. |
+| File | Purpose |
+|------|---------|
+| `app.py` | **Streamlit App**. Visualizes graph, stats, and diagnostics. |
 
-## Tests (`tests/`)
+## Tests (`tests/unit/`) — 32 Files
 
-| File                                    | Coverage                                                        |
-| --------------------------------------- | --------------------------------------------------------------- |
-| `test_schema.py`                        | Pydantic model validation (top-level).                          |
-| **Unit Tests**                          |                                                                 |
-| `unit/test_entity_lifecycle.py`         | CRUD operations.                                                |
-| `unit/test_hologram.py`                 | Retrieval logic (Search + Subgraph).                            |
-| `unit/test_librarian.py`                | Autonomous interaction logic + gap detection.                   |
-| `unit/test_clustering.py`               | DBSCAN wrapper + structural gap detection.                      |
-| `unit/test_interfaces.py`               | Protocol compliance.                                            |
-| `unit/test_embedding_filter.py`         | **Safety Check**. Verifies embedding stripping ("The Bouncer"). |
-| `unit/test_server.py`                   | MCP tool wrappers + `main()` stdio transport.                   |
-| `unit/test_vector_store.py`             | Qdrant client, collection init, search, MMR, error re-raise.    |
-| `unit/test_validation.py`               | Pydantic model validation.                                      |
-| `unit/test_analyze_graph.py`            | Graph algorithm tool wrappers (PageRank, Louvain).              |
-| `unit/test_archive_vector_cleanup.py`   | Archive/prune vector lifecycle cleanup.                         |
-| `unit/test_coverage_gaps.py`            | Coverage gap identification tests.                              |
-| `unit/test_prune_stale_vectors.py`      | Stale vector pruning logic.                                     |
-| `unit/test_consolidate_errors.py`       | Memory consolidation error accumulation (P-1 fix).              |
-| `unit/test_embedding_retry.py`          | Embedding CUDA context retry logic (R-4 fix).                   |
-| `unit/test_embedding_coverage.py`       | Embedding service edge cases.                                   |
-| `unit/test_embedding_client.py`         | Embedding client integration.                                   |
-| `unit/test_embedding_server.py`         | Embedding HTTP server.                                          |
-| `unit/test_lock_fallback.py`            | Lock fallback (file-based path).                                |
-| `unit/test_locking.py`                  | Concurrent locking scenarios.                                   |
-| `unit/test_retry.py`                    | Retry decorator logic.                                          |
-| `unit/test_ontology.py`                 | Custom type registration.                                       |
-| `unit/test_logging_config.py`           | Logging setup.                                                  |
-| `unit/test_memory_service.py`           | MemoryService integration tests (search, salience, gaps).       |
-| `unit/test_repository.py`               | FalkorDB repository layer.                                      |
-| `unit/test_activation.py`               | Spreading activation engine (decay, inhibition, ranking).       |
-| `unit/test_router.py`                   | Query intent classification + routing.                          |
-| `unit/test_temporal.py`                 | Temporal query and neighbor retrieval.                          |
-| `unit/test_backfill_temporal.py`        | Temporal migration script tests.                                |
-| `unit/test_session.py`                  | Session lifecycle (start, end, breakthroughs).                  |
-| `unit/test_context.py`                  | Context manager tests.                                          |
-| `unit/test_search_associative.py`       | Associative search with spreading activation.                   |
-| `unit/test_graph_traversal.py`          | Path finding and cross-domain patterns.                         |
-| `unit/test_full_workflow.py`            | Multi-step workflow scenarios.                                  |
-| `unit/test_edge_cases.py`               | Edge case coverage.                                             |
-| `unit/test_dynamic_validation.py`       | Dynamic Pydantic model validation.                              |
-| `unit/test_phase4.py`                   | Phase 4 regression tests.                                       |
-| `unit/test_dashboard.py`                | Dashboard rendering.                                            |
-| `unit/test_dashboard_app.py`            | Dashboard app integration.                                      |
-| `unit/test_backup_restore.py`           | Backup/restore script tests.                                    |
-| `unit/test_crud_split_brain.py`         | W3 strict consistency tests (Qdrant-down behavior).             |
-| `unit/test_librarian_repro.py`          | Librarian edge case reproductions.                              |
-| **Mutation Killers**                    |                                                                 |
-| `unit/test_mutant_schema_enums.py`      | EdgeType + CertaintyLevel enum membership.                      |
-| `unit/test_mutant_ontology.py`          | DEFAULT_ONTOLOGY type/description assertions.                   |
-| `unit/test_mutant_router.py`            | Router keywords, QueryIntent, classification.                   |
-| `unit/test_mutant_pydantic_defaults.py` | Pydantic model default values (12 models).                      |
-| `unit/test_mutant_dict_crud.py`         | Entity creation props + receipt dict values.                    |
-| `unit/test_mutant_dict_services.py`     | Health/diagnostics/session/breakthrough dicts.                  |
-| `unit/test_mutant_config_defaults.py`   | Config/env var/retry backoff defaults.                          |
-| `unit/test_mutant_default_params.py`    | Function signature default parameters.                          |
-| `unit/test_mutant_graph_algorithms.py`  | PageRank/Louvain math and edge cases.                           |
-| `unit/test_mutant_clustering.py`        | DBSCAN/cosine similarity/gap detection.                         |
-| `unit/test_mutant_lock_manager.py`      | ProjectLock context manager behavior.                           |
-| `unit/test_mutant_temporal.py`          | end_session/get_bottles temporal logic.                         |
-
-### E2E / UAT (`tests/`)
-
-| File                | Coverage                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `e2e_functional.py` | **Exhaustive UAT**. 31-phase, 74-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, point-in-time). |
-
-**Total: 784 tests across 55 files, ~98% coverage.**
+| File | Coverage |
+|------|----------|
+| `test_backup_restore.py` | Backup/restore operations. |
+| `test_clustering.py` | DBSCAN wrapper logic. |
+| `test_context.py` | Context manager and sessions. |
+| `test_dashboard.py` | Dashboard rendering. |
+| `test_dashboard_app.py` | Dashboard app integration. |
+| `test_dynamic_validation.py` | Dynamic validation logic. |
+| `test_embedding_client.py` | Embedding client calls. |
+| `test_embedding_coverage.py` | Embedding edge cases. |
+| `test_embedding_filter.py` | Embedding stripping ("The Bouncer"). |
+| `test_embedding_server.py` | Embedding server endpoints. |
+| `test_entity_lifecycle.py` | CRUD operations. |
+| `test_full_workflow.py` | End-to-end workflow. |
+| `test_graph_traversal.py` | Graph traversal and path finding. |
+| `test_hologram.py` | Retrieval logic (Search + Subgraph). |
+| `test_interfaces.py` | Protocol compliance. |
+| `test_librarian.py` | Autonomous interaction logic. |
+| `test_list_orphans.py` | **NEW**. Orphan listing (3-evil/1-sad/1-happy + scenario). |
+| `test_lock_fallback.py` | Lock manager fallback. |
+| `test_locking.py` | Redis-based locking. |
+| `test_logging_config.py` | Logging configuration. |
+| `test_ontology.py` | Ontology management. |
+| `test_phase4.py` | Phase 4 features. |
+| `test_remaining_coverage.py` | Coverage gap tests. |
+| `test_repository.py` | Repository operations. |
+| `test_retry.py` | Retry decorator logic. |
+| `test_server.py` | Server initialization. |
+| `test_server_health.py` | Server health endpoints. |
+| `test_session.py` | Session lifecycle. |
+| `test_temporal.py` | Temporal queries. |
+| `test_tools_coverage.py` | MemoryService tool coverage. |
+| `test_validation.py` | Input validation. |
+| `test_vector_store.py` | Vector store operations. |
 
 ## Configuration
 
-| File                       | Purpose                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `pyproject.toml`           | Dependencies, Build System, Tool Config (Ruff, Mypy, Pytest).                                           |
-| `tox.ini`                  | **CI/CD Tiers**: pulse, gate, forge, hammer, polish (5 tiers).                                          |
-| `Dockerfile`               | Multi-stage build definition.                                                                           |
-| `docker-compose.yml`       | Orchestration for DB + Embedding + Dashboard (all ports localhost-bound).                               |
-| `.dockerignore`            | Excludes caches/backups from build context (~50 MB vs 1.6 GB).                                          |
-| `.pre-commit-config.yaml`  | Pre-commit hooks config.                                                                                |
-| `mcp_config.json`          | **Local Config**. Arguments for `claude mcp run`.                                                       |
-| `ontology.json`            | **Runtime Ontology**. 15 node type definitions (Entity, Concept, Bottle, etc.) loaded by `ontology.py`. |
-| `.secrets.baseline`        | **Security**. `detect-secrets` baseline for credential scan (Hammer tier).                              |
-| `.github/workflows/ci.yml` | **CI Pipeline**. GitHub Actions workflow (placeholder).                                                 |
-
-## Operations & Scripts (`scripts/`)
-
-| File                        | Purpose                                                                                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Backup & Ops**            |                                                                                                                                               |
-| `backup_restore.py`         | **Snapshot Tool**. "Git-style" Save/Load for full database state.                                                                             |
-| `scheduled_backup.py`       | **Automated Backup**. Daily backup → Google Drive + rolling 7-day retention.                                                                  |
-| `nuke_data.py`              | **Reset Tool**. Wipes FalkorDB and Qdrant completely.                                                                                         |
-| `reset_db.py`               | **Soft Reset**. Database reset without full nuke.                                                                                             |
-| `seed.py`                   | **Seeding**. Populates DB with test data.                                                                                                     |
-| `start.ps1`                 | **Startup**. Helper to resume Docker containers without rebuilding.                                                                           |
-| `docker_cleanup.ps1`        | **Hygiene**. Aggressive disk cleanup for Docker artifacts.                                                                                    |
-| `clean_tox.py`              | **Hygiene**. Cleans tox environments.                                                                                                         |
-| `healthcheck.ps1`           | **Health Probe**. Checks FalkorDB, Qdrant, Embedding server status, and MCP process.                                                          |
-| `run_mcp_server.ps1`        | **Auto-Recovery**. Resilient MCP server wrapper with restart loop and cooldown.                                                               |
-| `cold_run.ps1`              | **Cold Start**. Full cold startup script.                                                                                                     |
-| `cold_test.ps1`             | **Cold Test**. Cold test runner after fresh environment.                                                                                      |
-| **Verification**            |                                                                                                                                               |
-| `red_team.py`               | **Chaos Testing**. Fuzzing, Concurrency, and Cycle detection.                                                                                 |
-| `e2e_test.py`               | **Legacy E2E**. 14-check lifecycle against running stack (CRUD, search, sessions, graph traversal).                                           |
-| `mcp_smoke_test.py`         | **MCP Smoke Test**. 5-pipeline verification (bottles, search, health, diagnostics, reconnect) against live Docker stack.                      |
-| `verify_mcp_server.py`      | **Protocol Test**. Simulates an MCP Client (JSON-RPC) to verify tools.                                                                        |
-| `final_check.py`            | **E2E Verification**. The "Golden Master" test for system health.                                                                             |
-| `verify.py`                 | **Quick Verify**. Lightweight verification script.                                                                                            |
-| `verify_phase4.py`          | **Phase 4 Verify**. Phase-specific regression check.                                                                                          |
-| `verify_dedup.py`           | **Dedup Verify**. Checks for duplicate entities.                                                                                              |
-| `verify_native_search.py`   | **Search Verify**. Tests native search functionality.                                                                                         |
-| `verify_read.py`            | **Read Verify**. Tests read operations.                                                                                                       |
-| `verify_receipt.py`         | **Receipt Verify**. Tests transaction receipts.                                                                                               |
-| `debug_data_status.py`      | **Diagnostic**. Counts nodes in FalkorDB directly.                                                                                            |
-| `debug_qdrant_count.py`     | **Diagnostic**. Counts vectors in Qdrant directly.                                                                                            |
-| `debug_pagerank.py`         | **Diagnostic**. Tests PageRank algorithm on graph.                                                                                            |
-| `debug_tar.py`              | **Diagnostic**. Tests tar archive operations.                                                                                                 |
-| **Evaluation**              |                                                                                                                                               |
-| `embedding_eval.py`         | **Benchmark**. 3-stage embedding model evaluation harness (export/bench/report).                                                              |
-| `eval_dataset.json`         | **Eval Data**. Ground-truth dataset used by `embedding_eval.py`.                                                                              |
-| `eval_results.json`         | **Eval Output**. Results from the latest embedding evaluation run.                                                                            |
-| **Migration**               |                                                                                                                                               |
-| `backfill_temporal.py`      | **Migration**. Backfills `occurred_at` and `PRECEDED_BY` edges.                                                                               |
-| `migrate_vectors.py`        | **Migration**. Migrates vectors between collections.                                                                                          |
-| `heal_graph.py`             | **Repair**. Fixes graph inconsistencies.                                                                                                      |
-| `recover_graph.py`          | **Repair**. Recovers graph from backup data.                                                                                                  |
-| **Utils**                   |                                                                                                                                               |
-| `download_model.py`         | Pre-downloads ML models during Docker build.                                                                                                  |
-| `generate_config.py`        | Utils for config generation.                                                                                                                  |
-| `simulate_lazy_import.py`   | Tests lazy import behavior.                                                                                                                   |
-| `simulate_day.py`           | Simulates a day of operations.                                                                                                                |
-| `operations.py`             | Operational utilities.                                                                                                                        |
-| `setup_scheduled_tasks.ps1` | **Task Scheduler**. Idempotent registration of ExocortexBackup + ExocortexHealthCheck tasks.                                                  |
-| `bunker_protocol.bat`       | **Emergency**. Batch script for emergency backup.                                                                                             |
-| `run_mutatest.py`           | **Compat Wrapper**. Monkey-patches `random.sample()` for mutatest + Python 3.12 compatibility.                                                |
-| `reembed_all.py`            | **Bulk Re-embed**. Re-embeds all FalkorDB nodes into Qdrant (for model changes).                                                              |
-| `embed_observations.py`     | **Backfill**. Embeds existing observation content into Qdrant (E-3 retroactive). Idempotent, `--dry-run` support.                             |
-| `validate_brain.py`         | **Health Check**. 9-check live brain validator (split-brain, bottle chain, temporal, obs vectors, maxmemory, ghosts, orphans, indices, HNSW). |
-| `purge_ghost_vectors.py`    | **Repair**. Removes orphan Qdrant vectors with no matching graph entity.                                                                      |
-
-## Root-Level Repair Utilities
-
-One-off scripts created during incident response. Kept in project root (not `scripts/`) as historical artifacts.
-
-| File                  | Purpose                                                                                                        |
-| --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `delete_phantom.py`   | **Phantom Cleanup**. Safely deletes the orphan `memory_graph` FalkorDB graph while preserving `claude_memory`. |
-| `diagnostic_check.py` | **S042 Diagnostic**. Identifies 23 graph-only entities (in FalkorDB but missing from Qdrant) and audits edges. |
-| `fix_split_brain.py`  | **Split-Brain Repair**. Vectorizes 23 FalkorDB-only entities into Qdrant to restore graph↔vector consistency.  |
+| File | Purpose |
+|------|---------|
+| `pyproject.toml` | Dependencies, Build System, Tool Config (Black, Ruff, Mypy). |
+| `Dockerfile` | Multi-stage build definition. |
+| `docker-compose.yml` | Orchestration for DB + Server + Dashboard + Embeddings. |
+| `mcp_config.json` | Local config for `claude mcp run`. |
+| `tox.ini` | Gold Stack test configuration. |
+| `ontology.json` | Memory type definitions. |

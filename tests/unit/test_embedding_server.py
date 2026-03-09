@@ -82,13 +82,11 @@ async def test_startup_event() -> None:
         mock_instance.encoder = MagicMock()
         mock_cls.return_value = mock_instance
 
-        async with emb_server_module.lifespan(app):
-            pass
-
-        mock_cls.assert_called_once()
-        # Accessing .encoder triggers the lazy load
-        _ = mock_instance.encoder
-        assert emb_server_module.service is mock_instance
+        async with emb_server_module.lifespan(emb_server_module.app):
+            mock_cls.assert_called_once()
+            # Accessing .encoder triggers the lazy load
+            _ = mock_instance.encoder
+            assert emb_server_module.service is mock_instance
 
 
 # ─── /embed Endpoint Tests ─────────────────────────────────────────

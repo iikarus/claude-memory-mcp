@@ -56,7 +56,8 @@ async def test_point_in_time_query(memory_service: Any, mock_vector_store: Any) 
         {"_id": "e1", "_score": 0.9, "name": "Match"},
     ]
 
-    # point_in_time_query calls repo.get_subgraph() for hydration
+    # Repo get_subgraph should hydrate nodes
+    # We access repo via memory_service.repo
     memory_service.repo.get_subgraph = MagicMock(
         return_value={
             "nodes": [

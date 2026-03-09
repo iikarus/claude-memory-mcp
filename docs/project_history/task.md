@@ -53,3 +53,64 @@
 
 [x] Refactor `tools.py` for Native Vector Indexing <!-- id: 28 -->
 [x] Verify Search Performance & Correctness <!-- id: 29 -->
+
+# Phase 4: Cognitive Evolution
+
+## GraphRAG (Context Expansion)
+
+[x] Implement `analyze_graph` tool (PageRank/Community) <!-- id: 30 -->
+[x] Verify algorithmic insights <!-- id: 31 -->
+
+## Autonomous Memory Management
+
+[x] Implement `get_stale_entities` tool (Inspection) <!-- id: 32 -->
+[x] Refactor MemoryService to use Repository (Decoupling)
+[x] Update Unit Tests for Decoupled Architecture
+[x] Implement `consolidate_memories` tool (Merge/Summary) <!-- id: 33 -->
+
+## Visual Explorer
+
+[x] create `src/dashboard/app.py` (Streamlit) <!-- id: 34 -->
+[x] Connect Dashboard to FalkorDB <!-- id: 35 -->
+
+## Phase 7: Architecture Decoupling
+
+[x] Create `src/claude_memory/embedding.py` (Isolate ML) <!-- id: 39 -->
+[x] Refactor `MemoryService` to use `EmbeddingService` <!-- id: 40 -->
+[x] Update Unit Tests to mock `EmbeddingService` <!-- id: 41 -->
+
+## Phase 8: Abstractions & Interfaces
+
+[x] Create `src/claude_memory/interfaces.py` (Embedder Protocol) <!-- id: 42 -->
+[x] Refactor `MemoryService` to use `Embedder` Protocol <!-- id: 43 -->
+[x] Make `EmbeddingService` import lazy in `MemoryService` <!-- id: 44 -->
+[x] Verify Protocol Adherence with Tests <!-- id: 45 -->
+
+## Phase 9: Fluidity (Docker & Async)
+
+[x] Create `Dockerfile` (Service & Dashboard) <!-- id: 46 -->
+[x] Create `docker-compose.yml` (Full Stack: DB, App, UI) <!-- id: 47 -->
+[x] Verify Build & Run (Mercenary Check Passed) <!-- id: 48 -->
+
+## Phase 10: Holographic Retrieval
+
+[x] Implement `get_hologram` (Search + BFS) <!-- id: 49 -->
+[x] Add Unit Tests for Hologram <!-- id: 50 -->
+[x] Verify with Pre-commit (Mercenary Check Passed) <!-- id: 51 -->
+
+## Phase 11: Architecture Cleanup & Simplification
+
+- [x] Analyze codebase dependencies (`dependency_analysis.md`)
+- [x] **Decouple**: Remove default `EmbeddingService` from `MemoryService` (Strict DI)
+- [x] Update Interface Tests (`test_interfaces.py`)
+- [x] **Mypy Zero Policy**: Fix all type errors (100% Passed)
+- [x] Verify Pre-commit Compliance (Mercenary Check Passed)
+
+## Phase 12: The Librarian (Autonomous Configuration)
+
+- [x] Add `scikit-learn` dependency
+- [x] Implement `ClusteringService` (DBSCAN)
+- [x] Implement `LibrarianAgent` (Loop)
+- [x] Integrate with `server.py`
+- [x] Verify with new Unit Tests (`test_clustering.py`, `test_librarian.py`)
+- [x] **Mercenary Check**: Pre-commit Passed

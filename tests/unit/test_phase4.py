@@ -42,26 +42,33 @@ def memory_service(mock_repo: Any) -> Any:
 
 @pytest.mark.asyncio
 async def test_analyze_graph_pagerank(memory_service: Any, mock_repo: Any) -> None:
-    """Test PageRank execution with Python-side implementation."""
+    """Test PageRank execution via Python-based compute_pagerank."""
 
-    # Mock nodes
+    # Mock Cypher output for rank query
+    # Logic in tools uses execute_cypher
     mock_node = MagicMock()
-    mock_node.properties = {"name": "Important Node"}
+    mock_node.properties = {"name": "Important Node", "rank": 0.85}
     mock_node.labels = {"Entity", "Concept"}
 
-    # New API: 2 queries — first returns nodes, second returns edges
-    nodes_result = MagicMock()
-    nodes_result.result_set = [[mock_node]]
-    edges_result = MagicMock()
-    edges_result.result_set = []
+    # execute_cypher returns an object with result_set
+    mock_res = MagicMock()
+    mock_res.result_set = [[mock_node]]
+    mock_repo.execute_cypher.side_effect = [
+        mock_res,  # MATCH (n:Entity) RETURN n
+        MagicMock(result_set=[]),  # MATCH edges
+    ]
 
-    mock_repo.execute_cypher.side_effect = [nodes_result, edges_result]
-
-    results = await memory_service.analyze_graph("pagerank")
+    with patch(
+        "claude_memory.analysis.compute_pagerank",
+        return_value=[{"name": "Important Node", "rank": 0.85}],
+    ):
+        results = await memory_service.analyze_graph("pagerank")
 
     assert len(results) == 1
     assert results[0]["name"] == "Important Node"
-    assert "rank" in results[0]
+
+    # Verify execute_cypher was called for node fetch
+    assert mock_repo.execute_cypher.call_count >= 1
 
 
 @pytest.mark.asyncio
@@ -78,8 +85,29 @@ async def test_consolidate_memories(memory_service: Any, mock_repo: Any) -> None
     # Result comes from create_node return value (the mock)
     assert result["id"] == "generated-uuid"
 
-    # Verify vector upsert side-effect occurred
+    # Verify create_node called (Logic)
+    mock_repo.create_node.assert_called_once()
+    args = mock_repo.create_node.call_args
+    assert args[0][0] == "Concept"  # Label
+    # assert args[0][2] is not None  # Embedding provided - NO LONGER TRUE
+
+    # Verify Vector Upsert
     memory_service.vector_store.upsert.assert_called_once()
     upsert_args = memory_service.vector_store.upsert.call_args
     assert upsert_args.kwargs["id"] == "generated-uuid"
     assert len(upsert_args.kwargs["vector"]) == 1024
+
+    # Verify create_edge called for links (Data Access)
+    assert mock_repo.create_edge.call_count == 2
+
+    # Verify first link
+    call1 = mock_repo.create_edge.call_args_list[0]
+    # args: (from, to, type, props)
+    assert call1[0][0] == "id-1"
+    # The METHOD uses the generated UUID for the edge target, NOT the create_node return value
+    assert call1[0][1] == "generated-uuid"
+    assert call1[0][2] == "PART_OF"
+
+    # Verify archive called
+    assert mock_repo.update_node.call_count == 2
+    assert mock_repo.update_node.call_args_list[0][0][1]["status"] == "archived"

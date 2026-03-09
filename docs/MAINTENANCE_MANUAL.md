@@ -1,6 +1,6 @@
 # Maintenance Manual
 
-Guidelines for keeping the Exocortex healthy and performant. Last updated: March 7, 2026.
+Guidelines for keeping the Exocortex healthy and performant.
 
 ## 🧹 The Librarian Agent
 
@@ -10,58 +10,38 @@ The Librarian (`src/claude_memory/librarian.py`) is an autonomous agent that run
 
 Tune `src/claude_memory/clustering.py` parameters if clustering is too aggressive or too loose:
 
-- `eps` (default 0.5): Distance threshold. Lower = Stricter clusters.
+- `eps` (default 0.5): Distance threshold. Lower = Strieter clusters.
 - `min_samples` (default 3): Minimum nodes to form a cluster.
 
 ### Triggering
 
 Currently triggered manually via `run_librarian_cycle`.
-**Future**: Set up a CRON job or Task Scheduler entry to trigger nightly.
+**Future**: Set up a CRON job to hit the tool endpoint nightly.
 
 ## 💾 Backup & Restore
 
-### Automated Daily Backup (Active)
+Data is stored in the `falkordb` docker volume.
 
-A Windows Task Scheduler task (`ExocortexBackup`) runs daily at 11:00 PM:
+### Quick Backup (Snapshot)
 
-1. Creates a local snapshot in `backups/daily_YYYY_MM_DD/`
-2. Syncs to **Google Drive** (`G:\My Drive\exocortex_backups\`)
-3. Deletes both local and cloud backups older than 7 days
+**Preferred Method**: Use the **"Safe Shutdown"** button in the Streamlit Dashboard (`localhost:8501`). It creates a backup automatically before stopping services.
 
-**Script**: `scripts/scheduled_backup.py`
-
-**Manual commands**:
+**Manual Method**:
+To create a "Git-style" save point via CLI:
 
 ```powershell
-# Run backup now
-python scripts/scheduled_backup.py
-
-# Preview what would happen
-python scripts/scheduled_backup.py --dry-run
-
-# Check scheduler status
-schtasks /query /tn "ExocortexBackup"
+python scripts/backup_restore.py save --tag "my_backup_name"
 ```
 
-### Manual Backup (On-Demand)
-
-For named snapshots before risky operations:
-
-```powershell
-python scripts/backup_restore.py save --tag "before_migration"
-```
-
-Snapshots are saved in `backups/<tag>/` containing `falkor_data.tar.gz` + `qdrant_data.tar.gz`.
+Snapshots are saved in `backups/`.
 
 ### Restore (Load)
 
-To roll back to a previous state:
+To verify or roll back to a previous state:
 
 ```powershell
-python scripts/backup_restore.py load "before_migration"
+python scripts/backup_restore.py load "my_backup_name"
 ```
-
-> **Warning**: This requires restarting Docker containers (`docker compose down && docker compose up -d`) to pick up the restored volume data.
 
 ## ☢️ Reset (Nuke)
 
@@ -71,7 +51,7 @@ To completely wipe all data (Graph + Vectors) and start fresh:
 python scripts/nuke_data.py
 ```
 
-_Use with caution. Create a backup first._
+_Use with caution._
 
 ## 🗑️ Pruning
 
@@ -82,23 +62,17 @@ Run `prune_stale(days=60)` to permanently delete archived items older than 60 da
 
 ### Red Team Operations (Stress Test)
 
-```powershell
+Run the Chaos Engineering script to verify system stability against Fuzzing, Concurrency, and Graph Cycles.
+
+```bash
 python scripts/red_team.py
 ```
 
-### End-to-End UAT
+### End-to-End (E2E) Test
 
-The exhaustive User Acceptance Test exercises all 31 functional areas against the live Docker stack:
+Verify the full stack (Graph + Vector) connectivity on live infrastructure.
 
-```powershell
-python tests/e2e_functional.py
-```
-
-74 checks covering: entity CRUD, relationships, observations, semantic search (standard + MMR), graph traversal, temporal queries, sessions & breakthroughs, graph health, W3 strict consistency, associative search, graph algorithms (PageRank), hologram retrieval, memory consolidation, ontology management, archive/prune lifecycle, knowledge gap detection, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, and point-in-time.
-
-### Legacy E2E
-
-```powershell
+```bash
 python scripts/e2e_test.py
 ```
 
@@ -109,37 +83,15 @@ python scripts/e2e_test.py
 The system uses Redis-based locking (or File-based fallback).
 
 - **Cause**: High concurrency or a lingering lock from a crashed process.
-- **Fix**: Locks expire automatically (TTL 5-10s). Wait and retry.
+- **Fix**: Locks expire automatically (TTL 5-10s). Wait and retry. If persistent, check `scripts/debug_concurrency.py`.
 
 ### "Qdrant Connection Failed"
 
 - Ensure `qdrant` container is running (Port 6333).
-- **Env Var**: `QDRANT_HOST` must be set to `qdrant` inside Docker. Defaults to `localhost` for local scripts.
-- **Check**: Run `python tests/e2e_functional.py` to diagnose connectivity.
+- **Env Var**: `QDRANT_HOST` defaults to `localhost` for local scripts, but `qdrant` for Docker services.
+- **Check**: Run `python scripts/e2e_test.py` to diagnose connectivity.
 
-### "Build Takes 3 Hours"
+### "Mypy Error" in Pre-commit
 
-- **Cause**: Missing `.dockerignore` — entire project context sent to Docker daemon.
-- **Fix**: Ensure `.dockerignore` exists and excludes `.tox/`, `backups/`, `.mypy_cache/`, `.git/`.
-
-### Container Healthcheck Failures
-
-| Container  | Check                  | Common Issue                                          |
-| ---------- | ---------------------- | ----------------------------------------------------- |
-| graphdb    | `redis-cli ping`       | FalkorDB not started yet (increase `start_period`)    |
-| qdrant     | `bash /dev/tcp`        | Don't use curl/wget — Qdrant image lacks them         |
-| embeddings | `curl /health`         | Model download not complete (increase `start_period`) |
-| dashboard  | `curl /_stcore/health` | Streamlit startup delay                               |
-
-## 📅 Scheduled Tasks
-
-Registered by `scripts/setup_scheduled_tasks.ps1` (idempotent, run as admin):
-
-| Task                   | Schedule          | Action                |
-| ---------------------- | ----------------- | --------------------- |
-| `ExocortexBackup`      | Daily at 11:00 PM | `scheduled_backup.py` |
-| `ExocortexHealthCheck` | Every 15 minutes  | `healthcheck.ps1`     |
-
-## 🔒 Strict Consistency (W3)
-
-Qdrant write failures always raise exceptions. This prevents split-brain scenarios (data in FalkorDB but not Qdrant). There is no env var toggle — strict mode is permanently enabled.
+If you encounter `unused "type: ignore"`, it means the typing environment has improved or changed.
+**Fix**: Remove the unused `# type: ignore` comment.

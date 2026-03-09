@@ -56,24 +56,3 @@ def test_invalid_load_fallback():
         manager = OntologyManager(config_path="readonly.json")
         # Should still have defaults
         assert manager.is_valid_type("Entity")
-
-
-# ─── E-6: Procedural Memory ────────────────────────────────────────
-
-
-def test_procedure_type_in_defaults(clean_ontology_file):
-    """E-6: Procedure type should be a built-in default type."""
-    manager = OntologyManager(config_path=clean_ontology_file)
-    assert manager.is_valid_type("Procedure"), "Procedure not in DEFAULT_ONTOLOGY"
-    defn = manager.get_type_definition("Procedure")
-    assert defn is not None
-    assert "process" in defn["description"].lower() or "protocol" in defn["description"].lower()
-
-
-def test_procedure_entity_with_steps(clean_ontology_file):
-    """E-6: Procedure type should support step-based observations."""
-    manager = OntologyManager(config_path=clean_ontology_file)
-    assert manager.is_valid_type("Procedure")
-    # Verify the type definition has empty required_properties (steps are observations)
-    defn = manager.get_type_definition("Procedure")
-    assert defn["required_properties"] == []

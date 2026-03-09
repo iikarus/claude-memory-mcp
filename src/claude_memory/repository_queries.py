@@ -235,6 +235,42 @@ class RepositoryQueryMixin:
         }
 
     @retry_on_transient()
+    def list_orphans(self, limit: int = 50) -> list[dict[str, Any]]:
+        """Return nodes with zero relationships for triage.
+
+        Returns id, name, node_type, project_id, focus, labels, and
+        created_at so callers can decide whether to reconnect or delete.
+        """
+        graph = self.select_graph()  # type: ignore[attr-defined]
+        query = """
+            MATCH (n)
+            WHERE NOT (n)--()
+            RETURN n.id AS id,
+                   n.name AS name,
+                   n.node_type AS node_type,
+                   n.project_id AS project_id,
+                   n.focus AS focus,
+                   labels(n) AS labels,
+                   n.created_at AS created_at
+            ORDER BY n.created_at DESC
+            LIMIT $limit
+        """
+        result = graph.query(query, params={"limit": limit})
+        return [
+            {
+                "id": row[0],
+                "name": row[1],
+                "node_type": row[2],
+                "project_id": row[3],
+                "focus": row[4],
+                "labels": row[5],
+                "created_at": row[6],
+            }
+            for row in result.result_set
+            if row
+        ]
+
+    @retry_on_transient()
     def get_all_edges(self) -> list[dict[str, Any]]:
         """Fetch all edges between Entity nodes for gap detection."""
         graph = self.select_graph()  # type: ignore[attr-defined]
