@@ -60,8 +60,8 @@ Before any data leaves the `MemoryService` to return to the user/LLM:
     G -->|clusters| H[ClusteringService]
     H -->|reads vectors| I
 
-## Future Roadmap (V2+)
+## V2 Capabilities
 
-1.  **Async Ingestion**: Move embedding generation to a background queue (Celery/Redis).
-2.  **Multi-Tenancy**: Enforce `project_id` strictly at the Repo layer.
-3.  **Recursive Summarization**: Librarian synthesizes concepts of concepts.
+1.  **Async Ingestion**: Salience updates run as background `asyncio` tasks with `flush_background_tasks()` for deterministic completion.
+2.  **Multi-Tenancy**: `project_id` is enforced at the Repository layer across queries, traversals, and search filters.
+3.  **Consolidation**: The Librarian agent clusters related nodes and synthesizes higher-order `Consolidated Memory` concepts.
