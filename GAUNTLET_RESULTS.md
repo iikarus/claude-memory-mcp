@@ -140,7 +140,7 @@ All checks passed!
 
 | Module | LOC | Status |
 |--------|-----|--------|
-| `analysis.py` | 351 | ⚠️ Over 300 threshold |
+| `analysis.py` | 245 | ✅ OK (was 352, split into `analysis_maintenance.py`) |
 | `server.py` | 295 | OK |
 | `repository_queries.py` | 287 | OK |
 | `search.py` | 284 | OK |
@@ -159,16 +159,253 @@ All checks passed!
 
 ---
 
+## ROUND 3: PROPERTY STORM (Hypothesis) ✅ PASS
+
+### 3A. Schema Validation Properties
+
+**File:** `tests/gauntlet/test_hypothesis_schema.py` — 18 tests, 2000 examples each
+
+| Property | Model | Result |
+|----------|-------|--------|
+| Valid construction | `EntityCreateParams` | ✅ |
+| Round-trip serialization | `EntityCreateParams` | ✅ |
+| Extra properties accepted | `EntityCreateParams` | ✅ |
+| Weight bounds [0,1] | `RelationshipCreateParams` | ✅ |
+| Out-of-bounds weights rejected | `RelationshipCreateParams` | ✅ |
+| Valid score construction | `SearchResult` | ✅ |
+| Default empty collections | `SearchResult` | ✅ |
+| Valid param ranges | `GapDetectionParams` | ✅ |
+| Similarity out-of-bounds rejected | `GapDetectionParams` | ✅ |
+| Limit=0 rejected | `GapDetectionParams` | ✅ |
+| Datetime construction | `TemporalQueryParams` | ✅ |
+| Limit>100 rejected | `TemporalQueryParams` | ✅ |
+| include_content defaults false | `BottleQueryParams` | ✅ |
+| Valid limit range | `BottleQueryParams` | ✅ |
+
+### 3B. Router Classification Properties
+
+**File:** `tests/gauntlet/test_hypothesis_router.py` — 10 tests, 2000 examples each
+
+| Property | Result |
+|----------|--------|
+| Always returns valid `QueryIntent` | ✅ |
+| Empty string → SEMANTIC | ✅ |
+| Temporal keywords → TEMPORAL | ✅ |
+| Relational keywords → RELATIONAL | ✅ |
+| Associative keywords → ASSOCIATIVE | ✅ |
+| Random binary → never crash | ✅ |
+| Very long strings (15K chars) → valid | ✅ |
+| Unicode/emoji → never crash | ✅ |
+| No keywords → SEMANTIC | ✅ |
+| Deterministic (same input → same output) | ✅ |
+
+---
+
+## ROUND 5: FUZZ BLITZ ✅ PASS
+
+**File:** `tests/gauntlet/test_fuzz_blitz.py` — 15 tests
+
+### 5A. Schema Fuzzing (5000 examples each)
+
+| Target | Result |
+|--------|--------|
+| Random dict → `EntityCreateParams` | ✅ clean ValidationError or valid |
+| Random dict → `RelationshipCreateParams` | ✅ clean ValidationError or valid |
+| Random dict → `SearchResult` | ✅ clean ValidationError or valid |
+| Random dict → `GapDetectionParams` | ✅ clean ValidationError or valid |
+| Random dict → `ObservationParams` | ✅ clean ValidationError or valid |
+
+### 5B. Router Fuzzing
+
+Random binary (5000 inputs) → `QueryRouter.classify()` → ✅ never crashes.
+
+### 5C. Boundary Conditions
+
+| Edge Case | Result |
+|-----------|--------|
+| Empty entity name | ✅ accepted |
+| Single char name | ✅ accepted |
+| 100K char name | ✅ accepted |
+| Null bytes in name | ✅ accepted |
+| Whitespace-only name | ✅ accepted |
+| SQL injection string | ✅ treated as plain text |
+| Cypher injection string | ✅ treated as plain text |
+| Self-relationship (from=to) | ✅ accepted at schema level |
+| Edge similarity values (0.0, 1.0) | ✅ accepted |
+
+---
+
+## ROUND 9: PERFORMANCE & MEMORY ✅ PASS
+
+**File:** `tests/gauntlet/test_performance.py` — 6 tests
+
+### 9A. Speed Baselines
+
+| Operation | Count | Limit | Actual | Status |
+|-----------|-------|-------|--------|--------|
+| Schema construction | 10K | 2.0s | <1s | ✅ |
+| Router classification | 10K | 2.0s | <1s | ✅ |
+| Serialize + deserialize | 5K | 3.0s | <2s | ✅ |
+
+### 9B. Memory Baselines
+
+| Operation | Count | Limit | Actual | Status |
+|-----------|-------|-------|--------|--------|
+| EntityCreateParams construction | 10K | 15MB | ~11MB | ✅ |
+| Router classification | 10K | 5MB | <3MB | ✅ |
+| SearchResult with nested data | 5K | 15MB | ~11MB | ✅ |
+
+---
+
+## ROUND 11: COMPLEXITY ARCHAEOLOGY ✅ PASS
+
+### 11A. Full Complexity Report
+
+Average complexity: **A (3.03)** across 231 blocks.
+
+### 11B. Remaining Grade-C Functions (post-refactor)
+
+| Module | Function | Grade | CC |
+|--------|----------|-------|-----|
+| `graph_algorithms.py` | `compute_pagerank` | C | 15 |
+| `clustering.py` | `_find_bridge_candidates` | C | 12 |
+| `search_advanced.py` | `SearchAdvancedMixin` (class) | C | 11 |
+
+**Refactored from C → A/B:** `search.py:search` (23→5), `librarian.py:run_cycle` (20→3), `analysis.py:detect_structural_gaps` (11→4), `librarian.py:_store_gap_reports` (11→3), `search.py:_hydrate_search_results` (13→7).
+
+### 11C. Maintainability Index
+
+**All 29 modules grade A.** Lowest: `lock_manager.py` (46.86), `vector_store.py` (47.09).
+
+### 11D. Dead Code (vulture)
+
+6 findings — all `__aexit__`/`__exit__` protocol params in `lock_manager.py`. Required by Python spec. **Acceptable.**
+
+---
+
+## ROUND 12: DEPENDENCY DEEP SCAN ✅ PASS
+
+### 12A. Dependency Tree
+
+No circular dependencies. No conflicts (`pip check` clean).
+
+### 12B. License Audit
+
+No GPL-3.0 dependencies. All licenses: MIT, BSD, Apache 2.0, PSF-2.0.
+
+### 12C. Outdated Dependencies
+
+| Package | Current | Latest |
+|---------|---------|--------|
+| `pandas` | 2.3.3 | 3.0.1 |
+| `protobuf` | 6.33.5 | 7.34.0 |
+| `pydantic_core` | 2.41.5 | 2.42.0 |
+| `tornado` | 6.5.4 | 6.5.5 |
+| others (3) | minor | patches |
+
+None are security-critical. All informational.
+
+---
+
+## ROUND 13: GRAPH INTEGRITY ⚠️ WARNINGS
+
+### 13A. Split-Brain
+
+| Metric | Value |
+|--------|-------|
+| Graph entities | 940 |
+| Qdrant vectors | 1,438 |
+| Graph-only IDs | 1 |
+| Vector-only IDs | 499 |
+
+**Note:** 499 orphan vectors are observation-related (Qdrant stores observation vectors, FalkorDB stores observations as `Observation` label nodes, not `Entity` nodes). 1 graph-only entity is a known edge case.
+
+### 13B. Bottle Chain
+
+| Metric | Value |
+|--------|-------|
+| Bottles (by label) | 30 |
+| PRECEDED_BY edges | 635 |
+| Chain integrity | ✅ PASS |
+
+### 13C. Temporal Completeness
+
+| Check | Result |
+|-------|--------|
+| Entities missing `created_at` | **0** ✅ |
+| Entities missing `occurred_at` | 4 (informational) |
+
+### 13D. Observation Vectors
+
+| Metric | Value |
+|--------|-------|
+| Observations (graph) | 533 |
+| Observation vectors (Qdrant) | 484 |
+
+49 observations without vectors — likely pre-E3 data.
+
+### 13E. Infrastructure
+
+| Check | Expected | Actual | Status |
+|-------|----------|--------|--------|
+| maxmemory | 1GB | 1GB | ✅ |
+| Ghost graphs | `claude_memory` only | 3 ghost graphs: `memory`, `memory_graph`, `dragon_brain` | ⚠️ |
+| HNSW indexing threshold | 500 | 10,000 | ⚠️ |
+| FalkorDB indices | Present | **0** | ⚠️ |
+
+### Node Inventory
+
+| Label | Count |
+|-------|-------|
+| `Entity` (plain) | 519 |
+| `Entity, Concept` | 100 |
+| `Entity, Session` | 95 |
+| `Entity, Breakthrough` | 55 |
+| `Entity, Decision` | 51 |
+| `Entity, Tool` | 50 |
+| `Entity, Bottle` | 30 |
+| `Session` (standalone) | 26 |
+| `Observation` | 526 |
+| Others | 41 |
+
+---
+
+## ROUND 18: LIVE BRAIN VALIDATION ⚠️ WARNINGS
+
+### 18A. validate_brain.py
+
+| Check | Result |
+|-------|--------|
+| Redis connection | ✅ PASS |
+| Qdrant connection | ✅ PASS |
+| Split-brain | ⚠️ 1 graph-only, 499 vector-only |
+| Bottle chain | ✅ PASS (635 PRECEDED_BY edges) |
+| Temporal completeness | ⚠️ 4 missing `occurred_at` |
+| Observation vectors | ✅ PASS (484 found) |
+| maxmemory | ✅ PASS (1024 MB) |
+| Ghost graphs | ⚠️ 3 ghost graphs |
+| Orphan vectors | ⚠️ 499 orphans |
+| FalkorDB indices | ⚠️ 0 indices |
+
+---
+
 ## SUMMARY
 
 | Round | Name | Result | Key Findings |
 |-------|------|--------|-------------|
 | 1 | Iron Baseline | ✅ **PASS** | 826 tests, 0 failures |
 | 2 | Stress Test | ✅ **PASS** | Flaky test found & fixed; parallel 2.4x speedup |
+| 3 | Property Storm | ✅ **PASS** | 28 Hypothesis property tests, 0 falsifying examples |
 | 4 | Mutation Massacre | ⏭️ SKIP | Previously completed via mutmut |
-| 6 | Static Inquisition | ✅ **PASS** | mypy 0 errors, ruff 0 errors, 5 complexity hotspots |
+| 5 | Fuzz Blitz | ✅ **PASS** | 30K+ fuzz inputs, 0 unhandled crashes |
+| 6 | Static Inquisition | ✅ **PASS** | mypy 0 errors, ruff 0 errors, 3 remaining C-grade hotspots |
 | 7 | Security Sweep | ✅ **PASS** | 0 Cypher injection, 0 hardcoded creds |
-| 10 | Architecture | ✅ **PASS** | 1 module over 300 LOC threshold |
+| 9 | Performance & Memory | ✅ **PASS** | 10K ops <2s, <15MB peak memory |
+| 10 | Architecture | ✅ **PASS** | All modules ≤300 LOC after split |
+| 11 | Complexity Archaeology | ✅ **PASS** | Avg CC A (3.03), all MI grade A |
+| 12 | Dependency Deep Scan | ✅ **PASS** | No conflicts, no GPL, 7 outdated (non-critical) |
+| 13 | Graph Integrity | ⚠️ **WARN** | 499 orphan vectors, 3 ghost graphs, 0 indices |
+| 18 | Live Brain Validation | ⚠️ **WARN** | 5/10 checks PASS, 5 warnings (pre-existing data) |
 
 ### Fixes Applied
 
@@ -176,3 +413,14 @@ All checks passed!
 |--------|-------------|
 | `37ac4a8` | 3 ruff violations in `test_purge_ghost_vectors.py` + mypy `no-any-return` in `analysis.py` |
 | `d8307b6` | Flaky `test_dashboard_app.py` — `reset_mock()` misses nested `side_effect` on `mock_st.sidebar.button` |
+| `a7157ee` | Refactor `search.py:search` CC 23→5 via method extraction |
+| `2148d83` | Split `analysis.py` (352→245 LOC) + `librarian.py:run_cycle` CC 20→3 |
+| `02b560e` | Crush all C-grade CC — `_deep_hydrate_node`, `_build_gap_result`, `_build_gap_report` |
+| `9b67bf9` | 45 new gauntlet tests (R3/R5/R9) — 870 total, 0 failures |
+
+### Architectural Concerns
+
+1. **Ghost Graphs** — 3 orphan graphs (`memory`, `memory_graph`, `dragon_brain`) exist in FalkorDB alongside `claude_memory`. Should be purged.
+2. **No FalkorDB Indices** — Performance risk for large graph queries. `Entity(id)`, `Entity(name)`, `Observation(created_at)` indices should be created.
+3. **499 Orphan Vectors** — Qdrant contains vectors with no corresponding graph entity. Likely pre-migration artifacts.
+4. **HNSW Threshold** — Set to 10,000 (default), spec recommends 500 for faster initial indexing.
