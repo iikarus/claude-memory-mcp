@@ -12,6 +12,7 @@ import argparse
 import datetime
 import json
 import logging
+import os
 import shutil
 import subprocess
 import sys
@@ -21,7 +22,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BACKUP_DIR = PROJECT_ROOT / "backups"
-GDRIVE_BACKUP_DIR = Path(r"G:\My Drive\exocortex_backups")
+_gdrive_default = str(BACKUP_DIR / "gdrive")
+GDRIVE_BACKUP_DIR = Path(os.environ.get("EXOCORTEX_BACKUP_DIR", _gdrive_default))
 RETENTION_DAYS = 7
 TAG_PREFIX = "daily_"
 LOG_FILE = PROJECT_ROOT / "backups" / "scheduled_backup.log"

@@ -30,6 +30,7 @@ function Register-ExocortexTask {
         [string]$Description,
         [string]$Command,
         [string]$Arguments,
+        [string]$WorkDir,
         [string]$TriggerSpec  # "daily_11pm" or "every_15min"
     )
 
@@ -44,25 +45,36 @@ function Register-ExocortexTask {
         schtasks /delete /tn $TaskName /f | Out-Null
     }
 
+    # Build the action: wrap command and arguments in quotes for paths with spaces
+    $action = New-ScheduledTaskAction `
+        -Execute "`"$Command`"" `
+        -Argument "`"$Arguments`"" `
+        -WorkingDirectory "`"$WorkDir`""
+
     if ($TriggerSpec -eq "daily_11pm") {
-        schtasks /create `
-            /tn $TaskName `
-            /tr "$Command $Arguments" `
-            /sc DAILY `
-            /st 23:00 `
-            /rl HIGHEST `
-            /f
+        $trigger = New-ScheduledTaskTrigger -Daily -At "11:00 PM"
     } elseif ($TriggerSpec -eq "every_15min") {
-        schtasks /create `
-            /tn $TaskName `
-            /tr "$Command $Arguments" `
-            /sc MINUTE `
-            /mo 15 `
-            /rl HIGHEST `
-            /f
+        $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
+            -RepetitionInterval (New-TimeSpan -Minutes 15) `
+            -RepetitionDuration (New-TimeSpan -Days 365)
     }
 
-    if ($LASTEXITCODE -eq 0) {
+    $settings = New-ScheduledTaskSettingsSet `
+        -AllowStartIfOnBatteries `
+        -DontStopIfGoingOnBatteries `
+        -StartWhenAvailable `
+        -RunOnlyIfNetworkAvailable:$false
+
+    Register-ScheduledTask `
+        -TaskName $TaskName `
+        -Description $Description `
+        -Action $action `
+        -Trigger $trigger `
+        -Settings $settings `
+        -RunLevel Highest `
+        -Force:$Force
+
+    if ($?) {
         Write-Host "[OK]   $TaskName registered." -ForegroundColor Green
     } else {
         Write-Host "[FAIL] $TaskName registration failed." -ForegroundColor Red
@@ -76,6 +88,7 @@ Register-ExocortexTask `
     -Description "Daily backup of Exocortex brain data (FalkorDB + Qdrant)" `
     -Command $PythonExe `
     -Arguments "$ScriptDir\scheduled_backup.py" `
+    -WorkDir $ProjectDir `
     -TriggerSpec "daily_11pm"
 
 # ── Task 2: Health Check every 15 min (W5) ───────────────────────────────────
@@ -85,6 +98,7 @@ Register-ExocortexTask `
     -Description "Periodic health check with toast notifications on failure" `
     -Command "powershell.exe" `
     -Arguments "-ExecutionPolicy Bypass -File `"$ScriptDir\healthcheck.ps1`"" `
+    -WorkDir $ProjectDir `
     -TriggerSpec "every_15min"
 
 # ── Verification ──────────────────────────────────────────────────────────────
