@@ -1,4 +1,6 @@
-# Claude Memory MCP Server regarding "The Exocortex"
+# Claude Memory MCP Server — "The Exocortex"
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Code Name**: Project Tesseract (Phase 12 Complete)
 > **Status**: Production Ready (Dockerized)
@@ -65,3 +67,7 @@ Detailed manuals are located in `docs/`:
 > "No code without a git pre commit + plethora of unit tests + mercenary checks."
 
 This project adheres to strict validation rules found in `.pre-commit-config.yaml`.
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

@@ -19,7 +19,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | Qdrant vectors                        | 1,402                        | Mar 9  |
 | Gold Stack tiers                      | 4 (pulse/gate/hammer/polish) | Mar 9  |
 
-> **Update rule**: When any of these numbers change, update this table first, then propagate to the docs that reference them (mainly README.md, ARCHITECTURE.md, REHYDRATION_DOCUMENT.md).
+> **Update rule**: When any of these numbers change, update this table first, then propagate to the docs that reference them (mainly README.md, ARCHITECTURE.md).
 
 ---
 
@@ -41,11 +41,8 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | [MCP_TOOL_REFERENCE.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/MCP_TOOL_REFERENCE.md)     | API reference: all 30 tools, params, return shapes | Developers, AI agents  | Tool added/removed, params change                 |
 | [MAINTENANCE_MANUAL.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/MAINTENANCE_MANUAL.md)     | Backups, monitoring, troubleshooting               | Operators              | Infra changes, new backup procedures              |
 | [RUNBOOK.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/RUNBOOK.md)                           | 10 incident response recipes                       | Operators              | New incident types, procedure changes             |
-| [REHYDRATION_DOCUMENT.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/REHYDRATION_DOCUMENT.md) | Onboarding guide for new AI agents                 | New agents             | Architecture changes, new conventions             |
 | [GOTCHAS.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/GOTCHAS.md)                           | Known traps, edge cases, subtleties                | Developers, agents     | New bugs discovered, workarounds found            |
-| [ENHANCEMENT_SPEC.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/ENHANCEMENT_SPEC.md)         | Feature spec for E-1 through E-7 enhancements      | Project management     | New enhancement phases                            |
 | [UPGRADE_LOG.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/UPGRADE_LOG.md)                   | Phase-by-phase changelog of V2 build               | Auditors               | Historical, rarely updated                        |
-| [POST_BUILD_FINDINGS.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/POST_BUILD_FINDINGS.md)   | Post-production audit findings                     | Auditors               | After each audit                                  |
 
 ## `docs/adr/` — Architecture Decision Records
 
@@ -58,9 +55,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | [005-associative-search.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/adr/005-associative-search.md)               | Spreading activation for search  | Accepted |
 | [006-gold-stack.md](file:///C:/Users/Asus/.gemini/antigravity/scratch/new_project/claude-memory-mcp/docs/adr/006-gold-stack.md)                               | 5-tier Gold Stack CI/CD          | Accepted |
 
-## `docs/project_history/` — Historical Archive
 
-Contains structural analyses and reports from past audits. Reference only.
 
 ## Documentation Update Protocol (MANDATORY)
 
@@ -126,6 +121,3 @@ Select-String -Path docs/*.md,README.md -Pattern "OLD_NUMBER" -CaseSensitive
 # Confirm no phantom/missing files remain
 # (re-run Phase 1 commands — output must be empty)
 ```
-
-> [!CAUTION]
-> **`structural_analysis.md`** is a frozen pre-remediation baseline (Feb 13, 2026). Do NOT update it. It is a historical snapshot — all gaps listed in it have been fixed.

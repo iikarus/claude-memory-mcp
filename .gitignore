@@ -107,6 +107,8 @@ Thumbs.db
 *.lnk
 
 # Debug/temp logs
+audit_*.txt
+coverage_report.txt
 tox_*.txt
 mypy_*.txt
 pytest_*.txt
