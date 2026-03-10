@@ -281,7 +281,7 @@ The system at Phase 3 completion had:
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
 | **MCP Tools**         | 17                 | 30 (19 decorator + 11 runtime)                     | +13   |
 | **Source Modules**    | 14                 | 28                                                 | +14   |
-| **Unit Tests**        | 255                | 784                                                | +529  |
+| **Unit Tests**        | 255                | 826 (821 passed + 5 skipped)                       | +571  |
 | **Test Files**        | 15                 | 60                                                 | +45   |
 | **Scripts**           | 12                 | 39 (32 py + 7 ps1)                                 | +27   |
 | **Tox Tiers**         | 4                  | 4 (pulse/gate/hammer/polish)                       | 0     |

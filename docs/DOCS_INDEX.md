@@ -10,7 +10,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | ------------------------------------- | ---------------------------- | ------ |
 | Source modules (`src/claude_memory/`) | 28                           | Mar 10 |
 | Scripts (`scripts/`)                  | 39 (32 py + 7 ps1)           | Mar 10 |
-| Unit tests                            | 784 (+5 skipped)             | Mar 9  |
+| Unit tests                            | 826 (821 passed + 5 skipped) | Mar 10 |
 | Test files                            | 60                           | Mar 9  |
 | Coverage                              | ~98%                         | Mar 2  |
 | MCP tools                             | 30 (19 decorator + 11 runtime) | Mar 9 |
