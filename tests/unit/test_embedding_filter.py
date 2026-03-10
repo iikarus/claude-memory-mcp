@@ -1,167 +1,152 @@
-import asyncio
-from typing import Any
-from unittest.mock import MagicMock
+"""Tests that search/CRUD results strip embedding vectors from output.
+
+Embedding arrays (1024+ floats) must never leak into API responses.
+These tests verify the stripping logic at each boundary.
+"""
+
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from claude_memory.schema import EntityCreateParams
+from claude_memory.schema import EntityCreateParams, SearchResult
 from claude_memory.tools import MemoryService
 
 
 @pytest.fixture
 def mock_service():
-    # Mock dependencies
+    """Build a MemoryService with all deps mocked."""
     mock_embedder = MagicMock()
     mock_repo = MagicMock()
-    mock_vector = MagicMock()
+    mock_vector = AsyncMock()
 
-    # Setup Service
     service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector)
     service.repo = mock_repo
 
     return service
 
 
-@pytest.mark.skip(reason="Mock complexity")
-@pytest.mark.asyncio
-async def test_create_entity_does_not_return_embedding_in_receipt(mock_service):
-    """Verify create_entity receipt doesn't leak internals."""
-    # Setup
-    params = EntityCreateParams(name="Test", node_type="Entity", project_id="test")
+# ─── create_entity: embedding must not leak in receipt ──────────────
 
-    # Repo returns the created node props (simulated)
+
+@pytest.mark.asyncio
+async def test_create_entity_strips_embedding_from_receipt(mock_service):
+    """create_entity receipt must not contain the embedding array."""
     mock_service.repo.create_node.return_value = {
         "id": "123",
         "name": "Test",
+        "node_type": "Entity",
         "embedding": [0.1] * 1024,  # THE LEAK
     }
     mock_service.repo.get_total_node_count.return_value = 1
+    mock_service.embedder.encode.return_value = [0.1] * 1024
 
-    # Act
-    _ = await mock_service.create_entity(params)
+    # Mock vector upsert (async)
+    mock_service.vector_store.upsert = AsyncMock()
+    # Mock lock manager
+    with patch.object(mock_service, "lock_manager", MagicMock()):
+        mock_service.lock_manager.acquire_write = AsyncMock(return_value=True)
+        mock_service.lock_manager.release_write = AsyncMock()
+        result = await mock_service.create_entity(
+            EntityCreateParams(name="Test", node_type="Entity", project_id="test")
+        )
 
-    # Skipped due to mock complexity (LockManager dependency)
-    pass
+    # The result dict should not contain 'embedding'
+    assert "embedding" not in result
 
 
-@pytest.mark.skip(reason="Mock complexity")
 @pytest.mark.asyncio
-async def test_search_memory_strips_embedding(mock_service):
-    """Verify search_memory removes embedding from results."""
-    # Setup
+async def test_create_entity_receipt_missing_embedding_key_evil():
+    """Evil: what if repo returns NO embedding key? Should still work."""
+    mock_embedder = MagicMock()
+    mock_vector = AsyncMock()
+    service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector)
+    service.repo = MagicMock()
+    service.repo.create_node.return_value = {"id": "456", "name": "Clean", "node_type": "Entity"}
+    service.repo.get_total_node_count.return_value = 1
+    service.embedder.encode.return_value = [0.1] * 1024
+    service.vector_store.upsert = AsyncMock()
+
+    with patch.object(service, "lock_manager", MagicMock()):
+        service.lock_manager.acquire_write = AsyncMock(return_value=True)
+        service.lock_manager.release_write = AsyncMock()
+        result = await service.create_entity(
+            EntityCreateParams(name="Clean", node_type="Entity", project_id="test")
+        )
+
+    assert "embedding" not in result
+
+
+# ─── search: embedding must not appear in SearchResult ──────────────
+
+
+@pytest.mark.asyncio
+async def test_search_results_have_no_embedding_field(mock_service):
+    """search() returns SearchResult models which have no embedding field."""
     mock_service.embedder.encode.return_value = [0.1] * 1024
+    mock_service.vector_store.search = AsyncMock(return_value=[{"_id": "123", "_score": 0.9}])
+    mock_service.repo.get_subgraph.return_value = {
+        "nodes": [
+            {
+                "id": "123",
+                "name": "Test",
+                "node_type": "Entity",
+                "project_id": "test",
+                "embedding": [0.1] * 1024,
+            }
+        ],
+        "edges": [],
+    }
+    mock_service._fire_salience_update = MagicMock()
 
-    # Vector store returns payload WITH embedding
-    # (if it was stored there, or if repo fetch happened)
-    # Actually search_memory fetches from Vector Store which returns payload.
-    # If payload has embedding, it leaks.
-    mock_service.vector_store.search.return_value = [
-        {
-            "_id": "123",
-            "_score": 0.9,
-            "payload": {"name": "Test", "embedding": [0.1] * 1024},  # THE LEAK
-        }
-    ]
+    results = await mock_service.search("test query")
 
-    # Act
-    # service.search is the method name
-    # But wait, search returns List[SearchResult] (Pydantic models)
-    # The VectorStore returns dicts, tools.py converts them.
-    # We must mock vector_store.search to return dicts with embedding.
-    # And asserts that service.search returns models WITHOUT embedding.
-
-    # Async helper for vector store return
-    f: asyncio.Future[Any] = asyncio.Future()
-    f.set_result(
-        [{"_id": "123", "_score": 0.9, "payload": {"name": "Test", "embedding": [0.1] * 1024}}]
-    )
-    mock_service.vector_store.search = MagicMock(return_value=f)
-
-    # Also need to mock embedding service encode
-    mock_service.embedder.encode.return_value = [0.1] * 1024
-
-    results = await mock_service.search("query", "test")
-
-    # Assert
     assert len(results) == 1
-    # Pydantic model might allow extra fields if configured, or if we assign dict to it.
-    # SearchResult definition: id, name, node_type, content, project_id, distance.
-    # It does NOT have 'embedding'.
-    # However, if 'content' or other fields act as containers, or if we return raw dicts...
-    # Wait, tools.py:search_memory returns List[SearchResult].
-    # SearchResult is a Pydantic model.
-    # If 'embedding' is passed to it, Pydantic ignores it UNLESS extra='allow'.
-    # Let's check if the leak is actually happening in the "Hologram" (get_hologram)
-    # which returns raw dicts.
-    pass
+    assert isinstance(results[0], SearchResult)
+    # SearchResult model doesn't have embedding field — Pydantic strips it
+    assert not hasattr(results[0], "embedding")
+
+
+# ─── get_hologram: embedding must be stripped from raw dict ─────────
 
 
 @pytest.mark.asyncio
 async def test_get_hologram_strips_embedding(mock_service):
-    """Verify get_hologram (which returns Dict) strips embedding."""
-    # Setup
+    """get_hologram returns raw dicts — embedding must be popped."""
     mock_service.embedder.encode.return_value = [0.1] * 1024
-    # Mock search to return anchors
-    mock_service.vector_store.search.return_value = []  # No anchors for simplicity or mock anchors
 
-    # Mock Repo get_subgraph (The real leak source)
-    mock_service.repo.get_subgraph.return_value = {
-        "nodes": [{"id": "1", "name": "LeakyNode", "embedding": [0.001] * 1536}],  # HUGE ARRAY
-        "edges": [],
-    }
-
-    # Act
-    # We bypass the 'anchors' logic by mocking internal search
-    # or passing depth=0 behavior if relevant
-    # But tools.py logic calls search first.
-    # Let's mock the search to return one anchor so we proceed to get_subgraph
-    # Act
-    # Mock search to return objects with .id
     anchor_mock = MagicMock()
     anchor_mock.id = "1"
-    anchor_mock.dict.return_value = {"id": "1", "name": "LeakyNode"}  # For serialization
+    anchor_mock.model_dump.return_value = {"id": "1", "name": "Anchor"}
 
-    # We must patch self.search because get_hologram calls it
-    # But self.search is a method on the service.
-    # We can patch the vector_store behavior but tools.py wraps it.
-    # Actually get_hologram calls self.search.
-    mock_service.search = MagicMock(return_value=[anchor_mock])  # Sync mock? No, async.
-    # Since search is async, we need an AsyncMock or awaitable.
-
-    # EASIER: Patch the vector_store.search since tools.py's search calls it?
-    # tools.py: search() returns List[SearchResult].
-    # So we need to mock whatever search() returns.
-
-    # Async mock helper
-    f: asyncio.Future[Any] = asyncio.Future()
-    f.set_result([anchor_mock])
-    mock_service.search = MagicMock(return_value=f)
+    mock_service.search = AsyncMock(return_value=[anchor_mock])
+    mock_service.repo.get_subgraph.return_value = {
+        "nodes": [{"id": "1", "name": "LeakyNode", "embedding": [0.001] * 1536}],
+        "edges": [],
+    }
+    mock_service.context_manager = MagicMock()
+    mock_service.context_manager.optimize.return_value = [{"id": "1", "name": "LeakyNode"}]
 
     result = await mock_service.get_hologram("query", depth=1)
 
-    # Assert
     nodes = result["nodes"]
     assert len(nodes) > 0
     assert "embedding" not in nodes[0], "Embedding field was leaked in output!"
 
 
+# ─── get_neighbors: embedding must be stripped ──────────────────────
+
+
 @pytest.mark.asyncio
 async def test_get_neighbors_strips_embedding(mock_service):
-    """Verify get_neighbors logic strips embeddings."""
-    # Setup
-    # Mock execute_cypher returns a row with a Node object
+    """get_neighbors pops embedding from node properties."""
     mock_node = MagicMock()
-    mock_node.properties = {"id": "1", "name": "Neighbor", "embedding": [0.1] * 1024}  # Leak source
+    mock_node.properties = {"id": "1", "name": "Neighbor", "embedding": [0.1] * 1024}
 
-    mock_row = [mock_node]
     mock_res = MagicMock()
-    mock_res.result_set = [mock_row]  # One row
-
+    mock_res.result_set = [[mock_node]]
     mock_service.repo.execute_cypher.return_value = mock_res
 
-    # Act
     neighbors = await mock_service.get_neighbors("root_id")
 
-    # Assert
     assert len(neighbors) == 1
     assert "embedding" not in neighbors[0], "get_neighbors leaked embedding!"
