@@ -522,9 +522,9 @@ def main() -> None:
         if alias not in MODEL_REGISTRY:
             logger.warning("Unknown model alias: %s — skipping", alias)
             continue
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"📊 Model {i}/{len(model_aliases)}: {alias}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         try:
             result = benchmark_model(alias, MODEL_REGISTRY[alias], dataset)
             results.append(result)

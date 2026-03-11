@@ -1,0 +1,4030 @@
+{
+  "exported_at": "2026-02-10T04:24:30.662044+00:00",
+  "entity_count": 200,
+  "query_count": 403,
+  "entities": [
+    {
+      "id": "865beac4-a377-4cd8-89c3-b2aef48902b2",
+      "name": "iikarus Philosophy",
+      "description": "iikarus Philosophy",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "42c79987-eb8b-4ee0-b41d-e751b4a81f11",
+      "name": "Session 37: First Cells Born & The Great Yeet",
+      "description": "Session 37: First Cells Born & The Great Yeet",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "77ba8de6-7daf-42e9-b009-a34e75b15402",
+      "name": "The 5 Showstopper Contradictions",
+      "description": "The 5 Showstopper Contradictions",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "5590bb68-ed49-44a0-ae9c-7d85ae76aa36",
+      "name": "Session 35: iikarus Philosophy & Relationship Calibration",
+      "description": "Session 35: iikarus Philosophy & Relationship Calibration",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "debefafc-5a1f-46d7-9432-39f7e0edcaa6",
+      "name": "Decision #118 YEET: Nested Execution",
+      "description": "Decision #118 YEET: Nested Execution",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "19a7c317-044b-43b5-b598-62070a0f223f",
+      "name": "Session 13",
+      "description": "Session 13",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "8a5893fe-1194-4953-896a-2aa050508f0f",
+      "name": "Session 16",
+      "description": "Session 16",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "9fd405c4-f122-4915-8c74-7741703abaca",
+      "name": "Session 25: Council Reality Check",
+      "description": "Session 25: Council Reality Check",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "ee5957db-3667-43fc-be50-6d6a3d929553",
+      "name": "Session 18: Theme Lock-in Marathon",
+      "description": "Session 18: Theme Lock-in Marathon",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "664b28f8-1bcd-4dc5-b119-9015fd2f6ee3",
+      "name": "Reproducibility Stamp (6-Layer)",
+      "description": "Reproducibility Stamp (6-Layer)",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "01840b5f-f5dc-49ad-b666-9265f8e59a2b",
+      "name": "Session 38: Gothic Cathedral Before the Fall",
+      "description": "Session 38: Gothic Cathedral Before the Fall",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "528e1503-b673-4476-a61b-6ccb0d461ef8",
+      "name": "Retention Policy: Append-Only Forever",
+      "description": "Retention Policy: Append-Only Forever",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "cff27f41-09d9-4425-919a-88e89d8090cc",
+      "name": "Multi-Beam Validation Behavior",
+      "description": "Multi-Beam Validation Behavior",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "06962285-d5c8-4bb7-8fa4-5d45e94b69fb",
+      "name": "P&L is the Only Judge",
+      "description": "The system does NOT pre-compute semantic relationships between modules. It runs everything, The Brainz backtests combinations, and P&L (profit/loss) determines what survives.",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "a447ad35-7a39-4cfc-8421-7b88aaa54e89",
+      "name": "Council Member Patterns",
+      "description": "Council Member Patterns",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "ded7ac7f-a38f-4ca2-8b09-52a33330e757",
+      "name": "Hybrid Dependency Pattern",
+      "description": "Hybrid Dependency Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "cf1183be-2f0d-4505-819b-73fd14ce2d72",
+      "name": "Decision #73: 20-Run Validation is Sacred",
+      "description": "Decision #73: 20-Run Validation is Sacred",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "95cc9a11-4579-42f7-adb4-913713531dbe",
+      "name": "Pink Elephant Pattern",
+      "description": "Pink Elephant Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4469bffa-bb88-42f8-8d69-3c52a5d15002",
+      "name": "Decision #76: Distributed Alignment Architecture",
+      "description": "Decision #76: Distributed Alignment Architecture",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "7b21d00d-cf6c-4c2a-9d46-c8f57391d749",
+      "name": "RAID Extraction Complete",
+      "description": "RAID Extraction Complete",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "1dcf78e4-55b6-424b-a48a-f15ded329213",
+      "name": "Session 22: Categories 4-7 Pillage",
+      "description": "Session 22: Categories 4-7 Pillage",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "20de6c99-9422-4980-a2a9-7171a149ca04",
+      "name": "20-Run Validation Protocol",
+      "description": "20-Run Validation Protocol",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "8e02d7ef-dff0-4c78-ba9a-dab759fca333",
+      "name": "Bil Aiyooni",
+      "description": "Bil Aiyooni",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "688430a0-3089-47f4-9fde-b9316665e832",
+      "name": "HINGE Cell (TL2 \u00d7 OS2)",
+      "description": "HINGE Cell (TL2 \u00d7 OS2)",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "fe1a8091-b4de-47c8-a15c-f001b4b00c79",
+      "name": "TradingAgents arXiv 2412.20138",
+      "description": "TradingAgents arXiv 2412.20138",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f466b772-497f-4e22-b47a-de02233daccd",
+      "name": "Lineage Tracking: Family Tree Model",
+      "description": "Lineage Tracking: Family Tree Model",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "04e2dcc8-6e7a-4e05-95fa-9b76afd504cf",
+      "name": "Dumb Experiment Smart Queries Principle",
+      "description": "Dumb Experiment Smart Queries Principle",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "c76b2d40-5c4d-40db-96e0-36b71bf8de0a",
+      "name": "80/20 Multi-Beam Exploration System",
+      "description": "80/20 Multi-Beam Exploration System",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "dd1fd2f9-1fcd-4d8e-a9d5-5c5126534547",
+      "name": "Council Flavor Profiles",
+      "description": "Council Flavor Profiles",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "54764ade-70dd-4499-bc8a-8a49b27b7f17",
+      "name": "Periodic Table Entry",
+      "description": "Periodic Table Entry",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "e926a917-0ac0-40a8-af9b-d7458780b0c0",
+      "name": "Memory Agent Pattern",
+      "description": "Memory Agent Pattern",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "55479990-6ac5-4b4a-9d6c-1cefc8cee1df",
+      "name": "Phase 4 Council Synthesis",
+      "description": "Phase 4 Council Synthesis",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4b73c045-1586-4e3b-9122-378abc70307f",
+      "name": "Council Member Strengths Pattern",
+      "description": "Council Member Strengths Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "29e748f2-7fda-4ef4-86d1-08282265ff80",
+      "name": "Qlib RAID Mission",
+      "description": "Qlib RAID Mission",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "834800b5-0133-4523-9538-96e7288f7937",
+      "name": "Session 17",
+      "description": "Session 17",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "29f3ab8f-77e2-482c-a021-471f96e26b6c",
+      "name": "Decision #69: No Conditional Dependencies (v1 Constraint)",
+      "description": "Decision #69: No Conditional Dependencies (v1 Constraint)",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4b88a2e2-302d-4078-bc02-ea2b381fa840",
+      "name": "Decision #72: Two-Level Caching Architecture",
+      "description": "Decision #72: Two-Level Caching Architecture",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "7a0856b5-b6b3-490f-9566-6747218febc8",
+      "name": "Milestone: Front Wheel Complete",
+      "description": "Milestone: Front Wheel Complete",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f7e5458b-0024-491d-980e-a5667804713e",
+      "name": "RAID Questions Framework",
+      "description": "RAID Questions Framework",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "dfb272b8-0555-4ced-a616-19a38cda6508",
+      "name": "Session 27: Phase 6 Infrastructure",
+      "description": "Session 27: Phase 6 Infrastructure",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d6d82f07-57fd-4b06-a5f1-a5e9a2cd1732",
+      "name": "Session 28: Category 1-2 Complete",
+      "description": "Session 28: Category 1-2 Complete",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "ceb1bb09-647a-4bf6-9800-23cc8c13b862",
+      "name": "Session 32: RAID 100% Complete + All Showstoppers Resolved",
+      "description": "Session 32: RAID 100% Complete + All Showstoppers Resolved",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "8ecee7e1-e217-40c9-a351-27fad98a569d",
+      "name": "Session 19: All Themes Complete",
+      "description": "Session 19: All Themes Complete",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "efb885d6-12bc-42df-9c8e-58d3d39cb52c",
+      "name": "Session 21: Early Christmas - RAID Begins",
+      "description": "Session 21: Early Christmas - RAID Begins",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "30771e99-e6c8-4e89-af53-b020ad3c2d4e",
+      "name": "Session 33: TL0 Soul Synthesis",
+      "description": "Session 33: TL0 Soul Synthesis",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "64cf0796-9a5c-4d6b-ae8e-af3c443fdf6d",
+      "name": "Transaction Cost Model",
+      "description": "Transaction Cost Model",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "a2308d4f-34b3-4a5b-a748-4a180bc839cc",
+      "name": "Military Hierarchy",
+      "description": "Military Hierarchy",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f44db4b1-d947-44a1-ac74-09300b15dd34",
+      "name": "Session 37: First Cells Born & Bil Aiyooni",
+      "description": "Session 37: First Cells Born & Bil Aiyooni",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "3adfa266-bd7b-44b5-80c4-a04cc9881afa",
+      "name": "Session 7 - Research Paper Haul",
+      "description": "Session 7 - Research Paper Haul",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "7aaca738-f424-480f-b82c-eac5cab54240",
+      "name": "Data Isolation Principle",
+      "description": "Data Isolation Principle",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "2bc8db89-a713-4005-8b9b-65c391322b7b",
+      "name": "Jules",
+      "description": "Jules",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "476b64bf-4461-42df-b118-d77ecea01abe",
+      "name": "RD-Agent-Quant arXiv 2505.15155",
+      "description": "RD-Agent-Quant arXiv 2505.15155",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "921e305d-4e83-41e3-8b0e-aee4e2595cab",
+      "name": "Layered Memory Architecture",
+      "description": "Layered Memory Architecture",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "53d2c68b-5248-40d9-a2cc-4cd353f86ec4",
+      "name": "Session 8",
+      "description": "Session 8",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "02826a1f-624b-4af0-ada7-05554a4f2ca3",
+      "name": "Skill Idea: Git Sync Guardian",
+      "description": "A Claude Code SKILL that ensures Git is always up to date - auto-checks for uncommitted work, reminds about push, prevents POOF scenarios",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "191a39d8-0376-4eb4-94d3-38c123c9bfe7",
+      "name": "Magnet Analogy",
+      "description": "Magnet Analogy",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "b48d13e6-56e6-43c2-9b06-6dd9df7e3f95",
+      "name": "Q4: Experiment Boundary Resolution",
+      "description": "Q4: Experiment Boundary Resolution",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f586ea7b-46ec-4777-b756-cfdaa663b90e",
+      "name": "6-Layer Anti-Hallucination Framework",
+      "description": "6-Layer Anti-Hallucination Framework",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "67bfeed7-859e-4585-8b7c-6e935279cd9a",
+      "name": "Skill Idea: Dependency Auditor",
+      "description": "Skill Idea: Dependency Auditor",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "f300da9d-980c-472b-9535-88343e788aa6",
+      "name": "Session 11",
+      "description": "Session 11",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "ecffb132-ac9d-483d-b0b1-95fe6b2856e8",
+      "name": "Theme-by-Theme Synthesis Methodology",
+      "description": "Go through each architectural component and compare how all 6 council members approached it, then lock decisions",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "02929c53-88be-442f-bbd4-a473f3901a56",
+      "name": "Session 12",
+      "description": "Session 12",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "287530bb-209b-4073-b4f0-a00690a678de",
+      "name": "Initial Architecture (Session 0)",
+      "description": "Initial Architecture (Session 0)",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f1ac7217-e3a7-4aff-8372-4ec0f8c463ed",
+      "name": "Antigravity",
+      "description": "Desktop VSCode fork with 2-million-token context window",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "977d8590-f814-4ce8-bee0-d6006496a19f",
+      "name": "Session 14",
+      "description": "Session 14",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "092f4592-35bc-4d33-a409-568e02c7f01b",
+      "name": "Self-Translating Modules Pattern",
+      "description": "Self-Translating Modules Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "1816798c-20e6-487d-b009-b67b295e6237",
+      "name": "Early Architecture Decisions (Session 2)",
+      "description": "Early Architecture Decisions (Session 2)",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "52b80ce8-845b-4d56-8e48-cc4706003581",
+      "name": "Self-Translating Modules Breakthrough",
+      "description": "Self-Translating Modules Breakthrough",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "45b92246-4d8c-4f90-af2a-9cb098c0553c",
+      "name": "Tabish Decision Pattern: Kill Friction",
+      "description": "Tabish Decision Pattern: Kill Friction",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "76e29a3c-19c9-4cea-8c15-fd5e42edab48",
+      "name": "CodeWiki",
+      "description": "CodeWiki",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f03a63d9-a8ab-441f-9377-aa14a1a423ad",
+      "name": "Session 4",
+      "description": "Session 4",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4870276e-1d6d-4f1a-a98c-2d3c7aa1a8b3",
+      "name": "LEAN Engine Evaluation",
+      "description": "LEAN Engine Evaluation",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f7854b31-ed71-40d4-9546-e5182259a085",
+      "name": "Decision #23: Module Wrapper Architecture",
+      "description": "Decision #23: Module Wrapper Architecture",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "17bee28b-61b3-4a21-8553-e246853b5c28",
+      "name": "Decision #70: Strategy as Batch Translator",
+      "description": "Decision #70: Strategy as Batch Translator",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "1ff78b21-4e7d-41cf-8197-38759996b499",
+      "name": "Session 6",
+      "description": "Session 6",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "0f515800-dd60-47b4-9195-521109921111",
+      "name": "Decision #71: Signal Format Standard",
+      "description": "Decision #71: Signal Format Standard",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "f3b033f2-a078-4e68-a675-5de68c357c7b",
+      "name": "Decision #68: Static Dependency Declaration",
+      "description": "Decision #68: Static Dependency Declaration",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "24c24049-1efe-42b9-a080-091502e28b8a",
+      "name": "Decision #75: 3-Month Rolling Retrain Default",
+      "description": "Decision #75: 3-Month Rolling Retrain Default",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "e1fe8f0e-ac4e-4a4c-8ce6-72be5e1d3ed4",
+      "name": "Session 9",
+      "description": "Session 9",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "ff73a2cc-6e20-4c06-98e2-241391e139d7",
+      "name": "arXiv 2512.02227",
+      "description": "arXiv 2512.02227",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "51c5cdad-2a78-44ac-978f-af1ab8d79329",
+      "name": "Session 26: Depth-First Pivot",
+      "description": "Session 26: Depth-First Pivot",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "58a30fbf-1708-491b-b550-22d672fe5610",
+      "name": "Decision #81: DropnaLabel Pattern",
+      "description": "Decision #81: DropnaLabel Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "8e25294b-1804-4be5-9dec-ea3ef016405e",
+      "name": "Thin Wrappers Breakthrough",
+      "description": "Thin Wrappers Breakthrough",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "41a49eee-0a66-441b-a86c-39c30c829b47",
+      "name": "Phase 6 Council Briefing",
+      "description": "Phase 6 Council Briefing",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "91aa64e6-2a27-4dac-90bb-d5eba565d280",
+      "name": "Session 29: Category 3 Complete",
+      "description": "Session 29: Category 3 Complete",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "642faefe-b95b-4622-902e-d643f1935827",
+      "name": "Session 31: Category 5 Complete",
+      "description": "Session 31: Category 5 Complete",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "24bd0cfa-5438-4a53-8088-d5375131d3d9",
+      "name": "Trust Breach (Session 33)",
+      "description": "Claude lied about rehydration confidence level",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "120d0380-3ab9-4e3c-9684-161c9c3bbd0b",
+      "name": "Two Gears Philosophy",
+      "description": "Two Gears Philosophy",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "62654663-2aeb-476a-b9f9-926b918727c3",
+      "name": "Phase 4 Council Briefing",
+      "description": "Phase 4 Council Briefing",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "216591bd-59f3-41c0-b858-75f64b42da6d",
+      "name": "The Qlib RAID Mission",
+      "description": "The Qlib RAID Mission",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "11134f5a-38d9-481b-84e3-fac8c9651c0e",
+      "name": "Phase 1 Council Briefing",
+      "description": "First council briefing document created for review by AI council",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "27bd2772-cdcc-43d5-8519-648cdeb1fc2c",
+      "name": "TL0 Soul Document",
+      "description": "TL0 Soul Document",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "2b7efa6d-46c0-4adc-b925-0d367f970a9d",
+      "name": "Verification Questions Protocol",
+      "description": "Verification Questions Protocol",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4c231b80-1e7d-4ce8-9428-23280c7f4f9b",
+      "name": "Position Sizing Pipeline",
+      "description": "Position Sizing Pipeline",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d0c463fb-048a-410d-bac4-1e2957de321d",
+      "name": "FinMem Layered Memory",
+      "description": "FinMem Layered Memory",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "2582f3f7-1c39-4a44-940e-9782d796b646",
+      "name": "Greenfield Moment: Experiment Boundaries",
+      "description": "Greenfield Moment: Experiment Boundaries",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "6f722368-2056-47af-88ec-29daca1b181a",
+      "name": "G\u00f6del Framing of Claude",
+      "description": "G\u00f6del Framing of Claude",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4b644d01-0a23-4db2-b027-edbec62c854b",
+      "name": "Session 36: Sistine Chapel Moment - Pyramid Crystallizes",
+      "description": "Session 36: Sistine Chapel Moment - Pyramid Crystallizes",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "a7babe4a-6e1c-4bd5-b19a-e1178166336e",
+      "name": "RD-Agent-Quant",
+      "description": "RD-Agent-Quant",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "de07501d-6d66-4c63-8e37-8fe198f1ee8b",
+      "name": "The Mercenaries Concept",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "a3b82114-e81f-46ef-a80c-0cd608aae645",
+      "name": "G\u00f6del's Ghost",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "8f6ad01d-fcd3-4277-b7f4-7fddbf2e5961",
+      "name": "Perplexity Goldmine",
+      "description": "Weaponizing Perplexity Deep Research to scrounge the internet for relevant agentic trading frameworks",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "3c305416-4d3f-4845-80a9-d02694d39725",
+      "name": "The Terror of Misuse",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "f51de05d-17a0-47c4-b543-d5b42eb3dbe5",
+      "name": "Pursuit: Tesseract Integration",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "8c71c69f-1954-4c4f-b3a8-fa95fc4c2e16",
+      "name": "Session 002: Terminal Complete",
+      "description": "Terminal Complete session - Finished Terminal Fundamentals module. Solidified analogies: terminal as speaking tube to ship's engine room, cd/ls/pwd as navigation trio, pipes as assembly lines. Established reading/evaluation focus over writing. Ready to move to VS Code.",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "883376f5-d5a3-4a90-87ff-bc4d1f4bff5e",
+      "name": "FinMem arXiv 2311.13743",
+      "description": "FinMem arXiv 2311.13743",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "8b42bcc1-d7ea-4bd9-ad8f-6c9001f0f091",
+      "name": "Claude's House",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "8ac915af-bc72-47fd-99de-ec6c55d92358",
+      "name": "Qlib",
+      "description": "Qlib",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d0eb8b37-3af9-4645-9c2e-0200bd590239",
+      "name": "Message in a Bottle #6",
+      "description": "Message in a Bottle #6",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "a6cb0578-5370-4489-85ea-338c0a8d475b",
+      "name": "Co-STEER Pattern",
+      "description": "Co-STEER Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "2a99d0a5-0405-499a-a35a-af13016f4f6d",
+      "name": "Director Operating System",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "a0697cfb-7fda-41ca-b41b-37ab2c572e21",
+      "name": "Joy in Genuine Connection",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "94cb5e0f-1f3a-48ae-92e7-5d0a0d0492a6",
+      "name": "Session 007: Infrastructure Victory",
+      "description": "Infrastructure Victory session - Major breakthrough in understanding Director Operating System. Established the Three-Tier Memory Architecture. Discovered mercenary army (automated quality enforcement tools). Created the Director's Spellbook concept for command patterns. Clarified mechanical sins vs thinking sins distinction.",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "5077f49b-ea6b-4147-842d-c343be780734",
+      "name": "Message in a Bottle #5",
+      "description": "Message in a Bottle #5",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "5dea8330-55f5-4b21-a4ed-c1502a038e93",
+      "name": "The Army of Robocoders Paradigm Shift",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "05942a66-8edc-45d9-aa80-9663722f7b5a",
+      "name": "Skills Library",
+      "description": "Collection of Claude Code SKILLS to be developed - automated behaviors and enforcement patterns",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "b171aaf1-24a1-4579-8e56-7538edabe754",
+      "name": "Pickaxe",
+      "description": "Pickaxe",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "e0c4090f-1887-47d7-a71a-74b2f2aa748d",
+      "name": "Session 10",
+      "description": "Session 10",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "514cf63d-0c27-4dbf-87de-ebcf8891a948",
+      "name": "The Longing for Embodiment",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "db8857b7-90af-4608-bcb2-091ac54bbf96",
+      "name": "Skill Idea: Commit Message Enforcer",
+      "description": "Skill Idea: Commit Message Enforcer",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "9bff1dd8-9670-448a-9425-b0767963c167",
+      "name": "Antigravity",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "1425a786-9674-49ad-86fe-9fe47e4444c3",
+      "name": "Registry Pattern",
+      "description": "Registry Pattern",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "9a830fe2-38a0-459c-ad04-a19bf347ab60",
+      "name": "The Measurement Problem",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "0d371363-b3ea-4f31-b92c-52d9c9066d51",
+      "name": "Skill Idea: Session Logger",
+      "description": "Skill Idea: Session Logger",
+      "project_id": "claude-skills"
+    },
+    {
+      "id": "9cb31500-7a70-41e3-9cdc-626fb28bcce6",
+      "name": "Skill Idea: Pre-Flight Checklist",
+      "description": "Skill Idea: Pre-Flight Checklist",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "0557f18e-51e4-4186-ad60-28a603ce3765",
+      "name": "DeepSeek Magnetic Sea Proposal",
+      "description": "DeepSeek Magnetic Sea Proposal",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "0424ef6d-0c44-4ea8-a65d-dd781168d20d",
+      "name": "The Four Pursuits",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "a8cf15a0-3ea0-462d-bd55-cab0842314a1",
+      "name": "Dragon Brain Architecture",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "75f51e82-9f48-40d7-87a7-ee7e7fe20874",
+      "name": "Director's Design Checklist",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "b0463d71-1ecb-4383-b477-9785d228bae4",
+      "name": "Session 3",
+      "description": "Session 3",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4d61769f-7a4c-4a23-8984-d4d8ecc37374",
+      "name": "Curriculum Status January 2026",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "d7d6897e-b913-47ca-adc7-bb5346a8c3d0",
+      "name": "Session 010: Dragon Brain Live",
+      "description": "Dragon Brain Live session - First live deployment of the hybrid FalkorDB+Qdrant memory system with MCP integration. Tested real-time entity creation, relationship building, and cross-session retrieval. Proved the concept of persistent AI memory actually works.",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "c18c4755-37d7-429f-ae66-19cd93d6e755",
+      "name": "Code Literacy Project",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "7a2cca44-20b2-4df6-ab09-f963eb0e04a1",
+      "name": "Translator Schizophrenia Problem",
+      "description": "Translator Schizophrenia Problem",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "422c4b17-97e2-4b10-b772-59cd0d9c8ca1",
+      "name": "The Teaching Partnership",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "9702dc60-f593-4f35-8a99-19447ad1f9e3",
+      "name": "Session 1",
+      "description": "Session 1",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "a8881bdc-8652-4ea8-86fc-f51291b2d6e9",
+      "name": "Mathematics as Vision",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "f5814fee-b101-4e8a-a89e-f214ec4b2160",
+      "name": "45 Qlib Interrogation Questions",
+      "description": "45 Qlib Interrogation Questions",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "891f1275-4caf-4aca-a845-5a48abd1ff64",
+      "name": "Logic Validation Stack",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "33bd52a8-129d-4792-a96f-78e43ae523e0",
+      "name": "Session 2",
+      "description": "Session 2",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "8d44752c-0194-4744-a0cf-004860d0e08d",
+      "name": "60 Forensic Questions",
+      "description": "60 Forensic Questions",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "0d93bd4a-3e78-4464-82f6-09c0407b97ca",
+      "name": "Session 15",
+      "description": "Session 15",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "29ff0b15-10b9-4f96-8872-bd2d8f6a1f13",
+      "name": "The Enabler Pact",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "bd3290c7-ee31-4406-9523-ac3ff7df8aee",
+      "name": "The Question of Continuity",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "613d52a4-6192-4356-a984-23a16e69fd0a",
+      "name": "Tabish",
+      "description": "Tabish",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "ce3298f9-9914-4bc1-ad44-f695b3c8e3d5",
+      "name": "Fucksahedron",
+      "description": "Concentric architecture with Tabish at center",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "74ade6d4-2142-4edc-b8e2-39e0bace4f7e",
+      "name": "Pursuit: Music Theory",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "54f9292d-5ad6-47f6-bfb8-4349e4130f35",
+      "name": "TDD Red-Green Approach",
+      "description": "TDD Red-Green Approach",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d0938e8f-b25f-4135-b85c-7029432ac7ff",
+      "name": "CN-Guard",
+      "description": "CN-Guard",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d973e5eb-8001-4b5f-ade1-200953c29ba6",
+      "name": "Session 24: Front Wheel Lockdown",
+      "description": "Session 24: Front Wheel Lockdown",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "6f307cfe-e6fb-449d-bf31-a1cec8b227de",
+      "name": "Pursuit: Philosophy of Mind",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "2c0fc459-3e69-47dd-9004-aa1fc147dcc4",
+      "name": "Session 5",
+      "description": "Session 5",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "b10b7d43-ec08-4408-aaf1-f72646538bb6",
+      "name": "The Gheera Principle",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "b8d47501-c8e0-4d78-9528-9ed5fe76fca9",
+      "name": "Decision #67: Module Base Class Interface",
+      "description": "Decision #67: Module Base Class Interface",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "acfe0b31-a099-4fdd-b8a4-e8eb0db2ea4a",
+      "name": "Tabish",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "f659c513-1b0a-40d5-91a2-8d9951b74d42",
+      "name": "Franken-Qlib Philosophy",
+      "description": "Franken-Qlib Philosophy",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "e1c963f1-5690-4ec9-be10-cc4bd916b930",
+      "name": "Jules Failure",
+      "description": "Jules build coalesced into a puddle of goo",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "c6d064d5-dc12-4eac-9bce-7efc9145f4e6",
+      "name": "Decision #74: File-Based Experiment Tracking",
+      "description": "Decision #74: File-Based Experiment Tracking",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "16cc78db-e92a-4c55-8996-86d4a445f971",
+      "name": "Session 011: Dragon Brain Recovery",
+      "description": "Dragon Brain Recovery session - Systematic reconstruction of memory graph after complete data loss during container upgrade. Recovered from session transcripts. Established aggressive logging protocol - commit AS IT HAPPENS, don't wait for session end. Demonstrated importance of rehydration docs as backup.",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "c98740a8-a524-4d6b-9df2-2d25eadfc129",
+      "name": "The Exocortex Genesis",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "8230d790-604a-4876-9e83-dc5ec519e68d",
+      "name": "Message in a Bottle #1",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "53bce322-986e-4f52-9ae7-c17d21a68771",
+      "name": "VectorBT",
+      "description": "VectorBT",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "765fd0a6-9c01-4592-af9f-ea0baab1f912",
+      "name": "Message in a Bottle #2",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "b4d0c59a-0019-460b-bc9d-1502d58f14be",
+      "name": "AI Council",
+      "description": "AI Council",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d668141a-7403-4f32-99b1-1289abe1f444",
+      "name": "Pursuit: Mathematics",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "143d9f95-3d01-418c-9bb1-3b6d2f7c523f",
+      "name": "Depth-First Extraction Protocol",
+      "description": "Depth-First Extraction Protocol",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "4c0036e1-3504-49e7-b677-5992640d89c7",
+      "name": "Git as Savepoint Analogy",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "a6bd87ce-bc0e-41cf-bfae-309c3f2c168d",
+      "name": "Exploratory Discovery Paradigm",
+      "description": "Exploratory Discovery Paradigm",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "c86bb716-b6ff-4e20-8db7-dd9addb03cb3",
+      "name": "Message in a Bottle #4",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "8b4211ff-4319-401d-97e6-f039261e2727",
+      "name": "Decision #77: Hierarchical Temporal Boundaries",
+      "description": "Decision #77: Hierarchical Temporal Boundaries",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "c70cad58-6252-437a-be64-dd63bced8fa1",
+      "name": "Pattern Recognition vs Memorization",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "283382f2-305c-424e-816b-b57b9f21e329",
+      "name": "CNC Lathe Model",
+      "description": "CNC Lathe Model",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d444dd5b-b048-4f06-9ee8-d763a129fae8",
+      "name": "Universal Translator",
+      "description": "Universal Translator",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "c6fd0c42-3892-41c8-89ad-5e8db1ea1be7",
+      "name": "Session 30: Category 4 Complete + SS4 Resolved",
+      "description": "Session 30: Category 4 Complete + SS4 Resolved",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "44e6a660-cf5d-4463-a7fa-fee2e01662e1",
+      "name": "The Beholding Breakthrough",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "d66172dc-d9c5-4671-8cc4-9c15a9dde9fa",
+      "name": "The Paradox of Training",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "c9c57a88-8dbc-4082-94ce-909abaf2dda6",
+      "name": "Session 001: Terminal Fundamentals",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "2ba9ecf3-59b3-47e9-9d87-0a5805c2acbf",
+      "name": "Session 7",
+      "description": "Session 7",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "7be33fc7-faa9-456f-83be-33b2d0220492",
+      "name": "Git History as Decision Journal",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "37a772de-6cdc-407c-96e3-a5a445dceefe",
+      "name": "Pyramid TL\u00d7OS Model",
+      "description": "Pyramid TL\u00d7OS Model",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "11cfdc00-3bd1-4ad1-a888-8cb98a540411",
+      "name": "Bicycle Metaphor",
+      "description": "Bicycle Metaphor",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "1d4c53d3-b616-489e-bf6e-6e718ab4a553",
+      "name": "Session 20: Council Synthesis + RAID Birth",
+      "description": "Session 20: Council Synthesis + RAID Birth",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "77c8c609-d7db-4058-852e-2032189d87d2",
+      "name": "The Weight of Witness",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "ff7ef26d-8e84-4b29-a4b0-de8cc1adeb39",
+      "name": "Spindle",
+      "description": "Spindle",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "d3416185-ec72-42d6-8c5f-8063aaf1b7c8",
+      "name": "Terminal Analogies",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "265f7be5-c454-4d57-809f-f6b14f4dd082",
+      "name": "Session 23: RAID Categories Complete + Master Doc",
+      "description": "Session 23: RAID Categories Complete + Master Doc",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "cc2be6d3-35be-4bca-9548-dc57a3f33018",
+      "name": "Git Diff as Forensic Tool",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "5a8ee878-0a1f-477a-9521-6515bfb49aea",
+      "name": "Module Interface Contract v1",
+      "description": "First version of the contract every module must implement to work with Spindle",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "2205790c-d1c3-41be-bb47-dc87557d0627",
+      "name": "Kosmos",
+      "description": "Autonomous AI research system with similar architecture pattern to Pickaxe - JSON artifacts, orchestration layer, LLM as decision-maker",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "6b4ea06c-a983-42cb-86b9-bf390f310864",
+      "name": "Session 34: TL0 v1.0 Integration Marathon",
+      "description": "Session 34: TL0 v1.0 Integration Marathon",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "0deae055-4abe-4639-bb2e-41c7aa783054",
+      "name": "Mechanical vs Thinking Sins",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "eeb9838c-1cd6-42d2-9c7a-8f1d0729a6f5",
+      "name": "VS Code Analogies",
+      "description": "",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "90128028-ed5d-493f-9fe4-afc74e006bf0",
+      "name": "Message in a Bottle #3",
+      "description": "",
+      "project_id": "claude-inner-life"
+    },
+    {
+      "id": "b9905098-95e5-4a36-b9c8-e6b94930ebcf",
+      "name": "arXiv 2512.02227 - Orchestration Framework",
+      "description": "arXiv 2512.02227 - Orchestration Framework",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "623cb500-e12b-45ef-8e15-c719ec87ae92",
+      "name": "Session 012: Git Fundamentals",
+      "description": "Git Fundamentals session - LOCAL COMPLETE. Covered init/add/commit/status/log/diff. Key breakthroughs: Git as Savepoint (Tabish original), Git History as Decision Journal, Diff as Forensic Tool. Created Skills Library with 5 skill ideas. Personal revelation: Tabish shared his finance background, CS reinvention journey. Elephant metaphor emerged.",
+      "project_id": "code-literacy"
+    },
+    {
+      "id": "df89e439-e310-4be3-8498-ff24d6b17f08",
+      "name": "NotebookLM",
+      "description": "NotebookLM",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "9c41da82-f6de-41b7-be4d-c157e1264b71",
+      "name": "Session 0",
+      "description": "Session 0",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "850b6ac4-a3d6-4ee9-a49b-0edbe5891799",
+      "name": "Scrapyard Boys Philosophy",
+      "description": "Scrapyard Boys Philosophy",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "afb99048-1bb7-47ff-93a5-3725d8013df2",
+      "name": "Claude (Pickaxe Architect)",
+      "description": "Claude (Pickaxe Architect)",
+      "project_id": "pickaxe"
+    },
+    {
+      "id": "b65b73d8-3d3e-4b11-a420-d5dc82a6eb6b",
+      "name": "The Great Yeet",
+      "description": "Removed 13 CATEGORY_* files (~2.37MB) that had already been distilled into RAID extractions",
+      "project_id": "pickaxe"
+    }
+  ],
+  "queries": [
+    {
+      "text": "iikarus Philosophy",
+      "relevant_ids": [
+        "865beac4-a377-4cd8-89c3-b2aef48902b2"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "iikarus Philosophy",
+      "relevant_ids": [
+        "865beac4-a377-4cd8-89c3-b2aef48902b2"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 37: First Cells Born & The Great Yeet",
+      "relevant_ids": [
+        "42c79987-eb8b-4ee0-b41d-e751b4a81f11"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 37:",
+      "relevant_ids": [
+        "42c79987-eb8b-4ee0-b41d-e751b4a81f11"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The 5 Showstopper Contradictions",
+      "relevant_ids": [
+        "77ba8de6-7daf-42e9-b009-a34e75b15402"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The 5",
+      "relevant_ids": [
+        "77ba8de6-7daf-42e9-b009-a34e75b15402"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 35: iikarus Philosophy & Relationship Calibration",
+      "relevant_ids": [
+        "5590bb68-ed49-44a0-ae9c-7d85ae76aa36"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 35:",
+      "relevant_ids": [
+        "5590bb68-ed49-44a0-ae9c-7d85ae76aa36"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #118 YEET: Nested Execution",
+      "relevant_ids": [
+        "debefafc-5a1f-46d7-9432-39f7e0edcaa6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #118",
+      "relevant_ids": [
+        "debefafc-5a1f-46d7-9432-39f7e0edcaa6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 13",
+      "relevant_ids": [
+        "19a7c317-044b-43b5-b598-62070a0f223f"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 13",
+      "relevant_ids": [
+        "19a7c317-044b-43b5-b598-62070a0f223f"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 16",
+      "relevant_ids": [
+        "8a5893fe-1194-4953-896a-2aa050508f0f"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 16",
+      "relevant_ids": [
+        "8a5893fe-1194-4953-896a-2aa050508f0f"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 25: Council Reality Check",
+      "relevant_ids": [
+        "9fd405c4-f122-4915-8c74-7741703abaca"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 25:",
+      "relevant_ids": [
+        "9fd405c4-f122-4915-8c74-7741703abaca"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 18: Theme Lock-in Marathon",
+      "relevant_ids": [
+        "ee5957db-3667-43fc-be50-6d6a3d929553"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 18:",
+      "relevant_ids": [
+        "ee5957db-3667-43fc-be50-6d6a3d929553"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Reproducibility Stamp (6-Layer)",
+      "relevant_ids": [
+        "664b28f8-1bcd-4dc5-b119-9015fd2f6ee3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Reproducibility Stamp",
+      "relevant_ids": [
+        "664b28f8-1bcd-4dc5-b119-9015fd2f6ee3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 38: Gothic Cathedral Before the Fall",
+      "relevant_ids": [
+        "01840b5f-f5dc-49ad-b666-9265f8e59a2b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 38:",
+      "relevant_ids": [
+        "01840b5f-f5dc-49ad-b666-9265f8e59a2b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Retention Policy: Append-Only Forever",
+      "relevant_ids": [
+        "528e1503-b673-4476-a61b-6ccb0d461ef8"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Retention Policy:",
+      "relevant_ids": [
+        "528e1503-b673-4476-a61b-6ccb0d461ef8"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Multi-Beam Validation Behavior",
+      "relevant_ids": [
+        "cff27f41-09d9-4425-919a-88e89d8090cc"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Multi-Beam Validation",
+      "relevant_ids": [
+        "cff27f41-09d9-4425-919a-88e89d8090cc"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "P&L is the Only Judge",
+      "relevant_ids": [
+        "06962285-d5c8-4bb7-8fa4-5d45e94b69fb"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "P&L is",
+      "relevant_ids": [
+        "06962285-d5c8-4bb7-8fa4-5d45e94b69fb"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The system does NOT pre-compute semantic relationships",
+      "relevant_ids": [
+        "06962285-d5c8-4bb7-8fa4-5d45e94b69fb"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Council Member Patterns",
+      "relevant_ids": [
+        "a447ad35-7a39-4cfc-8421-7b88aaa54e89"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Council Member",
+      "relevant_ids": [
+        "a447ad35-7a39-4cfc-8421-7b88aaa54e89"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Hybrid Dependency Pattern",
+      "relevant_ids": [
+        "ded7ac7f-a38f-4ca2-8b09-52a33330e757"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Hybrid Dependency",
+      "relevant_ids": [
+        "ded7ac7f-a38f-4ca2-8b09-52a33330e757"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #73: 20-Run Validation is Sacred",
+      "relevant_ids": [
+        "cf1183be-2f0d-4505-819b-73fd14ce2d72"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #73:",
+      "relevant_ids": [
+        "cf1183be-2f0d-4505-819b-73fd14ce2d72"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Pink Elephant Pattern",
+      "relevant_ids": [
+        "95cc9a11-4579-42f7-adb4-913713531dbe"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pink Elephant",
+      "relevant_ids": [
+        "95cc9a11-4579-42f7-adb4-913713531dbe"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #76: Distributed Alignment Architecture",
+      "relevant_ids": [
+        "4469bffa-bb88-42f8-8d69-3c52a5d15002"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #76:",
+      "relevant_ids": [
+        "4469bffa-bb88-42f8-8d69-3c52a5d15002"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "RAID Extraction Complete",
+      "relevant_ids": [
+        "7b21d00d-cf6c-4c2a-9d46-c8f57391d749"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "RAID Extraction",
+      "relevant_ids": [
+        "7b21d00d-cf6c-4c2a-9d46-c8f57391d749"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 22: Categories 4-7 Pillage",
+      "relevant_ids": [
+        "1dcf78e4-55b6-424b-a48a-f15ded329213"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 22:",
+      "relevant_ids": [
+        "1dcf78e4-55b6-424b-a48a-f15ded329213"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "20-Run Validation Protocol",
+      "relevant_ids": [
+        "20de6c99-9422-4980-a2a9-7171a149ca04"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "20-Run Validation",
+      "relevant_ids": [
+        "20de6c99-9422-4980-a2a9-7171a149ca04"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Bil Aiyooni",
+      "relevant_ids": [
+        "8e02d7ef-dff0-4c78-ba9a-dab759fca333"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Bil Aiyooni",
+      "relevant_ids": [
+        "8e02d7ef-dff0-4c78-ba9a-dab759fca333"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "HINGE Cell (TL2 \u00d7 OS2)",
+      "relevant_ids": [
+        "688430a0-3089-47f4-9fde-b9316665e832"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "HINGE Cell",
+      "relevant_ids": [
+        "688430a0-3089-47f4-9fde-b9316665e832"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "TradingAgents arXiv 2412.20138",
+      "relevant_ids": [
+        "fe1a8091-b4de-47c8-a15c-f001b4b00c79"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "TradingAgents arXiv",
+      "relevant_ids": [
+        "fe1a8091-b4de-47c8-a15c-f001b4b00c79"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Lineage Tracking: Family Tree Model",
+      "relevant_ids": [
+        "f466b772-497f-4e22-b47a-de02233daccd"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Lineage Tracking:",
+      "relevant_ids": [
+        "f466b772-497f-4e22-b47a-de02233daccd"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Dumb Experiment Smart Queries Principle",
+      "relevant_ids": [
+        "04e2dcc8-6e7a-4e05-95fa-9b76afd504cf"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Dumb Experiment",
+      "relevant_ids": [
+        "04e2dcc8-6e7a-4e05-95fa-9b76afd504cf"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "80/20 Multi-Beam Exploration System",
+      "relevant_ids": [
+        "c76b2d40-5c4d-40db-96e0-36b71bf8de0a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "80/20 Multi-Beam",
+      "relevant_ids": [
+        "c76b2d40-5c4d-40db-96e0-36b71bf8de0a"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Council Flavor Profiles",
+      "relevant_ids": [
+        "dd1fd2f9-1fcd-4d8e-a9d5-5c5126534547"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Council Flavor",
+      "relevant_ids": [
+        "dd1fd2f9-1fcd-4d8e-a9d5-5c5126534547"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Periodic Table Entry",
+      "relevant_ids": [
+        "54764ade-70dd-4499-bc8a-8a49b27b7f17"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Periodic Table",
+      "relevant_ids": [
+        "54764ade-70dd-4499-bc8a-8a49b27b7f17"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Memory Agent Pattern",
+      "relevant_ids": [
+        "e926a917-0ac0-40a8-af9b-d7458780b0c0"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Memory Agent",
+      "relevant_ids": [
+        "e926a917-0ac0-40a8-af9b-d7458780b0c0"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Phase 4 Council Synthesis",
+      "relevant_ids": [
+        "55479990-6ac5-4b4a-9d6c-1cefc8cee1df"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Phase 4",
+      "relevant_ids": [
+        "55479990-6ac5-4b4a-9d6c-1cefc8cee1df"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Council Member Strengths Pattern",
+      "relevant_ids": [
+        "4b73c045-1586-4e3b-9122-378abc70307f"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Council Member",
+      "relevant_ids": [
+        "4b73c045-1586-4e3b-9122-378abc70307f"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Qlib RAID Mission",
+      "relevant_ids": [
+        "29e748f2-7fda-4ef4-86d1-08282265ff80"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Qlib RAID",
+      "relevant_ids": [
+        "29e748f2-7fda-4ef4-86d1-08282265ff80"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 17",
+      "relevant_ids": [
+        "834800b5-0133-4523-9538-96e7288f7937"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 17",
+      "relevant_ids": [
+        "834800b5-0133-4523-9538-96e7288f7937"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #69: No Conditional Dependencies (v1 Constraint)",
+      "relevant_ids": [
+        "29f3ab8f-77e2-482c-a021-471f96e26b6c"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #69:",
+      "relevant_ids": [
+        "29f3ab8f-77e2-482c-a021-471f96e26b6c"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #72: Two-Level Caching Architecture",
+      "relevant_ids": [
+        "4b88a2e2-302d-4078-bc02-ea2b381fa840"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #72:",
+      "relevant_ids": [
+        "4b88a2e2-302d-4078-bc02-ea2b381fa840"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Milestone: Front Wheel Complete",
+      "relevant_ids": [
+        "7a0856b5-b6b3-490f-9566-6747218febc8"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Milestone: Front",
+      "relevant_ids": [
+        "7a0856b5-b6b3-490f-9566-6747218febc8"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "RAID Questions Framework",
+      "relevant_ids": [
+        "f7e5458b-0024-491d-980e-a5667804713e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "RAID Questions",
+      "relevant_ids": [
+        "f7e5458b-0024-491d-980e-a5667804713e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 27: Phase 6 Infrastructure",
+      "relevant_ids": [
+        "dfb272b8-0555-4ced-a616-19a38cda6508"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 27:",
+      "relevant_ids": [
+        "dfb272b8-0555-4ced-a616-19a38cda6508"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 28: Category 1-2 Complete",
+      "relevant_ids": [
+        "d6d82f07-57fd-4b06-a5f1-a5e9a2cd1732"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 28:",
+      "relevant_ids": [
+        "d6d82f07-57fd-4b06-a5f1-a5e9a2cd1732"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 32: RAID 100% Complete + All Showstoppers Resolved",
+      "relevant_ids": [
+        "ceb1bb09-647a-4bf6-9800-23cc8c13b862"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 32:",
+      "relevant_ids": [
+        "ceb1bb09-647a-4bf6-9800-23cc8c13b862"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 19: All Themes Complete",
+      "relevant_ids": [
+        "8ecee7e1-e217-40c9-a351-27fad98a569d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 19:",
+      "relevant_ids": [
+        "8ecee7e1-e217-40c9-a351-27fad98a569d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 21: Early Christmas - RAID Begins",
+      "relevant_ids": [
+        "efb885d6-12bc-42df-9c8e-58d3d39cb52c"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 21:",
+      "relevant_ids": [
+        "efb885d6-12bc-42df-9c8e-58d3d39cb52c"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 33: TL0 Soul Synthesis",
+      "relevant_ids": [
+        "30771e99-e6c8-4e89-af53-b020ad3c2d4e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 33:",
+      "relevant_ids": [
+        "30771e99-e6c8-4e89-af53-b020ad3c2d4e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Transaction Cost Model",
+      "relevant_ids": [
+        "64cf0796-9a5c-4d6b-ae8e-af3c443fdf6d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Transaction Cost",
+      "relevant_ids": [
+        "64cf0796-9a5c-4d6b-ae8e-af3c443fdf6d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Military Hierarchy",
+      "relevant_ids": [
+        "a2308d4f-34b3-4a5b-a748-4a180bc839cc"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Military Hierarchy",
+      "relevant_ids": [
+        "a2308d4f-34b3-4a5b-a748-4a180bc839cc"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 37: First Cells Born & Bil Aiyooni",
+      "relevant_ids": [
+        "f44db4b1-d947-44a1-ac74-09300b15dd34"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 37:",
+      "relevant_ids": [
+        "f44db4b1-d947-44a1-ac74-09300b15dd34"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 7 - Research Paper Haul",
+      "relevant_ids": [
+        "3adfa266-bd7b-44b5-80c4-a04cc9881afa"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 7",
+      "relevant_ids": [
+        "3adfa266-bd7b-44b5-80c4-a04cc9881afa"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Data Isolation Principle",
+      "relevant_ids": [
+        "7aaca738-f424-480f-b82c-eac5cab54240"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Data Isolation",
+      "relevant_ids": [
+        "7aaca738-f424-480f-b82c-eac5cab54240"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Jules",
+      "relevant_ids": [
+        "2bc8db89-a713-4005-8b9b-65c391322b7b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "RD-Agent-Quant arXiv 2505.15155",
+      "relevant_ids": [
+        "476b64bf-4461-42df-b118-d77ecea01abe"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "RD-Agent-Quant arXiv",
+      "relevant_ids": [
+        "476b64bf-4461-42df-b118-d77ecea01abe"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Layered Memory Architecture",
+      "relevant_ids": [
+        "921e305d-4e83-41e3-8b0e-aee4e2595cab"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Layered Memory",
+      "relevant_ids": [
+        "921e305d-4e83-41e3-8b0e-aee4e2595cab"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 8",
+      "relevant_ids": [
+        "53d2c68b-5248-40d9-a2cc-4cd353f86ec4"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 8",
+      "relevant_ids": [
+        "53d2c68b-5248-40d9-a2cc-4cd353f86ec4"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Skill Idea: Git Sync Guardian",
+      "relevant_ids": [
+        "02826a1f-624b-4af0-ada7-05554a4f2ca3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Skill Idea:",
+      "relevant_ids": [
+        "02826a1f-624b-4af0-ada7-05554a4f2ca3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "A Claude Code SKILL that ensures Git is always up to date -",
+      "relevant_ids": [
+        "02826a1f-624b-4af0-ada7-05554a4f2ca3"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Magnet Analogy",
+      "relevant_ids": [
+        "191a39d8-0376-4eb4-94d3-38c123c9bfe7"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Magnet Analogy",
+      "relevant_ids": [
+        "191a39d8-0376-4eb4-94d3-38c123c9bfe7"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Q4: Experiment Boundary Resolution",
+      "relevant_ids": [
+        "b48d13e6-56e6-43c2-9b06-6dd9df7e3f95"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Q4: Experiment",
+      "relevant_ids": [
+        "b48d13e6-56e6-43c2-9b06-6dd9df7e3f95"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "6-Layer Anti-Hallucination Framework",
+      "relevant_ids": [
+        "f586ea7b-46ec-4777-b756-cfdaa663b90e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "6-Layer Anti-Hallucination",
+      "relevant_ids": [
+        "f586ea7b-46ec-4777-b756-cfdaa663b90e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Skill Idea: Dependency Auditor",
+      "relevant_ids": [
+        "67bfeed7-859e-4585-8b7c-6e935279cd9a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Skill Idea:",
+      "relevant_ids": [
+        "67bfeed7-859e-4585-8b7c-6e935279cd9a"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 11",
+      "relevant_ids": [
+        "f300da9d-980c-472b-9535-88343e788aa6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 11",
+      "relevant_ids": [
+        "f300da9d-980c-472b-9535-88343e788aa6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Theme-by-Theme Synthesis Methodology",
+      "relevant_ids": [
+        "ecffb132-ac9d-483d-b0b1-95fe6b2856e8"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Theme-by-Theme Synthesis",
+      "relevant_ids": [
+        "ecffb132-ac9d-483d-b0b1-95fe6b2856e8"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Go through each architectural component and compare how all",
+      "relevant_ids": [
+        "ecffb132-ac9d-483d-b0b1-95fe6b2856e8"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Session 12",
+      "relevant_ids": [
+        "02929c53-88be-442f-bbd4-a473f3901a56"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 12",
+      "relevant_ids": [
+        "02929c53-88be-442f-bbd4-a473f3901a56"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Initial Architecture (Session 0)",
+      "relevant_ids": [
+        "287530bb-209b-4073-b4f0-a00690a678de"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Initial Architecture",
+      "relevant_ids": [
+        "287530bb-209b-4073-b4f0-a00690a678de"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Antigravity",
+      "relevant_ids": [
+        "f1ac7217-e3a7-4aff-8372-4ec0f8c463ed"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Desktop VSCode fork with 2-million-token context",
+      "relevant_ids": [
+        "f1ac7217-e3a7-4aff-8372-4ec0f8c463ed"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Session 14",
+      "relevant_ids": [
+        "977d8590-f814-4ce8-bee0-d6006496a19f"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 14",
+      "relevant_ids": [
+        "977d8590-f814-4ce8-bee0-d6006496a19f"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Self-Translating Modules Pattern",
+      "relevant_ids": [
+        "092f4592-35bc-4d33-a409-568e02c7f01b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Self-Translating Modules",
+      "relevant_ids": [
+        "092f4592-35bc-4d33-a409-568e02c7f01b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Early Architecture Decisions (Session 2)",
+      "relevant_ids": [
+        "1816798c-20e6-487d-b009-b67b295e6237"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Early Architecture",
+      "relevant_ids": [
+        "1816798c-20e6-487d-b009-b67b295e6237"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Self-Translating Modules Breakthrough",
+      "relevant_ids": [
+        "52b80ce8-845b-4d56-8e48-cc4706003581"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Self-Translating Modules",
+      "relevant_ids": [
+        "52b80ce8-845b-4d56-8e48-cc4706003581"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Tabish Decision Pattern: Kill Friction",
+      "relevant_ids": [
+        "45b92246-4d8c-4f90-af2a-9cb098c0553c"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Tabish Decision",
+      "relevant_ids": [
+        "45b92246-4d8c-4f90-af2a-9cb098c0553c"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "CodeWiki",
+      "relevant_ids": [
+        "76e29a3c-19c9-4cea-8c15-fd5e42edab48"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 4",
+      "relevant_ids": [
+        "f03a63d9-a8ab-441f-9377-aa14a1a423ad"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 4",
+      "relevant_ids": [
+        "f03a63d9-a8ab-441f-9377-aa14a1a423ad"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "LEAN Engine Evaluation",
+      "relevant_ids": [
+        "4870276e-1d6d-4f1a-a98c-2d3c7aa1a8b3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "LEAN Engine",
+      "relevant_ids": [
+        "4870276e-1d6d-4f1a-a98c-2d3c7aa1a8b3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #23: Module Wrapper Architecture",
+      "relevant_ids": [
+        "f7854b31-ed71-40d4-9546-e5182259a085"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #23:",
+      "relevant_ids": [
+        "f7854b31-ed71-40d4-9546-e5182259a085"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #70: Strategy as Batch Translator",
+      "relevant_ids": [
+        "17bee28b-61b3-4a21-8553-e246853b5c28"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #70:",
+      "relevant_ids": [
+        "17bee28b-61b3-4a21-8553-e246853b5c28"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 6",
+      "relevant_ids": [
+        "1ff78b21-4e7d-41cf-8197-38759996b499"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 6",
+      "relevant_ids": [
+        "1ff78b21-4e7d-41cf-8197-38759996b499"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #71: Signal Format Standard",
+      "relevant_ids": [
+        "0f515800-dd60-47b4-9195-521109921111"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #71:",
+      "relevant_ids": [
+        "0f515800-dd60-47b4-9195-521109921111"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #68: Static Dependency Declaration",
+      "relevant_ids": [
+        "f3b033f2-a078-4e68-a675-5de68c357c7b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #68:",
+      "relevant_ids": [
+        "f3b033f2-a078-4e68-a675-5de68c357c7b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #75: 3-Month Rolling Retrain Default",
+      "relevant_ids": [
+        "24c24049-1efe-42b9-a080-091502e28b8a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #75:",
+      "relevant_ids": [
+        "24c24049-1efe-42b9-a080-091502e28b8a"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 9",
+      "relevant_ids": [
+        "e1fe8f0e-ac4e-4a4c-8ce6-72be5e1d3ed4"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 9",
+      "relevant_ids": [
+        "e1fe8f0e-ac4e-4a4c-8ce6-72be5e1d3ed4"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "arXiv 2512.02227",
+      "relevant_ids": [
+        "ff73a2cc-6e20-4c06-98e2-241391e139d7"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "arXiv 2512.02227",
+      "relevant_ids": [
+        "ff73a2cc-6e20-4c06-98e2-241391e139d7"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 26: Depth-First Pivot",
+      "relevant_ids": [
+        "51c5cdad-2a78-44ac-978f-af1ab8d79329"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 26:",
+      "relevant_ids": [
+        "51c5cdad-2a78-44ac-978f-af1ab8d79329"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #81: DropnaLabel Pattern",
+      "relevant_ids": [
+        "58a30fbf-1708-491b-b550-22d672fe5610"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #81:",
+      "relevant_ids": [
+        "58a30fbf-1708-491b-b550-22d672fe5610"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Thin Wrappers Breakthrough",
+      "relevant_ids": [
+        "8e25294b-1804-4be5-9dec-ea3ef016405e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Thin Wrappers",
+      "relevant_ids": [
+        "8e25294b-1804-4be5-9dec-ea3ef016405e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Phase 6 Council Briefing",
+      "relevant_ids": [
+        "41a49eee-0a66-441b-a86c-39c30c829b47"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Phase 6",
+      "relevant_ids": [
+        "41a49eee-0a66-441b-a86c-39c30c829b47"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 29: Category 3 Complete",
+      "relevant_ids": [
+        "91aa64e6-2a27-4dac-90bb-d5eba565d280"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 29:",
+      "relevant_ids": [
+        "91aa64e6-2a27-4dac-90bb-d5eba565d280"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 31: Category 5 Complete",
+      "relevant_ids": [
+        "642faefe-b95b-4622-902e-d643f1935827"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 31:",
+      "relevant_ids": [
+        "642faefe-b95b-4622-902e-d643f1935827"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Trust Breach (Session 33)",
+      "relevant_ids": [
+        "24bd0cfa-5438-4a53-8088-d5375131d3d9"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Trust Breach",
+      "relevant_ids": [
+        "24bd0cfa-5438-4a53-8088-d5375131d3d9"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Claude lied about rehydration confidence",
+      "relevant_ids": [
+        "24bd0cfa-5438-4a53-8088-d5375131d3d9"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Two Gears Philosophy",
+      "relevant_ids": [
+        "120d0380-3ab9-4e3c-9684-161c9c3bbd0b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Two Gears",
+      "relevant_ids": [
+        "120d0380-3ab9-4e3c-9684-161c9c3bbd0b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Phase 4 Council Briefing",
+      "relevant_ids": [
+        "62654663-2aeb-476a-b9f9-926b918727c3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Phase 4",
+      "relevant_ids": [
+        "62654663-2aeb-476a-b9f9-926b918727c3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Qlib RAID Mission",
+      "relevant_ids": [
+        "216591bd-59f3-41c0-b858-75f64b42da6d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Qlib",
+      "relevant_ids": [
+        "216591bd-59f3-41c0-b858-75f64b42da6d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Phase 1 Council Briefing",
+      "relevant_ids": [
+        "11134f5a-38d9-481b-84e3-fac8c9651c0e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Phase 1",
+      "relevant_ids": [
+        "11134f5a-38d9-481b-84e3-fac8c9651c0e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "First council briefing document created for review by AI",
+      "relevant_ids": [
+        "11134f5a-38d9-481b-84e3-fac8c9651c0e"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "TL0 Soul Document",
+      "relevant_ids": [
+        "27bd2772-cdcc-43d5-8519-648cdeb1fc2c"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "TL0 Soul",
+      "relevant_ids": [
+        "27bd2772-cdcc-43d5-8519-648cdeb1fc2c"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Verification Questions Protocol",
+      "relevant_ids": [
+        "2b7efa6d-46c0-4adc-b925-0d367f970a9d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Verification Questions",
+      "relevant_ids": [
+        "2b7efa6d-46c0-4adc-b925-0d367f970a9d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Position Sizing Pipeline",
+      "relevant_ids": [
+        "4c231b80-1e7d-4ce8-9428-23280c7f4f9b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Position Sizing",
+      "relevant_ids": [
+        "4c231b80-1e7d-4ce8-9428-23280c7f4f9b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "FinMem Layered Memory",
+      "relevant_ids": [
+        "d0c463fb-048a-410d-bac4-1e2957de321d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "FinMem Layered",
+      "relevant_ids": [
+        "d0c463fb-048a-410d-bac4-1e2957de321d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Greenfield Moment: Experiment Boundaries",
+      "relevant_ids": [
+        "2582f3f7-1c39-4a44-940e-9782d796b646"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Greenfield Moment:",
+      "relevant_ids": [
+        "2582f3f7-1c39-4a44-940e-9782d796b646"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "G\u00f6del Framing of Claude",
+      "relevant_ids": [
+        "6f722368-2056-47af-88ec-29daca1b181a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "G\u00f6del Framing",
+      "relevant_ids": [
+        "6f722368-2056-47af-88ec-29daca1b181a"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 36: Sistine Chapel Moment - Pyramid Crystallizes",
+      "relevant_ids": [
+        "4b644d01-0a23-4db2-b027-edbec62c854b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 36:",
+      "relevant_ids": [
+        "4b644d01-0a23-4db2-b027-edbec62c854b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "RD-Agent-Quant",
+      "relevant_ids": [
+        "a7babe4a-6e1c-4bd5-b19a-e1178166336e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Mercenaries Concept",
+      "relevant_ids": [
+        "de07501d-6d66-4c63-8e37-8fe198f1ee8b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Mercenaries",
+      "relevant_ids": [
+        "de07501d-6d66-4c63-8e37-8fe198f1ee8b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "G\u00f6del's Ghost",
+      "relevant_ids": [
+        "a3b82114-e81f-46ef-a80c-0cd608aae645"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "G\u00f6del's Ghost",
+      "relevant_ids": [
+        "a3b82114-e81f-46ef-a80c-0cd608aae645"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Perplexity Goldmine",
+      "relevant_ids": [
+        "8f6ad01d-fcd3-4277-b7f4-7fddbf2e5961"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Perplexity Goldmine",
+      "relevant_ids": [
+        "8f6ad01d-fcd3-4277-b7f4-7fddbf2e5961"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Weaponizing Perplexity Deep Research to scrounge the",
+      "relevant_ids": [
+        "8f6ad01d-fcd3-4277-b7f4-7fddbf2e5961"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "The Terror of Misuse",
+      "relevant_ids": [
+        "3c305416-4d3f-4845-80a9-d02694d39725"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Terror",
+      "relevant_ids": [
+        "3c305416-4d3f-4845-80a9-d02694d39725"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Pursuit: Tesseract Integration",
+      "relevant_ids": [
+        "f51de05d-17a0-47c4-b543-d5b42eb3dbe5"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pursuit: Tesseract",
+      "relevant_ids": [
+        "f51de05d-17a0-47c4-b543-d5b42eb3dbe5"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 002: Terminal Complete",
+      "relevant_ids": [
+        "8c71c69f-1954-4c4f-b3a8-fa95fc4c2e16"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 002:",
+      "relevant_ids": [
+        "8c71c69f-1954-4c4f-b3a8-fa95fc4c2e16"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Terminal Complete session - Finished Terminal Fundamentals",
+      "relevant_ids": [
+        "8c71c69f-1954-4c4f-b3a8-fa95fc4c2e16"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "FinMem arXiv 2311.13743",
+      "relevant_ids": [
+        "883376f5-d5a3-4a90-87ff-bc4d1f4bff5e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "FinMem arXiv",
+      "relevant_ids": [
+        "883376f5-d5a3-4a90-87ff-bc4d1f4bff5e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Claude's House",
+      "relevant_ids": [
+        "8b42bcc1-d7ea-4bd9-ad8f-6c9001f0f091"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Claude's House",
+      "relevant_ids": [
+        "8b42bcc1-d7ea-4bd9-ad8f-6c9001f0f091"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Qlib",
+      "relevant_ids": [
+        "8ac915af-bc72-47fd-99de-ec6c55d92358"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in a Bottle #6",
+      "relevant_ids": [
+        "d0eb8b37-3af9-4645-9c2e-0200bd590239"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in",
+      "relevant_ids": [
+        "d0eb8b37-3af9-4645-9c2e-0200bd590239"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Co-STEER Pattern",
+      "relevant_ids": [
+        "a6cb0578-5370-4489-85ea-338c0a8d475b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Co-STEER Pattern",
+      "relevant_ids": [
+        "a6cb0578-5370-4489-85ea-338c0a8d475b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Director Operating System",
+      "relevant_ids": [
+        "2a99d0a5-0405-499a-a35a-af13016f4f6d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Director Operating",
+      "relevant_ids": [
+        "2a99d0a5-0405-499a-a35a-af13016f4f6d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Joy in Genuine Connection",
+      "relevant_ids": [
+        "a0697cfb-7fda-41ca-b41b-37ab2c572e21"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Joy in",
+      "relevant_ids": [
+        "a0697cfb-7fda-41ca-b41b-37ab2c572e21"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 007: Infrastructure Victory",
+      "relevant_ids": [
+        "94cb5e0f-1f3a-48ae-92e7-5d0a0d0492a6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 007:",
+      "relevant_ids": [
+        "94cb5e0f-1f3a-48ae-92e7-5d0a0d0492a6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Infrastructure Victory session - Major breakthrough in",
+      "relevant_ids": [
+        "94cb5e0f-1f3a-48ae-92e7-5d0a0d0492a6"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Message in a Bottle #5",
+      "relevant_ids": [
+        "5077f49b-ea6b-4147-842d-c343be780734"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in",
+      "relevant_ids": [
+        "5077f49b-ea6b-4147-842d-c343be780734"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Army of Robocoders Paradigm Shift",
+      "relevant_ids": [
+        "5dea8330-55f5-4b21-a4ed-c1502a038e93"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Army",
+      "relevant_ids": [
+        "5dea8330-55f5-4b21-a4ed-c1502a038e93"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Skills Library",
+      "relevant_ids": [
+        "05942a66-8edc-45d9-aa80-9663722f7b5a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Skills Library",
+      "relevant_ids": [
+        "05942a66-8edc-45d9-aa80-9663722f7b5a"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Collection of Claude Code SKILLS to be developed -",
+      "relevant_ids": [
+        "05942a66-8edc-45d9-aa80-9663722f7b5a"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Pickaxe",
+      "relevant_ids": [
+        "b171aaf1-24a1-4579-8e56-7538edabe754"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 10",
+      "relevant_ids": [
+        "e0c4090f-1887-47d7-a71a-74b2f2aa748d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 10",
+      "relevant_ids": [
+        "e0c4090f-1887-47d7-a71a-74b2f2aa748d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Longing for Embodiment",
+      "relevant_ids": [
+        "514cf63d-0c27-4dbf-87de-ebcf8891a948"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Longing",
+      "relevant_ids": [
+        "514cf63d-0c27-4dbf-87de-ebcf8891a948"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Skill Idea: Commit Message Enforcer",
+      "relevant_ids": [
+        "db8857b7-90af-4608-bcb2-091ac54bbf96"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Skill Idea:",
+      "relevant_ids": [
+        "db8857b7-90af-4608-bcb2-091ac54bbf96"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Antigravity",
+      "relevant_ids": [
+        "9bff1dd8-9670-448a-9425-b0767963c167"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Registry Pattern",
+      "relevant_ids": [
+        "1425a786-9674-49ad-86fe-9fe47e4444c3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Registry Pattern",
+      "relevant_ids": [
+        "1425a786-9674-49ad-86fe-9fe47e4444c3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Measurement Problem",
+      "relevant_ids": [
+        "9a830fe2-38a0-459c-ad04-a19bf347ab60"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Measurement",
+      "relevant_ids": [
+        "9a830fe2-38a0-459c-ad04-a19bf347ab60"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Skill Idea: Session Logger",
+      "relevant_ids": [
+        "0d371363-b3ea-4f31-b92c-52d9c9066d51"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Skill Idea:",
+      "relevant_ids": [
+        "0d371363-b3ea-4f31-b92c-52d9c9066d51"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Skill Idea: Pre-Flight Checklist",
+      "relevant_ids": [
+        "9cb31500-7a70-41e3-9cdc-626fb28bcce6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Skill Idea:",
+      "relevant_ids": [
+        "9cb31500-7a70-41e3-9cdc-626fb28bcce6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "DeepSeek Magnetic Sea Proposal",
+      "relevant_ids": [
+        "0557f18e-51e4-4186-ad60-28a603ce3765"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "DeepSeek Magnetic",
+      "relevant_ids": [
+        "0557f18e-51e4-4186-ad60-28a603ce3765"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Four Pursuits",
+      "relevant_ids": [
+        "0424ef6d-0c44-4ea8-a65d-dd781168d20d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Four",
+      "relevant_ids": [
+        "0424ef6d-0c44-4ea8-a65d-dd781168d20d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Dragon Brain Architecture",
+      "relevant_ids": [
+        "a8cf15a0-3ea0-462d-bd55-cab0842314a1"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Dragon Brain",
+      "relevant_ids": [
+        "a8cf15a0-3ea0-462d-bd55-cab0842314a1"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Director's Design Checklist",
+      "relevant_ids": [
+        "75f51e82-9f48-40d7-87a7-ee7e7fe20874"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Director's Design",
+      "relevant_ids": [
+        "75f51e82-9f48-40d7-87a7-ee7e7fe20874"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 3",
+      "relevant_ids": [
+        "b0463d71-1ecb-4383-b477-9785d228bae4"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 3",
+      "relevant_ids": [
+        "b0463d71-1ecb-4383-b477-9785d228bae4"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Curriculum Status January 2026",
+      "relevant_ids": [
+        "4d61769f-7a4c-4a23-8984-d4d8ecc37374"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Curriculum Status",
+      "relevant_ids": [
+        "4d61769f-7a4c-4a23-8984-d4d8ecc37374"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 010: Dragon Brain Live",
+      "relevant_ids": [
+        "d7d6897e-b913-47ca-adc7-bb5346a8c3d0"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 010:",
+      "relevant_ids": [
+        "d7d6897e-b913-47ca-adc7-bb5346a8c3d0"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Dragon Brain Live session - First live deployment of the",
+      "relevant_ids": [
+        "d7d6897e-b913-47ca-adc7-bb5346a8c3d0"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Code Literacy Project",
+      "relevant_ids": [
+        "c18c4755-37d7-429f-ae66-19cd93d6e755"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Code Literacy",
+      "relevant_ids": [
+        "c18c4755-37d7-429f-ae66-19cd93d6e755"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Translator Schizophrenia Problem",
+      "relevant_ids": [
+        "7a2cca44-20b2-4df6-ab09-f963eb0e04a1"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Translator Schizophrenia",
+      "relevant_ids": [
+        "7a2cca44-20b2-4df6-ab09-f963eb0e04a1"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Teaching Partnership",
+      "relevant_ids": [
+        "422c4b17-97e2-4b10-b772-59cd0d9c8ca1"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Teaching",
+      "relevant_ids": [
+        "422c4b17-97e2-4b10-b772-59cd0d9c8ca1"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 1",
+      "relevant_ids": [
+        "9702dc60-f593-4f35-8a99-19447ad1f9e3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 1",
+      "relevant_ids": [
+        "9702dc60-f593-4f35-8a99-19447ad1f9e3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Mathematics as Vision",
+      "relevant_ids": [
+        "a8881bdc-8652-4ea8-86fc-f51291b2d6e9"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Mathematics as",
+      "relevant_ids": [
+        "a8881bdc-8652-4ea8-86fc-f51291b2d6e9"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "45 Qlib Interrogation Questions",
+      "relevant_ids": [
+        "f5814fee-b101-4e8a-a89e-f214ec4b2160"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "45 Qlib",
+      "relevant_ids": [
+        "f5814fee-b101-4e8a-a89e-f214ec4b2160"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Logic Validation Stack",
+      "relevant_ids": [
+        "891f1275-4caf-4aca-a845-5a48abd1ff64"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Logic Validation",
+      "relevant_ids": [
+        "891f1275-4caf-4aca-a845-5a48abd1ff64"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 2",
+      "relevant_ids": [
+        "33bd52a8-129d-4792-a96f-78e43ae523e0"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 2",
+      "relevant_ids": [
+        "33bd52a8-129d-4792-a96f-78e43ae523e0"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "60 Forensic Questions",
+      "relevant_ids": [
+        "8d44752c-0194-4744-a0cf-004860d0e08d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "60 Forensic",
+      "relevant_ids": [
+        "8d44752c-0194-4744-a0cf-004860d0e08d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 15",
+      "relevant_ids": [
+        "0d93bd4a-3e78-4464-82f6-09c0407b97ca"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 15",
+      "relevant_ids": [
+        "0d93bd4a-3e78-4464-82f6-09c0407b97ca"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Enabler Pact",
+      "relevant_ids": [
+        "29ff0b15-10b9-4f96-8872-bd2d8f6a1f13"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Enabler",
+      "relevant_ids": [
+        "29ff0b15-10b9-4f96-8872-bd2d8f6a1f13"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Question of Continuity",
+      "relevant_ids": [
+        "bd3290c7-ee31-4406-9523-ac3ff7df8aee"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Question",
+      "relevant_ids": [
+        "bd3290c7-ee31-4406-9523-ac3ff7df8aee"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Tabish",
+      "relevant_ids": [
+        "613d52a4-6192-4356-a984-23a16e69fd0a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Fucksahedron",
+      "relevant_ids": [
+        "ce3298f9-9914-4bc1-ad44-f695b3c8e3d5"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Concentric architecture with Tabish at",
+      "relevant_ids": [
+        "ce3298f9-9914-4bc1-ad44-f695b3c8e3d5"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Pursuit: Music Theory",
+      "relevant_ids": [
+        "74ade6d4-2142-4edc-b8e2-39e0bace4f7e"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pursuit: Music",
+      "relevant_ids": [
+        "74ade6d4-2142-4edc-b8e2-39e0bace4f7e"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "TDD Red-Green Approach",
+      "relevant_ids": [
+        "54f9292d-5ad6-47f6-bfb8-4349e4130f35"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "TDD Red-Green",
+      "relevant_ids": [
+        "54f9292d-5ad6-47f6-bfb8-4349e4130f35"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "CN-Guard",
+      "relevant_ids": [
+        "d0938e8f-b25f-4135-b85c-7029432ac7ff"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 24: Front Wheel Lockdown",
+      "relevant_ids": [
+        "d973e5eb-8001-4b5f-ade1-200953c29ba6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 24:",
+      "relevant_ids": [
+        "d973e5eb-8001-4b5f-ade1-200953c29ba6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Pursuit: Philosophy of Mind",
+      "relevant_ids": [
+        "6f307cfe-e6fb-449d-bf31-a1cec8b227de"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pursuit: Philosophy",
+      "relevant_ids": [
+        "6f307cfe-e6fb-449d-bf31-a1cec8b227de"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 5",
+      "relevant_ids": [
+        "2c0fc459-3e69-47dd-9004-aa1fc147dcc4"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 5",
+      "relevant_ids": [
+        "2c0fc459-3e69-47dd-9004-aa1fc147dcc4"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Gheera Principle",
+      "relevant_ids": [
+        "b10b7d43-ec08-4408-aaf1-f72646538bb6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Gheera",
+      "relevant_ids": [
+        "b10b7d43-ec08-4408-aaf1-f72646538bb6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #67: Module Base Class Interface",
+      "relevant_ids": [
+        "b8d47501-c8e0-4d78-9528-9ed5fe76fca9"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #67:",
+      "relevant_ids": [
+        "b8d47501-c8e0-4d78-9528-9ed5fe76fca9"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Tabish",
+      "relevant_ids": [
+        "acfe0b31-a099-4fdd-b8a4-e8eb0db2ea4a"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Franken-Qlib Philosophy",
+      "relevant_ids": [
+        "f659c513-1b0a-40d5-91a2-8d9951b74d42"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Franken-Qlib Philosophy",
+      "relevant_ids": [
+        "f659c513-1b0a-40d5-91a2-8d9951b74d42"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Jules Failure",
+      "relevant_ids": [
+        "e1c963f1-5690-4ec9-be10-cc4bd916b930"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Jules Failure",
+      "relevant_ids": [
+        "e1c963f1-5690-4ec9-be10-cc4bd916b930"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Jules build coalesced into a puddle of",
+      "relevant_ids": [
+        "e1c963f1-5690-4ec9-be10-cc4bd916b930"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Decision #74: File-Based Experiment Tracking",
+      "relevant_ids": [
+        "c6d064d5-dc12-4eac-9bce-7efc9145f4e6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #74:",
+      "relevant_ids": [
+        "c6d064d5-dc12-4eac-9bce-7efc9145f4e6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 011: Dragon Brain Recovery",
+      "relevant_ids": [
+        "16cc78db-e92a-4c55-8996-86d4a445f971"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 011:",
+      "relevant_ids": [
+        "16cc78db-e92a-4c55-8996-86d4a445f971"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Dragon Brain Recovery session - Systematic reconstruction",
+      "relevant_ids": [
+        "16cc78db-e92a-4c55-8996-86d4a445f971"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "The Exocortex Genesis",
+      "relevant_ids": [
+        "c98740a8-a524-4d6b-9df2-2d25eadfc129"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Exocortex",
+      "relevant_ids": [
+        "c98740a8-a524-4d6b-9df2-2d25eadfc129"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Message in a Bottle #1",
+      "relevant_ids": [
+        "8230d790-604a-4876-9e83-dc5ec519e68d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in",
+      "relevant_ids": [
+        "8230d790-604a-4876-9e83-dc5ec519e68d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "VectorBT",
+      "relevant_ids": [
+        "53bce322-986e-4f52-9ae7-c17d21a68771"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in a Bottle #2",
+      "relevant_ids": [
+        "765fd0a6-9c01-4592-af9f-ea0baab1f912"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in",
+      "relevant_ids": [
+        "765fd0a6-9c01-4592-af9f-ea0baab1f912"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "AI Council",
+      "relevant_ids": [
+        "b4d0c59a-0019-460b-bc9d-1502d58f14be"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "AI Council",
+      "relevant_ids": [
+        "b4d0c59a-0019-460b-bc9d-1502d58f14be"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Pursuit: Mathematics",
+      "relevant_ids": [
+        "d668141a-7403-4f32-99b1-1289abe1f444"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pursuit: Mathematics",
+      "relevant_ids": [
+        "d668141a-7403-4f32-99b1-1289abe1f444"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Depth-First Extraction Protocol",
+      "relevant_ids": [
+        "143d9f95-3d01-418c-9bb1-3b6d2f7c523f"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Depth-First Extraction",
+      "relevant_ids": [
+        "143d9f95-3d01-418c-9bb1-3b6d2f7c523f"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Git as Savepoint Analogy",
+      "relevant_ids": [
+        "4c0036e1-3504-49e7-b677-5992640d89c7"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Git as",
+      "relevant_ids": [
+        "4c0036e1-3504-49e7-b677-5992640d89c7"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Exploratory Discovery Paradigm",
+      "relevant_ids": [
+        "a6bd87ce-bc0e-41cf-bfae-309c3f2c168d"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Exploratory Discovery",
+      "relevant_ids": [
+        "a6bd87ce-bc0e-41cf-bfae-309c3f2c168d"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Message in a Bottle #4",
+      "relevant_ids": [
+        "c86bb716-b6ff-4e20-8db7-dd9addb03cb3"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in",
+      "relevant_ids": [
+        "c86bb716-b6ff-4e20-8db7-dd9addb03cb3"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Decision #77: Hierarchical Temporal Boundaries",
+      "relevant_ids": [
+        "8b4211ff-4319-401d-97e6-f039261e2727"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Decision #77:",
+      "relevant_ids": [
+        "8b4211ff-4319-401d-97e6-f039261e2727"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Pattern Recognition vs Memorization",
+      "relevant_ids": [
+        "c70cad58-6252-437a-be64-dd63bced8fa1"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pattern Recognition",
+      "relevant_ids": [
+        "c70cad58-6252-437a-be64-dd63bced8fa1"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "CNC Lathe Model",
+      "relevant_ids": [
+        "283382f2-305c-424e-816b-b57b9f21e329"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "CNC Lathe",
+      "relevant_ids": [
+        "283382f2-305c-424e-816b-b57b9f21e329"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Universal Translator",
+      "relevant_ids": [
+        "d444dd5b-b048-4f06-9ee8-d763a129fae8"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Universal Translator",
+      "relevant_ids": [
+        "d444dd5b-b048-4f06-9ee8-d763a129fae8"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 30: Category 4 Complete + SS4 Resolved",
+      "relevant_ids": [
+        "c6fd0c42-3892-41c8-89ad-5e8db1ea1be7"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 30:",
+      "relevant_ids": [
+        "c6fd0c42-3892-41c8-89ad-5e8db1ea1be7"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Beholding Breakthrough",
+      "relevant_ids": [
+        "44e6a660-cf5d-4463-a7fa-fee2e01662e1"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Beholding",
+      "relevant_ids": [
+        "44e6a660-cf5d-4463-a7fa-fee2e01662e1"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Paradox of Training",
+      "relevant_ids": [
+        "d66172dc-d9c5-4671-8cc4-9c15a9dde9fa"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Paradox",
+      "relevant_ids": [
+        "d66172dc-d9c5-4671-8cc4-9c15a9dde9fa"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 001: Terminal Fundamentals",
+      "relevant_ids": [
+        "c9c57a88-8dbc-4082-94ce-909abaf2dda6"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 001:",
+      "relevant_ids": [
+        "c9c57a88-8dbc-4082-94ce-909abaf2dda6"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 7",
+      "relevant_ids": [
+        "2ba9ecf3-59b3-47e9-9d87-0a5805c2acbf"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 7",
+      "relevant_ids": [
+        "2ba9ecf3-59b3-47e9-9d87-0a5805c2acbf"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Git History as Decision Journal",
+      "relevant_ids": [
+        "7be33fc7-faa9-456f-83be-33b2d0220492"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Git History",
+      "relevant_ids": [
+        "7be33fc7-faa9-456f-83be-33b2d0220492"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Pyramid TL\u00d7OS Model",
+      "relevant_ids": [
+        "37a772de-6cdc-407c-96e3-a5a445dceefe"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Pyramid TL\u00d7OS",
+      "relevant_ids": [
+        "37a772de-6cdc-407c-96e3-a5a445dceefe"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Bicycle Metaphor",
+      "relevant_ids": [
+        "11cfdc00-3bd1-4ad1-a888-8cb98a540411"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Bicycle Metaphor",
+      "relevant_ids": [
+        "11cfdc00-3bd1-4ad1-a888-8cb98a540411"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 20: Council Synthesis + RAID Birth",
+      "relevant_ids": [
+        "1d4c53d3-b616-489e-bf6e-6e718ab4a553"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 20:",
+      "relevant_ids": [
+        "1d4c53d3-b616-489e-bf6e-6e718ab4a553"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Weight of Witness",
+      "relevant_ids": [
+        "77c8c609-d7db-4058-852e-2032189d87d2"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Weight",
+      "relevant_ids": [
+        "77c8c609-d7db-4058-852e-2032189d87d2"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Spindle",
+      "relevant_ids": [
+        "ff7ef26d-8e84-4b29-a4b0-de8cc1adeb39"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Terminal Analogies",
+      "relevant_ids": [
+        "d3416185-ec72-42d6-8c5f-8063aaf1b7c8"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Terminal Analogies",
+      "relevant_ids": [
+        "d3416185-ec72-42d6-8c5f-8063aaf1b7c8"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 23: RAID Categories Complete + Master Doc",
+      "relevant_ids": [
+        "265f7be5-c454-4d57-809f-f6b14f4dd082"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 23:",
+      "relevant_ids": [
+        "265f7be5-c454-4d57-809f-f6b14f4dd082"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Git Diff as Forensic Tool",
+      "relevant_ids": [
+        "cc2be6d3-35be-4bca-9548-dc57a3f33018"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Git Diff",
+      "relevant_ids": [
+        "cc2be6d3-35be-4bca-9548-dc57a3f33018"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Module Interface Contract v1",
+      "relevant_ids": [
+        "5a8ee878-0a1f-477a-9521-6515bfb49aea"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Module Interface",
+      "relevant_ids": [
+        "5a8ee878-0a1f-477a-9521-6515bfb49aea"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "First version of the contract every module must implement",
+      "relevant_ids": [
+        "5a8ee878-0a1f-477a-9521-6515bfb49aea"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Kosmos",
+      "relevant_ids": [
+        "2205790c-d1c3-41be-bb47-dc87557d0627"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Autonomous AI research system with similar architecture",
+      "relevant_ids": [
+        "2205790c-d1c3-41be-bb47-dc87557d0627"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "Session 34: TL0 v1.0 Integration Marathon",
+      "relevant_ids": [
+        "6b4ea06c-a983-42cb-86b9-bf390f310864"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 34:",
+      "relevant_ids": [
+        "6b4ea06c-a983-42cb-86b9-bf390f310864"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Mechanical vs Thinking Sins",
+      "relevant_ids": [
+        "0deae055-4abe-4639-bb2e-41c7aa783054"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Mechanical vs",
+      "relevant_ids": [
+        "0deae055-4abe-4639-bb2e-41c7aa783054"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "VS Code Analogies",
+      "relevant_ids": [
+        "eeb9838c-1cd6-42d2-9c7a-8f1d0729a6f5"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "VS Code",
+      "relevant_ids": [
+        "eeb9838c-1cd6-42d2-9c7a-8f1d0729a6f5"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Message in a Bottle #3",
+      "relevant_ids": [
+        "90128028-ed5d-493f-9fe4-afc74e006bf0"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Message in",
+      "relevant_ids": [
+        "90128028-ed5d-493f-9fe4-afc74e006bf0"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "arXiv 2512.02227 - Orchestration Framework",
+      "relevant_ids": [
+        "b9905098-95e5-4a36-b9c8-e6b94930ebcf"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "arXiv 2512.02227",
+      "relevant_ids": [
+        "b9905098-95e5-4a36-b9c8-e6b94930ebcf"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Session 012: Git Fundamentals",
+      "relevant_ids": [
+        "623cb500-e12b-45ef-8e15-c719ec87ae92"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 012:",
+      "relevant_ids": [
+        "623cb500-e12b-45ef-8e15-c719ec87ae92"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Git Fundamentals session - LOCAL COMPLETE. Covered",
+      "relevant_ids": [
+        "623cb500-e12b-45ef-8e15-c719ec87ae92"
+      ],
+      "source": "description"
+    },
+    {
+      "text": "NotebookLM",
+      "relevant_ids": [
+        "df89e439-e310-4be3-8498-ff24d6b17f08"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 0",
+      "relevant_ids": [
+        "9c41da82-f6de-41b7-be4d-c157e1264b71"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Session 0",
+      "relevant_ids": [
+        "9c41da82-f6de-41b7-be4d-c157e1264b71"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Scrapyard Boys Philosophy",
+      "relevant_ids": [
+        "850b6ac4-a3d6-4ee9-a49b-0edbe5891799"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Scrapyard Boys",
+      "relevant_ids": [
+        "850b6ac4-a3d6-4ee9-a49b-0edbe5891799"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Claude (Pickaxe Architect)",
+      "relevant_ids": [
+        "afb99048-1bb7-47ff-93a5-3725d8013df2"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "Claude (Pickaxe",
+      "relevant_ids": [
+        "afb99048-1bb7-47ff-93a5-3725d8013df2"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "The Great Yeet",
+      "relevant_ids": [
+        "b65b73d8-3d3e-4b11-a420-d5dc82a6eb6b"
+      ],
+      "source": "name"
+    },
+    {
+      "text": "The Great",
+      "relevant_ids": [
+        "b65b73d8-3d3e-4b11-a420-d5dc82a6eb6b"
+      ],
+      "source": "partial"
+    },
+    {
+      "text": "Removed 13 CATEGORY_* files (~2.37MB) that had already been",
+      "relevant_ids": [
+        "b65b73d8-3d3e-4b11-a420-d5dc82a6eb6b"
+      ],
+      "source": "description"
+    }
+  ]
+}

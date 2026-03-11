@@ -137,10 +137,7 @@ async def _find_orphan_ids(
     logger.info("  Qdrant contains %d vectors", len(all_qdrant_ids))
 
     # Set-diff: in Qdrant but NOT in graph, excluding already-flagged ghosts
-    orphan_ids = [
-        qid for qid in all_qdrant_ids
-        if qid not in graph_ids and qid not in exclude_ids
-    ]
+    orphan_ids = [qid for qid in all_qdrant_ids if qid not in graph_ids and qid not in exclude_ids]
 
     return orphan_ids
 

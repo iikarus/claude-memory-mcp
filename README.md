@@ -33,6 +33,8 @@ Claude is brilliant but forgets everything between conversations. Every new chat
 docker-compose up -d
 ```
 
+> **GPU users**: For NVIDIA GPU acceleration, use `docker compose --profile gpu up -d` instead.
+
 This spins up 4 containers:
 - **FalkorDB** (knowledge graph) on port 6379
 - **Qdrant** (vector search) on port 6333

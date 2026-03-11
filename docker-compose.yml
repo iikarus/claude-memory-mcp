@@ -62,12 +62,31 @@ services:
       start_period: 20s
     command: streamlit run src/dashboard/app.py
 
+  # Default: CPU embedding (works everywhere)
   embeddings:
     build: .
     environment:
       - PORT=8000
     ports:
       - "127.0.0.1:8001:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    command: python src/claude_memory/embedding_server.py
+
+  # GPU-accelerated embedding (requires NVIDIA GPU + nvidia-docker)
+  # Usage: docker compose --profile gpu up -d
+  embeddings-gpu:
+    build: .
+    environment:
+      - PORT=8000
+    ports:
+      - "127.0.0.1:8001:8000"
+    profiles: ["gpu"]
     deploy:
       resources:
         reservations:
