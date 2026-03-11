@@ -8,6 +8,8 @@
 
 An MCP server that gives Claude long-term memory using a knowledge graph + vector search hybrid. Claude can store entities, observations, and relationships — then recall them semantically across sessions. An autonomous background agent ("The Librarian") periodically clusters and synthesizes memories into higher-order concepts.
 
+![Memory Graph Dashboard — 1,492 nodes, 2,998 relationships](docs/dashboard.png)
+
 ## Why I Built This
 
 Claude is brilliant but forgets everything between conversations. Every new chat starts from scratch — no context, no continuity, no accumulated understanding. I wanted Claude to *remember* me: my projects, preferences, breakthroughs, and the connections between them. Not a flat chat history dump, but a living knowledge graph that grows richer over time.
