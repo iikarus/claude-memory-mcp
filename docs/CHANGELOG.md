@@ -97,7 +97,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   in `test_mutant_config_defaults.py` — the autouse `_fast_retries` fixture
   covers them (`fe0bcca`).
 - **Backup path hardcoded** (`092f37b`) — `scheduled_backup.py` had
-  `G:\My Drive\exocortex_backups` baked in. Now reads `EXOCORTEX_BACKUP_DIR`
+  a hardcoded Google Drive path baked in. Now reads `EXOCORTEX_BACKUP_DIR`
   env var. Task Scheduler setup upgraded with better settings.
 
 ### Removed

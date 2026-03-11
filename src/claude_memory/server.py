@@ -1,4 +1,4 @@
-"""MCP server exposing Exocortex memory tools via stdio transport."""
+"""MCP server exposing Claude Memory tools via stdio transport."""
 
 import logging
 from typing import Any, Literal

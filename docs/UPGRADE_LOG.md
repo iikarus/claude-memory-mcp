@@ -144,7 +144,7 @@ The system at Phase 3 completion had:
 | --------------------------------- | ------------------------------------------------------ |
 | Logging handler used `sys.stdout` | **`sys.stderr`** — stdout is reserved for MCP JSON-RPC |
 
-**Impact**: All MCP clients (Desktop, CLI, VS Code, Antigravity) failed with "Unexpected non-whitespace character after JSON" because log messages corrupted the stdio transport.
+**Impact**: All MCP clients (Desktop, CLI, VS Code) failed with "Unexpected non-whitespace character after JSON" because log messages corrupted the stdio transport.
 
 ---
 

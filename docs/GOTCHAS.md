@@ -36,7 +36,7 @@
 - **Risk**: Test counts don't match. Edits made inside the container are lost when it restarts. Documentation references files that don't exist in one environment.
 - **Rule**: **Host git repo = single source of truth.** The container is a runner, not an editor.
 - **Sync Protocol**:
-  1. **Always edit on the host first** (or via Antigravity IDE)
+  1. **Always edit on the host first** (or via your IDE)
   2. Push to container: `docker cp host/path/. container:/app/path/`
   3. After editing inside the container, **always sync back**: `docker cp container:/app/path/. host/path/`
   4. **Never commit inside the container** — commit on the host

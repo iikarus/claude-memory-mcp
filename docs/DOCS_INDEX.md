@@ -28,9 +28,9 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 
 | File                                                                                                         | Purpose                                     | Audience | Update When                                            |
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | -------- | ------------------------------------------------------ |
-| [README.md](README.md)       | Project overview, quick start, feature list | Everyone | New features, test count changes, architecture changes |
+| [README.md](../README.md)       | Project overview, quick start, feature list | Everyone | New features, test count changes, architecture changes |
 | [CHANGELOG.md](CHANGELOG.md) | Keep-a-Changelog format release notes | Everyone | Every release / significant commit batch |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, testing policy, code style | Contributors | Testing policy or workflow changes |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute, testing policy, code style | Contributors | Testing policy or workflow changes |
 | [GAUNTLET_RESULTS.md](GAUNTLET_RESULTS.md) | 20-round quality audit results (A- 95/100) | Testing enthusiasts | After re-running the gauntlet |
 
 ## `docs/` — Core Documentation

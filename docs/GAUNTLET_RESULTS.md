@@ -3,7 +3,7 @@
 > A 20-round automated quality audit covering unit tests, fuzzing, security, performance, architecture, and live data integrity. See [the spec](DRAGON_BRAIN_GAUNTLET.md) for methodology.
 
 **Date:** 2026-03-10
-**Runner:** Antigravity (local execution with Docker)
+**Runner:** Claude (local execution with Docker)
 **Spec:** `DRAGON_BRAIN_GAUNTLET.md`
 
 ---
