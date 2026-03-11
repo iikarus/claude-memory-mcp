@@ -20,6 +20,8 @@ This project follows strict TDD with the **Gold Stack** — a 4-tier quality sui
 | Hammer | `tox -e hammer` | Security analysis (bandit, semgrep) |
 | Polish | `tox -e polish` | Spell checking (codespell) |
 
+Beyond the Gold Stack, the project uses the **Dragon Brain Gauntlet** — a 20-round automated quality audit covering property-based testing, fuzzing, mutation testing, performance benchmarks, security analysis, and live data integrity checks. See [the spec](docs/DRAGON_BRAIN_GAUNTLET.md) and [results](GAUNTLET_RESULTS.md) for details.
+
 ### Testing Policy
 
 Every function needs at minimum:

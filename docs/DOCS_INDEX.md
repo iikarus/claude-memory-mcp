@@ -30,6 +30,8 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | -------- | ------------------------------------------------------ |
 | [README.md](README.md)       | Project overview, quick start, feature list | Everyone | New features, test count changes, architecture changes |
 | [CHANGELOG.md](CHANGELOG.md) | Keep-a-Changelog format release notes | Everyone | Every release / significant commit batch |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, testing policy, code style | Contributors | Testing policy or workflow changes |
+| [GAUNTLET_RESULTS.md](GAUNTLET_RESULTS.md) | 20-round quality audit results (A- 95/100) | Testing enthusiasts | After re-running the gauntlet |
 
 ## `docs/` — Core Documentation
 
@@ -44,6 +46,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | [RUNBOOK.md](RUNBOOK.md)                           | 10 incident response recipes                       | Operators              | New incident types, procedure changes             |
 | [GOTCHAS.md](GOTCHAS.md)                           | Known traps, edge cases, subtleties                | Developers, agents     | New bugs discovered, workarounds found            |
 | [UPGRADE_LOG.md](UPGRADE_LOG.md)                   | Phase-by-phase changelog of V2 build               | Auditors               | Historical, rarely updated                        |
+| [DRAGON_BRAIN_GAUNTLET.md](DRAGON_BRAIN_GAUNTLET.md) | 20-round quality audit spec (testing methodology) | Testing enthusiasts    | Methodology changes, new rounds                   |
 
 ## `docs/adr/` — Architecture Decision Records
 
