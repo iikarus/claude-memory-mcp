@@ -15,3 +15,4 @@
 - All commits must pass pre-commit hooks (ruff, codespell, detect-secrets).
 - `tox -e pulse` runs the fast feedback loop.
 - Mutation testing (via `mutatest`) validates test quality, not just coverage.
+- Beyond the Gold Stack, the [Dragon Brain Gauntlet](../DRAGON_BRAIN_GAUNTLET.md) adds a 20-round automated quality audit (property testing, fuzzing, security, performance, live data integrity). Current score: **A- (95/100)**.

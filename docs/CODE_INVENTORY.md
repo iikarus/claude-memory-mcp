@@ -1,6 +1,6 @@
 # Code Inventory
 
-> **Last Updated**: 2026-03-09 | **Source Modules**: 27 | **Test Files**: 60 | **MCP Tools**: 30 (19 decorator + 11 runtime) | **Scripts**: 40
+> **Last Updated**: 2026-03-11 | **Source Modules**: 29 | **Test Files**: 66 | **MCP Tools**: 30 (19 decorator + 11 runtime) | **Scripts**: 42
 
 A manifest of the project structure.
 
@@ -111,6 +111,19 @@ Core CRUD, search, session, and graph analysis tools.
 | *(+ 12 `test_mutant_*.py`)* | Mutation test killers from R3 Retrofit Campaign. |
 | *(+ 14 additional test files)* | edge cases, embedding retry, activation, schema, router, prune, archive, etc. |
 
+## Tests (`tests/gauntlet/`) — Dragon Brain Gauntlet
+
+| File | Coverage |
+|------|----------|
+| `test_hypothesis_schema.py` | Property-based testing — schema invariants (18 tests, 2000 examples each). |
+| `test_hypothesis_router.py` | Property-based testing — router dispatch (10 tests, 2000 examples each). |
+| `test_fuzz_blitz.py` | Fuzz testing — 30K+ random inputs (15 tests). |
+| `test_performance.py` | Performance benchmarks — response time, throughput (6 tests). |
+| `test_concurrent.py` | Concurrency stress — thread/async safety (4 tests). |
+| `test_mcp_contracts.py` | Contract testing — MCP tool input/output schemas (30 tests). |
+
+Spec: [DRAGON_BRAIN_GAUNTLET.md](DRAGON_BRAIN_GAUNTLET.md) | Results: [GAUNTLET_RESULTS.md](../GAUNTLET_RESULTS.md) | Score: **A- (95/100)**
+
 ## Configuration
 
 | File | Purpose |
@@ -118,6 +131,6 @@ Core CRUD, search, session, and graph analysis tools.
 | `pyproject.toml` | Dependencies, Build System, Tool Config (Black, Ruff, Mypy). |
 | `Dockerfile` | Multi-stage build definition. |
 | `docker-compose.yml` | Orchestration for DB + Server + Dashboard + Embeddings. |
-| `mcp_config.json` | Local config for `claude mcp run`. |
+| `mcp_config.example.json` | MCP connection template (copy to `mcp_config.json` and fill in). |
 | `tox.ini` | Gold Stack test configuration. |
 | `ontology.json` | Memory type definitions. |

@@ -6,6 +6,8 @@
 2.  **Strict Decoupling**: ML logic (`embedding.py`) is isolated from Business Logic (`tools.py`) via Dependency Injection.
 3.  **Semantic Holiness**: We do not treat memories as strings. We treat them as **Holographic Graphs**.
 
+Quality enforcement runs through the [Gold Stack](adr/006-gold-stack.md) (4-tier tox suite) and the [Dragon Brain Gauntlet](DRAGON_BRAIN_GAUNTLET.md) — a 20-round automated quality audit covering property testing, fuzzing, mutation testing, security, performance, and live data integrity. Current score: **A- (95/100)**. See [results](../GAUNTLET_RESULTS.md).
+
 ## The Data Model
 
 ### Entities
