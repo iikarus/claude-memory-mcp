@@ -1,8 +1,19 @@
 [project]
 name = "claude-memory-mcp"
-version = "0.1.0"
-description = "Custom MCP server for Claude's Hybrid Memory System"
+version = "1.0.0"
+description = "MCP server giving Claude persistent memory via knowledge graph + vector search"
 requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "iikarus"}]
+keywords = ["mcp", "claude", "memory", "knowledge-graph", "vector-search", "falkordb", "qdrant"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "graphiti-core>=0.5.0,<1.0.0",
     "falkordb>=1.0.0",
@@ -19,6 +30,12 @@ dependencies = [
     "uvicorn>=0.20.0",
     "httpx>=0.26.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/iikarus/claude-memory-mcp"
+Repository = "https://github.com/iikarus/claude-memory-mcp"
+Documentation = "https://github.com/iikarus/claude-memory-mcp/tree/master/docs"
+Issues = "https://github.com/iikarus/claude-memory-mcp/issues"
 
 [project.scripts]
 claude-memory = "claude_memory.server:main"
@@ -118,7 +135,7 @@ exclude_lines = [
     'class .*\bProtocol\):',
     '@(abc\.)?abstractmethod',
 ]
-fail_under = 30
+fail_under = 70
 
 [[tool.mypy.overrides]]
 module = [

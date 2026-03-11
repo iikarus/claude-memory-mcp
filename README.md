@@ -143,6 +143,8 @@ Full gauntlet results: [GAUNTLET_RESULTS.md](docs/GAUNTLET_RESULTS.md)
 
 ## Local Development
 
+Requires **Python 3.12+**.
+
 ```bash
 # Install
 pip install -e ".[dev]"
@@ -156,6 +158,16 @@ python -m claude_memory.server
 # Run dashboard
 streamlit run src/dashboard/app.py
 ```
+
+### Claude Code CLI
+
+```bash
+claude mcp add claude-memory -- python -m claude_memory.server
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for testing policy, code style, and how to submit changes.
 
 ## License
 
