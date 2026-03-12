@@ -96,6 +96,39 @@ def _render_explorer_tab() -> None:
 
         with open("graph.html", encoding="utf-8") as f:
             source_code = f.read()
+
+        # Inject fullscreen toggle button into graph HTML (native Browser API)
+        fs_btn = """
+        <div id="fs-btn" style="position:fixed;top:12px;right:12px;z-index:10000;
+             background:rgba(80,80,80,0.8);color:white;padding:8px 14px;border-radius:6px;
+             cursor:pointer;font-family:sans-serif;font-size:13px;border:1px solid #666;
+             user-select:none;" onclick="toggleFullscreen()">
+             &#x26F6; Fullscreen
+        </div>
+        <script>
+        function toggleFullscreen() {
+            var el = document.documentElement;
+            var canvas = document.getElementById('mynetwork');
+            if (!document.fullscreenElement) {
+                el.requestFullscreen().catch(function(){});
+                if (canvas) { canvas.style.height = '100vh'; }
+                document.getElementById('fs-btn').innerHTML = '&#x2715; Exit';
+            } else {
+                document.exitFullscreen();
+                if (canvas) { canvas.style.height = '600px'; }
+                document.getElementById('fs-btn').innerHTML = '&#x26F6; Fullscreen';
+            }
+        }
+        document.addEventListener('fullscreenchange', function() {
+            var canvas = document.getElementById('mynetwork');
+            if (!document.fullscreenElement) {
+                if (canvas) { canvas.style.height = '600px'; }
+                document.getElementById('fs-btn').innerHTML = '&#x26F6; Fullscreen';
+            }
+        });
+        </script>
+        """
+        source_code = source_code.replace("</body>", fs_btn + "</body>")
         components.html(source_code, height=600)
 
 
