@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 # We import the module functions directly — no live DB needed.
-from scripts.backfill_temporal import (
+from scripts.internal.backfill_temporal import (
     backfill_occurred_at,
     create_preceded_by_edges,
     get_project_ids,
@@ -148,7 +148,7 @@ def test_create_preceded_by_zero_edges() -> None:
 # ─── CLI main() Tests ───────────────────────────────────────────────
 
 
-@patch("scripts.backfill_temporal._get_graph")
+@patch("scripts.internal.backfill_temporal._get_graph")
 def test_main_dry_run_default(mock_get_graph: MagicMock) -> None:
     """main() defaults to dry-run mode."""
     graph = MagicMock()
@@ -163,7 +163,7 @@ def test_main_dry_run_default(mock_get_graph: MagicMock) -> None:
     mock_get_graph.assert_called_once()
 
 
-@patch("scripts.backfill_temporal._get_graph")
+@patch("scripts.internal.backfill_temporal._get_graph")
 def test_main_execute_flag(mock_get_graph: MagicMock) -> None:
     """main() with --execute runs mutations."""
     graph = MagicMock()

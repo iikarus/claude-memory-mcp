@@ -1,6 +1,6 @@
 # MCP Tool Reference
 
-Complete reference for the **29 MCP tools** exposed by the Claude Memory system.
+Complete reference for the **30 MCP tools** exposed by the Claude Memory system.
 
 ---
 
@@ -103,20 +103,24 @@ Add an observation (fact, note) linked to an entity.
 
 ### `search_memory`
 
-Search for entities using vector similarity. Supports strategy routing.
+Search for entities using vector similarity. Supports strategy routing and hybrid search (ADR-007).
 
-| Param        | Type   | Default  |
-| ------------ | ------ | -------- |
-| `query`      | `str`  | required |
-| `project_id` | `str`  | `None`   |
-| `limit`      | `int`  | `10`     |
-| `offset`     | `int`  | `0`      |
-| `mmr`        | `bool` | `False`  |
-| `strategy`   | `str`  | `None`   |
+| Param                  | Type   | Default  | Description                                                     |
+| ---------------------- | ------ | -------- | --------------------------------------------------------------- |
+| `query`                | `str`  | required | Search query text                                               |
+| `project_id`           | `str`  | `None`   | Scope to project                                                |
+| `limit`                | `int`  | `10`     | Max results                                                     |
+| `offset`               | `int`  | `0`      | Pagination offset                                               |
+| `mmr`                  | `bool` | `False`  | Maximal Marginal Relevance for diverse results                  |
+| `strategy`             | `str`  | `None`   | Explicit strategy override                                      |
+| `temporal_window_days` | `int`  | `7`      | Lookback window for temporal queries                            |
+| `include_meta`         | `bool` | `False`  | Wrap results with temporal exhaustion metadata                  |
 
-**Strategy values:** `auto`, `semantic`, `associative`, `temporal`, `relational`
+**Strategy values:** `semantic`, `associative`, `temporal`, `relational`, or `None` (hybrid default via intent classification). `auto` is deprecated and maps to hybrid.
 
-**Returns:** `list[SearchResult]` — `{id, name, score, node_type, observations?, relationships?}`
+**Returns:**
+- Default: `list[SearchResult]` — `{id, name, score, node_type, retrieval_strategy, recency_score, vector_score, ...}`
+- `include_meta=True` (temporal): `HybridSearchResponse` — `{results: [...], meta: {temporal_exhausted, temporal_window_days, suggestion}}`
 
 ### `search_associative`
 

@@ -22,7 +22,7 @@ os.environ.setdefault("QDRANT_PORT", "6333")
 os.environ.setdefault("FALKORDB_HOST", "localhost")
 os.environ.setdefault("FALKORDB_PORT", "6379")
 
-from scripts.purge_ghost_vectors import (
+from scripts.internal.purge_ghost_vectors import (
     _find_ghost_ids,
     _find_orphan_ids,
     _get_all_graph_ids,
@@ -212,7 +212,7 @@ async def test_main_dry_run_reports_both_categories() -> None:
 
     with (
         patch("qdrant_client.AsyncQdrantClient", return_value=mock_client),
-        patch("scripts.purge_ghost_vectors._get_all_graph_ids", return_value={"ok-1"}),
+        patch("scripts.internal.purge_ghost_vectors._get_all_graph_ids", return_value={"ok-1"}),
     ):
         await main([])  # dry-run
 
@@ -240,7 +240,7 @@ async def test_main_execute_deletes_combined() -> None:
 
     with (
         patch("qdrant_client.AsyncQdrantClient", return_value=mock_client),
-        patch("scripts.purge_ghost_vectors._get_all_graph_ids", return_value=set()),
+        patch("scripts.internal.purge_ghost_vectors._get_all_graph_ids", return_value=set()),
     ):
         await main(["--execute"])
 

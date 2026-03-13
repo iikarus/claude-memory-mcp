@@ -50,5 +50,9 @@
   "Procedure": {
     "description": "A learned process or protocol with ordered steps.",
     "required_properties": []
+  },
+  "Recipe": {
+    "description": "Cooking",
+    "required_properties": []
   }
 }

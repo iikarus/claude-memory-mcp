@@ -236,6 +236,12 @@ class TestOutputShapeSnapshots:
             "salience_score",
             "observations",
             "relationships",
+            # ADR-007 hybrid search fields
+            "retrieval_strategy",
+            "recency_score",
+            "path_distance",
+            "activation_score",
+            "vector_score",
         }
         assert set(data.keys()) == expected_keys
 

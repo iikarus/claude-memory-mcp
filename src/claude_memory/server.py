@@ -252,15 +252,51 @@ async def search_memory(  # noqa: PLR0913
     offset: int = 0,
     mmr: bool = False,
     strategy: str | None = None,
-) -> list[dict[str, Any]] | str:
+    temporal_window_days: int = 7,
+    include_meta: bool = False,
+) -> list[dict[str, Any]] | dict[str, Any] | str:
     """Search for entities. mmr=True for diverse results.
 
-    strategy: 'auto', 'semantic', 'associative', 'temporal', 'relational', or None.
+    strategy: 'semantic', 'associative', 'temporal', 'relational', or None (hybrid default).
+    temporal_window_days: lookback window for temporal queries (default 7).
+    include_meta: when True, wraps results with temporal exhaustion metadata.
     """
-    results = await service.search(query, limit, project_id, offset, mmr=mmr, strategy=strategy)
+    results = await service.search(
+        query,
+        limit,
+        project_id,
+        offset,
+        mmr=mmr,
+        strategy=strategy,
+        temporal_window_days=temporal_window_days,
+    )
     if not results:
         return "No results found."
-    return [res.model_dump() for res in results]
+
+    result_dicts = [res.model_dump() for res in results]
+
+    # Return temporal metadata envelope when opted-in
+    if include_meta and hasattr(service, "_last_detected_intent"):
+        from claude_memory.router import QueryIntent  # noqa: PLC0415
+        from claude_memory.schema import HybridSearchResponse  # noqa: PLC0415
+
+        if service._last_detected_intent == QueryIntent.TEMPORAL:
+            response = HybridSearchResponse(
+                results=results,
+                meta={
+                    "temporal_exhausted": getattr(service, "_last_temporal_exhausted", False),
+                    "temporal_window_days": getattr(service, "_last_temporal_window_days", 7),
+                    "temporal_result_count": getattr(service, "_last_temporal_result_count", 0),
+                    "suggestion": (
+                        "Widen temporal_window_days for more historical results"
+                        if getattr(service, "_last_temporal_exhausted", False)
+                        else None
+                    ),
+                },
+            )
+            return response.model_dump()
+
+    return result_dicts
 
 
 @mcp.tool()

@@ -111,7 +111,7 @@ class QueryRouter:
         # 4. Default: semantic vector search
         return QueryIntent.SEMANTIC
 
-    async def route(
+    async def route(  # noqa: PLR0913
         self,
         query: str,
         service: MemoryService,
@@ -119,6 +119,7 @@ class QueryRouter:
         intent: QueryIntent | None = None,
         limit: int = 10,
         project_id: str | None = None,
+        temporal_window_days: int = 7,
         **kwargs: Any,
     ) -> list[Any]:
         """Dispatch query to the appropriate retrieval strategy.
@@ -129,6 +130,7 @@ class QueryRouter:
             intent: Optional override — skips auto-classification.
             limit: Maximum results to return.
             project_id: Optional project scope.
+            temporal_window_days: Lookback window for temporal queries (default 7).
             **kwargs: Extra params forwarded to the underlying method.
 
         Returns:
@@ -141,7 +143,9 @@ class QueryRouter:
         logger.info("Routing query to %s strategy", resolved_intent.value)
 
         if resolved_intent == QueryIntent.TEMPORAL:
-            return await self._route_temporal(service, query, limit, project_id)
+            return await self._route_temporal(
+                service, query, limit, project_id, temporal_window_days
+            )
 
         if resolved_intent == QueryIntent.RELATIONAL:
             return await self._route_relational(service, query)
@@ -160,15 +164,16 @@ class QueryRouter:
         query: str,
         limit: int,
         project_id: str | None,
+        temporal_window_days: int = 7,
     ) -> list[Any]:
-        """Route to timeline query with sensible defaults.
+        """Route to timeline query with parameterised window.
 
         Since temporal queries from natural language rarely include exact
-        date ranges, we default to the last 30 days.
+        date ranges, we default to the last ``temporal_window_days`` days.
         """
         now = datetime.now(UTC)
         params = TemporalQueryParams(
-            start=now - timedelta(days=30),
+            start=now - timedelta(days=temporal_window_days),
             end=now,
             limit=limit,
             project_id=project_id,

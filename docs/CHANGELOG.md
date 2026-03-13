@@ -10,6 +10,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **ADR-007: Hybrid Search Unification** — Unified search pipeline replacing the
+  previous single-vector approach with a 3-step hybrid strategy:
+  1. **Vector search** — Qdrant similarity (unchanged)
+  2. **Associative enrichment** — Spreading activation over graph neighbors
+  3. **Relational enrichment** — Quoted-entity path traversal
+
+  New capabilities:
+  - **`merge.py`** — Reciprocal Rank Fusion (RRF) with configurable `k=60` for
+    merging heterogeneous result lists.
+  - **`retrieve_by_ids()`** — Batch Qdrant point retrieval with cosine scoring,
+    replacing expensive per-entity re-searches.
+  - **Enhanced `SearchResult` schema** — 5 new fields: `vector_score`,
+    `graph_score`, `recency_score`, `composite_score`, `search_strategy`
+    (all backward-compatible with safe defaults).
+  - **`temporal_window_days`** parameter on `route()` for time-scoped queries.
+  - Spec: [SPEC-hybrid-search-unification.md](SPEC-hybrid-search-unification.md)
+  - ADR: [007-hybrid-search-unification.md](adr/007-hybrid-search-unification.md)
+
+- **Gold Stack Tier 4: The Reaper** — `vulture` dead code detection added as a
+  tox environment. Scans `src/` with 80% confidence threshold + whitelist.
+  Catches unused functions, classes, variables, and dead imports.
+
+- **Coverage remediation** — 110 new tests across 5 files pushing per-module
+  coverage to 90%+ minimum (overall: 91% → 98.27%).
+
 - **Dragon Brain Gauntlet** — 20-round automated quality audit. Scored A- (95/100).
   See [spec](DRAGON_BRAIN_GAUNTLET.md) and [results](GAUNTLET_RESULTS.md).
 - **Security hardening** — hardcoded password removed, PII scrubbed, git history
@@ -59,6 +84,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`flush_background_tasks()`** (`28af2cd`) — Public method on
   `CrudMaintenanceMixin` / `MemoryService` to deterministically await all
   pending background tasks. Useful for graceful shutdown and test assertions.
+- **ADR-007: Hybrid Search Unification** — Vector-first pipeline: vector search →
+  intent classification → graph enrichment → RRF merge → hydration → recency scoring.
+  New `merge.py` module, `HybridSearchResponse` model, `retrieve_by_ids()` batch
+  API on `QdrantVectorStore`, real exponential decay recency (`2^(-age/hl)`).
+  `search_memory` tool gains `temporal_window_days` and `include_meta` params.
+- **10 Gauntlet RRF property tests** — Hypothesis-based property testing for
+  `rrf_merge` (limit cap, sort order, determinism, dual-source boost, etc.).
 
 ### Fixed
 
@@ -87,12 +119,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   guard.
 - **Async test hang** (`48164a7`) — Fixed `asyncio.run()` event loop conflict
   in test fixtures.
+- **Pre-existing test collection errors** — Fixed `test_purge_ghost_vectors.py`
+  and `test_backfill_temporal.py` broken imports after scripts moved to
+  `scripts/internal/`. 24 tests recovered.
 
 ### Changed
 
 - E2E test suite expanded from 18 to 26 phases.
-- Unit test suite: **904 tests** across 66 files, 0 failures.
-- Gold Stack tiers: 5 → 4 (removed `forge`/mutation tier from tox.ini).
+- Unit test suite: **1,047 tests** across 73 files, 0 failures.
+- Gold Stack tiers: 4 → 5 (added `reaper`/Vulture dead code tier to tox.ini).
 - MCP tools: 29 → 30 (added `list_orphans`).
 - Pre-commit hooks: ruff, ruff-format, codespell, detect-secrets all passing.
 - Removed 3 redundant `with patch("claude_memory.retry.time.sleep")` wrappers

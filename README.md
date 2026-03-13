@@ -1,7 +1,7 @@
 # Claude Memory MCP Server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-904%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1047%20passing-brightgreen)]()
 [![Gauntlet](https://img.shields.io/badge/gauntlet-A%E2%88%92%20(95%2F100)-blue)]()
 
 **Give Claude persistent memory across conversations.**
@@ -116,19 +116,20 @@ All 30 tools are documented in [docs/MCP_TOOL_REFERENCE.md](docs/MCP_TOOL_REFERE
 
 - **Graph Layer**: FalkorDB stores entities, relationships, and observations as a Cypher-queryable knowledge graph
 - **Vector Layer**: Qdrant stores 1024d embeddings for semantic similarity search
-- **Hybrid Search**: Queries hit both layers and merge results using spreading activation
+- **Hybrid Search**: Queries hit both layers and merge results using Reciprocal Rank Fusion (RRF) with spreading activation enrichment
 - **Autonomous Agent**: "The Librarian" runs DBSCAN clustering to discover concept groups and synthesize summaries
 
 ## Quality
 
 This isn't a weekend hack. It's tested like production software:
 
-- **904 unit tests** across 66 files, 0 failures, 0 skipped
+- **1,047 unit tests** across 73 files, 0 failures, 0 skipped
 - **Mutation testing** — 3-evil/1-sad/1-happy per function
-- **Property-based testing** — 28 Hypothesis properties
+- **Property-based testing** — 38 Hypothesis properties
 - **Fuzz testing** — 30K+ inputs, 0 crashes
 - **Static analysis** — mypy strict mode (0 errors), ruff (0 errors)
 - **Security audit** — Cypher injection audit, credential scanning
+- **Dead code detection** — Vulture (0 findings)
 - **Dragon Brain Gauntlet** — 20-round automated quality audit, **A- (95/100)**
 
 Full gauntlet results: [GAUNTLET_RESULTS.md](docs/GAUNTLET_RESULTS.md)

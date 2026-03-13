@@ -155,6 +155,9 @@ allow_untyped_defs = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-v"
+filterwarnings = [
+    "ignore::coverage.exceptions.CoverageWarning",
+]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
@@ -164,7 +167,7 @@ markers = [
 
 [tool.codespell]
 skip = "*.lock,*.json,*.html"
-ignore-words-list = "ne,falkordb"
+ignore-words-list = "ne,falkordb,nd"
 
 [tool.docstr_coverage]
 skip_magic = true

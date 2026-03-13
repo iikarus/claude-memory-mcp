@@ -1,6 +1,6 @@
 # Code Inventory
 
-> **Last Updated**: 2026-03-11 | **Source Modules**: 29 | **Test Files**: 66 | **MCP Tools**: 30 (19 decorator + 11 runtime) | **Scripts**: 42
+> **Last Updated**: 2026-03-14 | **Source Modules**: 30 | **Test Files**: 69 | **MCP Tools**: 30 (19 decorator + 11 runtime) | **Scripts**: 42
 
 A manifest of the project structure.
 
@@ -17,8 +17,9 @@ A manifest of the project structure.
 | `analysis.py` | **AnalysisMixin**. Graph health, diagnostics, reconnect, gap detection, orphan listing. |
 | `crud.py` | **CrudMixin**. Entity/relationship CRUD operations. |
 | `crud_maintenance.py` | **CrudMaintenanceMixin**. Archive, prune, consolidate, stale entity detection. |
-| `search.py` | **SearchMixin**. Core search and hologram retrieval. |
+| `search.py` | **SearchMixin**. Core search, hybrid pipeline (ADR-007), hologram retrieval. |
 | `search_advanced.py` | **SearchAdvancedMixin**. Associative search with spreading activation. |
+| `merge.py` | **[NEW]** RRF merge. Reciprocal Rank Fusion for hybrid vector+graph result merging. |
 | `temporal.py` | **TemporalMixin**. Timeline queries, temporal neighbors, temporal edge creation. |
 | **Data Access** | |
 | `repository.py` | **MemoryRepository**. FalkorDB connection, graph selection, base persistence. |
@@ -71,15 +72,14 @@ Core CRUD, search, session, and graph analysis tools.
 |------|---------|
 | `app.py` | **Streamlit App**. Visualizes graph, stats, and diagnostics. |
 
-## Tests (`tests/unit/`) — 66 Files
+## Tests (`tests/unit/`) — 73 Files
 
 | File | Coverage |
 |------|----------|
 | `test_backup_restore.py` | Backup/restore operations. |
 | `test_clustering.py` | DBSCAN wrapper logic. |
 | `test_context.py` | Context manager and sessions. |
-| `test_dashboard.py` | Dashboard rendering. |
-| `test_dashboard_app.py` | Dashboard app integration. |
+| `test_dashboard_app.py` | Dashboard app integration (13 tests). |
 | `test_dynamic_validation.py` | Dynamic validation logic. |
 | `test_embedding_client.py` | Embedding client calls. |
 | `test_embedding_coverage.py` | Embedding edge cases. |
@@ -110,6 +110,13 @@ Core CRUD, search, session, and graph analysis tools.
 | `test_purge_ghost_vectors.py` | **NEW**. Ghost vector + orphan cross-reference (3-evil/1-sad/1-happy + integration). |
 | *(+ 12 `test_mutant_*.py`)* | Mutation test killers from R3 Retrofit Campaign. |
 | *(+ 14 additional test files)* | edge cases, embedding retry, activation, schema, router, prune, archive, etc. |
+| `test_hybrid_search.py` | **[NEW]** ADR-007 hybrid pipeline tests (28 tests). |
+| `test_merge.py` | **[NEW]** RRF merge tests (10 tests). |
+| `test_repository_queries.py` | **[NEW]** Coverage — 7 Cypher wrapper functions (28 tests). |
+| `test_vector_store_coverage.py` | **[NEW]** Coverage — async Qdrant methods (21 tests). |
+| `test_tools_extra_coverage.py` | **[NEW]** Coverage — runtime MCP tool functions (26 tests). |
+| `test_traversal_coverage.py` | **[NEW]** Coverage — traversal + salience (10 tests). |
+| `test_search_coverage.py` | **[NEW]** Coverage — hybrid branches, hydration, recency (25 tests). |
 
 ## Tests (`tests/gauntlet/`) — Dragon Brain Gauntlet
 
@@ -117,10 +124,11 @@ Core CRUD, search, session, and graph analysis tools.
 |------|----------|
 | `test_hypothesis_schema.py` | Property-based testing — schema invariants (18 tests, 2000 examples each). |
 | `test_hypothesis_router.py` | Property-based testing — router dispatch (10 tests, 2000 examples each). |
+| `test_hypothesis_merge.py` | **[NEW]** Property-based testing — RRF merge invariants (10 tests, 2000 examples each). |
 | `test_fuzz_blitz.py` | Fuzz testing — 30K+ random inputs (15 tests). |
 | `test_performance.py` | Performance benchmarks — response time, throughput (6 tests). |
 | `test_concurrent.py` | Concurrency stress — thread/async safety (4 tests). |
-| `test_mcp_contracts.py` | Contract testing — MCP tool input/output schemas (30 tests). |
+| `test_contracts.py` | Contract testing — MCP tool input/output schemas (30 tests). |
 
 Spec: [DRAGON_BRAIN_GAUNTLET.md](DRAGON_BRAIN_GAUNTLET.md) | Results: [GAUNTLET_RESULTS.md](GAUNTLET_RESULTS.md) | Score: **A- (95/100)**
 

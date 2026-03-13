@@ -155,6 +155,51 @@ class QdrantVectorStore:
         ]
 
     @retry_on_transient()
+    async def retrieve_by_ids(
+        self,
+        ids: list[str],
+        query_vector: list[float],
+    ) -> dict[str, float]:
+        """Retrieve points by ID and compute cosine similarity against query.
+
+        Uses Qdrant's batch ``retrieve()`` — no N individual lookups.
+        Returns ``{entity_id: cosine_score}`` for each found point.
+        """
+        if not ids:
+            return {}
+
+        await self._ensure_collection()
+
+        # Batch retrieve with vectors
+        points = await self.client.retrieve(
+            collection_name=self.collection,
+            ids=ids,
+            with_vectors=True,
+            with_payload=False,
+        )
+
+        # Compute cosine similarity for each retrieved point
+        import numpy as np  # noqa: PLC0415
+
+        qv = np.array(query_vector, dtype=np.float32)
+        qv_norm = np.linalg.norm(qv)
+        if qv_norm == 0:
+            return {str(p.id): 0.0 for p in points}
+
+        scores: dict[str, float] = {}
+        for p in points:
+            vec = p.vector
+            if vec is None:
+                continue
+            pv = np.array(vec, dtype=np.float32)
+            pv_norm = np.linalg.norm(pv)
+            if pv_norm == 0:
+                scores[str(p.id)] = 0.0
+            else:
+                scores[str(p.id)] = float(np.dot(qv, pv) / (qv_norm * pv_norm))
+        return scores
+
+    @retry_on_transient()
     async def search_mmr(
         self,
         vector: list[float],

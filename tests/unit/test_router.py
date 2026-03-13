@@ -212,37 +212,51 @@ _SEARCH_ASSOC_MODULE = f"{_TOOLS_MODULE}.MemoryService.search_associative"
 
 
 class TestSearchStrategy:
-    """Tests for the strategy param wired through search() → QueryRouter."""
+    """Tests for the strategy param wired through search() — ADR-007 updated."""
 
     @pytest.mark.asyncio()
-    async def test_search_strategy_auto_routes_to_semantic(self) -> None:
-        """strategy='auto' with a plain query routes to vector search."""
-        from claude_memory.schema import SearchResult
-
-        mock_result = SearchResult(
-            id="sr-1",
-            name="Test",
-            node_type="Entity",
-            project_id="p",
-            content="desc",
-            score=0.9,
-            distance=0.1,
-        )
-
-        # Build a minimal service stub with router as AsyncMock
+    async def test_search_strategy_auto_logs_deprecation(self) -> None:
+        """strategy='auto' logs deprecation, falls through to hybrid default."""
         svc = MagicMock()
+        svc.embedder = MagicMock()
+        svc.embedder.encode.return_value = [0.1]
+        svc.vector_store = MagicMock()
+        svc.vector_store.search = AsyncMock(return_value=[{"_id": "a", "_score": 0.9}])
         svc.router = MagicMock()
-        svc.router.route = AsyncMock(return_value=[mock_result])
+        svc.router.classify.return_value = QueryIntent.SEMANTIC
+        svc.repo = MagicMock()
+        svc.repo.get_subgraph.return_value = {
+            "nodes": [
+                {
+                    "id": "a",
+                    "name": "A",
+                    "node_type": "Entity",
+                    "project_id": "p",
+                    "salience_score": 0.5,
+                }
+            ],
+            "edges": [],
+        }
+        svc._fire_salience_update = MagicMock()
 
-        from claude_memory.tools import MemoryService
+        # Wire internal async methods since svc is a MagicMock (not a real MemoryService)
+        from claude_memory.search import SearchMixin
 
-        result = await MemoryService.search(svc, "plain query", strategy="auto")
-        svc.router.route.assert_called_once()
-        assert result == [mock_result]
+        svc._execute_vector_search = AsyncMock(return_value=[{"_id": "a", "_score": 0.9}])
+        svc._hydrate_merged_results = AsyncMock(return_value=[])
+
+        import logging
+
+        # Bind the real search method's logic
+        with patch.object(logging.getLogger("claude_memory.search"), "warning") as mock_warn:
+            _ = await SearchMixin.search(svc, "plain query", strategy="auto")
+
+        mock_warn.assert_called_once()
+        assert "deprecated" in mock_warn.call_args[0][0].lower()
 
     @pytest.mark.asyncio()
     async def test_search_strategy_explicit_semantic(self) -> None:
-        """strategy='semantic' forces QueryIntent.SEMANTIC."""
+        """strategy='semantic' dispatches via _direct_strategy_search."""
         from claude_memory.schema import SearchResult
 
         mock_result = SearchResult(
@@ -259,54 +273,72 @@ class TestSearchStrategy:
         svc.router = MagicMock()
         svc.router.route = AsyncMock(return_value=[mock_result])
 
-        from claude_memory.tools import MemoryService
+        # Wire _direct_strategy_search by calling it properly
+        from claude_memory.search import SearchMixin
 
-        result = await MemoryService.search(svc, "what is Python", strategy="semantic")
-        call_kwargs = svc.router.route.call_args.kwargs
-        assert call_kwargs["intent"] == QueryIntent.SEMANTIC
+        svc._direct_strategy_search = AsyncMock(return_value=[mock_result])
+
+        result = await SearchMixin.search(svc, "what is Python", strategy="semantic")
+        svc._direct_strategy_search.assert_called_once()
         assert len(result) == 1
 
     @pytest.mark.asyncio()
-    async def test_search_strategy_none_skips_router(self) -> None:
-        """strategy=None (default) does NOT create a QueryRouter."""
-        with patch(f"{_TOOLS_MODULE}.QueryRouter") as mock_router_cls:
-            svc = MagicMock()
-            svc.embedder = MagicMock()
-            svc.embedder.encode.return_value = [0.1]
-            svc.vector_store = MagicMock()
-            svc.vector_store.search = AsyncMock(return_value=[])
-            svc.vector_store.search_mmr = AsyncMock(return_value=[])
+    async def test_search_strategy_none_uses_hybrid_pipeline(self) -> None:
+        """strategy=None (default) runs hybrid pipeline with router.classify()."""
+        from claude_memory.schema import SearchResult
+        from claude_memory.search import SearchMixin
 
-            from claude_memory.tools import MemoryService
-
-            result = await MemoryService.search(svc, "test query")
-            mock_router_cls.assert_not_called()
-            assert result == []
-
-    @pytest.mark.asyncio()
-    async def test_search_strategy_coerces_dict_results(self) -> None:
-        """Dict results from temporal/relational are coerced to SearchResult."""
-        dicts = [
-            {"id": "d-1", "name": "Node1", "node_type": "Entity", "project_id": "p"},
-            {"id": "d-2"},
-        ]
+        mock_sr = SearchResult(
+            id="a",
+            name="A",
+            node_type="Entity",
+            project_id="p",
+            score=0.9,
+            distance=0.1,
+        )
 
         svc = MagicMock()
         svc.router = MagicMock()
-        svc.router.route = AsyncMock(return_value=dicts)
+        svc.router.classify.return_value = QueryIntent.SEMANTIC
+        svc._execute_vector_search = AsyncMock(return_value=[{"_id": "a", "_score": 0.9}])
+        svc._hydrate_merged_results = AsyncMock(return_value=[mock_sr])
+        svc._compute_recency = MagicMock(return_value=0.0)
 
-        from claude_memory.tools import MemoryService
+        result = await SearchMixin.search(svc, "test query")
 
-        result = await MemoryService.search(svc, "timeline of events", strategy="temporal")
-        assert len(result) == 2
-        assert result[0].id == "d-1"
-        assert result[1].name == "Unknown"  # default for missing name
+        # In ADR-007, strategy=None now uses router.classify()
+        svc.router.classify.assert_called_once_with("test query")
+        assert len(result) == 1
+
+    @pytest.mark.asyncio()
+    async def test_search_strategy_temporal_attaches_vector_scores(self) -> None:
+        """Explicit temporal strategy attaches vector scores to dict results."""
+        from claude_memory.schema import SearchResult
+        from claude_memory.search import SearchMixin
+
+        mock_sr = SearchResult(
+            id="d-1",
+            name="Node1",
+            node_type="Entity",
+            project_id="p",
+            score=0.75,
+            distance=0.25,
+            retrieval_strategy="temporal",
+            vector_score=0.75,
+        )
+
+        svc = MagicMock()
+        svc._direct_strategy_search = AsyncMock(return_value=[mock_sr])
+
+        result = await SearchMixin.search(svc, "timeline of events", strategy="temporal")
+        assert len(result) == 1
+        assert result[0].retrieval_strategy == "temporal"
 
     @pytest.mark.asyncio()
     async def test_search_strategy_empty_query_returns_empty(self) -> None:
         """strategy set but empty query still returns []."""
-        svc = MagicMock()
-        from claude_memory.tools import MemoryService
+        from claude_memory.search import SearchMixin
 
-        result = await MemoryService.search(svc, "", strategy="auto")
+        svc = MagicMock()
+        result = await SearchMixin.search(svc, "", strategy="auto")
         assert result == []

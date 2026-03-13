@@ -193,6 +193,40 @@ class SearchResult(BaseModel):
         default_factory=list, description="E-2: connected edges"
     )
 
+    # --- Hybrid search enrichment fields (ADR-007) ---
+    retrieval_strategy: str = Field(
+        default="semantic",
+        description="What generated this result: 'semantic', 'hybrid', 'temporal', "
+        "'relational', 'associative'",
+    )
+    recency_score: float = Field(
+        default=0.0,
+        description="0-1 exponential decay score. 1.0 = just created, 0.5 ≈ half-life old, "
+        "0.0 = ancient. Populated for all results when timestamp available.",
+    )
+    path_distance: int | None = Field(
+        default=None,
+        description="Graph hops from query anchor. Only populated for relational results.",
+    )
+    activation_score: float = Field(
+        default=0.0,
+        description="Spreading activation energy. Only populated for associative results.",
+    )
+    vector_score: float | None = Field(
+        default=None,
+        description="Raw cosine similarity from Qdrant. None if entity had no vector match.",
+    )
+
+
+class HybridSearchResponse(BaseModel):
+    """Response envelope for hybrid searches with temporal metadata (ADR-007).
+
+    Only returned when the caller opts in via ``include_meta=True``.
+    """
+
+    results: list[SearchResult]
+    meta: dict[str, Any] = Field(default_factory=dict)
+
 
 class BottleQueryParams(BaseModel):
     """Parameters for querying 'Message in a Bottle' entities."""
