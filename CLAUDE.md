@@ -18,6 +18,16 @@ You should see 4 healthy containers: graphdb, qdrant, embeddings, dashboard.
 
 If MCP tools (`search_memory`, `create_entity`, etc.) are not available, the server may need restarting. MCP failures are **silent** — always verify tool availability at session start.
 
+## Updating
+
+```bash
+cd claude-memory-mcp
+git pull origin master
+pip install -e ".[dev]"
+```
+
+If Docker images changed: `docker compose pull && docker compose up -d`
+
 ## How to Search
 
 ### Default (Hybrid Search — Recommended)
@@ -133,6 +143,20 @@ system_diagnostics()    # Infrastructure status, embedding health
 ```
 
 If `orphan_count > 0`, investigate before deleting — orphans may carry real data.
+
+### Orphan Management
+
+```
+list_orphans(limit=50)   # See all orphan nodes for triage
+```
+
+### Drift Detection
+
+```
+search_stats()           # Rolling-window search behaviour stats (DRIFT-002)
+```
+
+Use `search_stats()` to monitor retrieval strategy distribution, score percentiles, and latency trends. Useful for detecting when something has drifted.
 
 ## Session Best Practices
 

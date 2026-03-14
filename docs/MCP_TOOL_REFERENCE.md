@@ -347,6 +347,16 @@ Unified system diagnostics — graph stats, vector stats, and split-brain check 
 > [!NOTE]
 > `split_brain.status` is `ok` (consistent), `drift` (graph-only entities found), or `unavailable` (vector store unreachable).
 
+### `list_orphans`
+
+List graph nodes with zero relationships (orphans) for triage.
+
+| Param   | Type  | Default |
+| ------- | ----- | ------- |
+| `limit` | `int` | `50`    |
+
+**Returns:** `list[dict]` — `[{id, name, node_type, project_id, focus, labels, created_at}]`
+
 ### `reconnect`
 
 Session reconnect — structured briefing for a returning agent (E-4).

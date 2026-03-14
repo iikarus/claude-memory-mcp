@@ -70,6 +70,23 @@ pip install -e ".[dev]"
 
 **Verification**: `python -c "import claude_memory; print('OK')"` should print `OK`.
 
+### Updating to the Latest Version
+
+Already installed? Pull the latest code and re-install:
+
+```bash
+# From inside the claude-memory-mcp directory
+git pull origin master
+pip install -e ".[dev]"
+```
+
+If Docker images have changed (check the release notes), also run:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
 ---
 
 ## Step 2: Start Docker Services
