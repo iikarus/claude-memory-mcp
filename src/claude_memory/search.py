@@ -6,6 +6,7 @@ point-in-time queries.  ADR-007 hybrid search unification.
 
 import logging
 import os
+import time
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -181,6 +182,7 @@ class SearchMixin(SearchAdvancedMixin):
         if not query:
             return []
 
+        _t0 = time.perf_counter()
         try:
             # ── Handle explicit strategies (direct dispatch) ──
             if strategy is not None:
@@ -239,6 +241,20 @@ class SearchMixin(SearchAdvancedMixin):
                 len(graph_results) if (detected_intent == QueryIntent.TEMPORAL) else 0
             )
             self._last_detected_intent = detected_intent
+
+            # DRIFT-002: record search stats
+            from claude_memory.stats import record_search  # noqa: PLC0415
+
+            record_search(
+                getattr(self, "_stats", None),
+                query=query,
+                detected_intent=detected_intent.value,
+                results=search_results,
+                latency_ms=(time.perf_counter() - _t0) * 1000,
+                temporal_exhausted=(
+                    temporal_exhausted if detected_intent == QueryIntent.TEMPORAL else None
+                ),
+            )
 
             return search_results
         except (ConnectionError, TimeoutError, OSError, ValueError):

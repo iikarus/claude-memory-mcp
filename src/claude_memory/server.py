@@ -317,6 +317,19 @@ async def get_hologram(
     return await service.get_hologram(query, depth=depth, max_tokens=max_tokens)
 
 
+@mcp.tool()
+async def search_stats() -> dict[str, Any]:
+    """Return rolling-window search behaviour statistics (DRIFT-002).
+
+    Reports distribution of retrieval strategies, score percentiles,
+    vector score null rates, and latency — useful for detecting
+    behavioural drift over time.
+    """
+    if service._stats is None:
+        return {"status": "stats not enabled", "searches_recorded": 0}
+    return service._stats.report()
+
+
 _background_tasks: set[object] = set()  # prevent GC of fire-and-forget tasks
 
 

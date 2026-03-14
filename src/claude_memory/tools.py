@@ -80,3 +80,7 @@ class MemoryService(CrudMixin, CrudMaintenanceMixin, SearchMixin, TemporalMixin,
         self.activation_engine = ActivationEngine(repo=self.repo)
         # Background tasks for fire-and-forget operations
         self._background_tasks: set[asyncio.Task[None]] = set()
+        # Search stats accumulator (DRIFT-002) — default ON, opt-out via env
+        from claude_memory.stats import create_accumulator  # noqa: PLC0415
+
+        self._stats = create_accumulator()
